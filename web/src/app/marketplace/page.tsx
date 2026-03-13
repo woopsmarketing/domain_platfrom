@@ -4,10 +4,16 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatPrice } from "@/lib/utils";
-import { mockMarketplaceListings } from "@/lib/mock-data";
+import { getMarketplaceListings } from "@/lib/db/marketplace";
+import type { MarketplaceListing } from "@/types/domain";
 
-export default function MarketplacePage() {
-  const listings = mockMarketplaceListings;
+export default async function MarketplacePage() {
+  let listings: MarketplaceListing[] = [];
+  try {
+    listings = await getMarketplaceListings();
+  } catch {
+    // DB not connected yet - show empty state
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">

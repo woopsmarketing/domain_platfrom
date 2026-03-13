@@ -12,7 +12,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatPrice, formatDate } from "@/lib/utils";
-import { mockDomainDetail } from "@/lib/mock-data";
+import { getDomainByName } from "@/lib/db/domains";
+import { fetchWhois } from "@/lib/external/whois";
+import { fetchWayback } from "@/lib/external/wayback";
+import type { DomainDetail } from "@/types/domain";
 
 interface PageProps {
   params: Promise<{ name: string }>;
@@ -20,8 +23,31 @@ interface PageProps {
 
 export default async function DomainDetailPage({ params }: PageProps) {
   const { name } = await params;
-  // In production, fetch from API based on `name`
-  const data = mockDomainDetail;
+
+  let data: DomainDetail | null = null;
+  try {
+    const dbData = await getDomainByName(name);
+    if (dbData) {
+      const [whois, wayback] = await Promise.all([
+        fetchWhois(name),
+        dbData.wayback ? Promise.resolve(dbData.wayback) : fetchWayback(dbData.domain.id, name),
+      ]);
+      data = { ...dbData, whois, wayback: wayback ?? dbData.wayback };
+    }
+  } catch {
+    // DB not connected - data stays null
+  }
+
+  if (!data) {
+    return (
+      <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
+        <div className="flex flex-col items-center justify-center py-24 text-muted-foreground">
+          <p className="text-lg font-medium">도메인을 찾을 수 없습니다</p>
+          <p className="text-sm">{name} 에 대한 정보가 없습니다.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 lg:px-8">
