@@ -1,42 +1,92 @@
 # NEXT_TASK.md
 
-## 1순위 — Next.js 프로젝트 초기 세팅
+> 마지막 업데이트: 2026-03-13
+> 코드는 완성된 상태. 아래는 **환경 설정 + 실제 동작 확인** 작업입니다.
+
+---
+
+## 1순위 — Supabase DB 세팅 (30분)
+
+### 1-1. Supabase 프로젝트 생성
+1. https://supabase.com → New Project
+2. 프로젝트 이름: `domain-platform`
+3. 비밀번호 메모해두기 (DB 접속용)
+
+### 1-2. 스키마 실행
+1. Supabase 대시보드 → SQL Editor
+2. `web/supabase/migration.sql` 전체 복사 붙여넣기 → Run
+
+### 1-3. 환경변수 입력
+```bash
+# web/.env.local 파일 생성
+NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...
+RAPIDAPI_KEY=                    # 일단 비워도 됨 (나중에)
+WHOIS_API_KEY=                   # 일단 비워도 됨 (나중에)
+```
+키 위치: Supabase 대시보드 → Settings → API
+
+---
+
+## 2순위 — 크롤러로 데이터 적재 (15분)
 
 ```bash
-pnpm create next-app@latest web --typescript --tailwind --app --src-dir
-cd web
-pnpm add @tanstack/react-table recharts
-pnpm dlx shadcn@latest init
+# 프로젝트 루트에서
+python3 -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+python3 -m crawler.run           # GoDaddy + Namecheap 전체 수집
+# 또는
+python3 -m crawler.run --source godaddy --files 1   # 빠른 테스트
 ```
 
-- `web/` 폴더에 Next.js 앱 생성
-- shadcn/ui 초기화
-- 기본 레이아웃 (헤더, 사이드바) 구성
-- `/domain/[name]` 라우트 빈 페이지 생성
+완료 후 Supabase 대시보드 → Table Editor → `domains`, `sales_history` 에 데이터 확인
 
-## 2순위 — Supabase DB 세팅 + API Route 연결
+---
 
-- Supabase 프로젝트 생성
-- PRD 기반 5개 테이블 마이그레이션 실행
-  - `domains`, `domain_metrics`, `sales_history`, `wayback_summary`, `auction_listings`
-- `.env.local`에 `DATABASE_URL` 설정
-- `/api/domain/[name]` API Route 작성 (DB 조회)
+## 3순위 — Next.js 로컬 실행 및 화면 확인 (10분)
 
-## 3순위 — 도메인 상세 페이지 MVP
+```bash
+cd web
+pnpm install
+pnpm dev
+# → http://localhost:3000
+```
 
-- `/domain/[name]` 페이지에 4개 섹션 구현
-  1. Whois 정보 (WhoisXML API 연동)
-  2. SEO 지수 (RapidAPI domain-metrics-check 연동 + Redis 캐시)
-  3. 거래 이력 테이블
-  4. Wayback 히스토리 요약
-- 도메인 검색 인풋 (헤더에 배치)
+확인 사항:
+- [ ] 메인 페이지 (`/`) — 도메인 목록이 실제 DB 데이터로 표시
+- [ ] 도메인 상세 (`/domain/theverge.com`) — 4섹션 렌더링
+
+---
+
+## 4순위 — RapidAPI SEO 지수 연동 (선택, 15분)
+
+1. https://rapidapi.com → `domain-metrics-check` 검색 → 구독 (무료 플랜)
+2. API 키 복사 → `web/.env.local`의 `RAPIDAPI_KEY` 입력
+3. `/domain/theverge.com` 접속 → SEO 지수(DA/DR/TF) 로드 확인
+
+---
+
+## 5순위 — 배포 (선택)
+
+```bash
+# Vercel CLI
+cd web
+npx vercel deploy
+
+# 환경변수를 Vercel 대시보드에도 등록
+# vercel.com → Project Settings → Environment Variables
+```
 
 ---
 
 ## 완료 기준
 
 | 작업 | 완료 기준 |
-|---|---|
-| 1순위 | `pnpm dev` 실행 후 `/domain/theverge.com` 접속 시 빈 페이지라도 렌더링 됨 |
-| 2순위 | Supabase에 테이블 생성, API Route에서 JSON 응답 반환 확인 |
-| 3순위 | `theverge.com` 입력 시 DA/DR/TF 수치가 실제로 화면에 표시됨 |
+|------|----------|
+| Supabase 세팅 | `migration.sql` 실행 후 8개 테이블 생성 확인 |
+| 크롤러 | `domains` 테이블에 100건 이상 데이터 확인 |
+| 로컬 실행 | 메인 페이지에 실제 도메인 목록 표시 |
+| SEO 지수 | `/domain/theverge.com` 에서 DA/DR 숫자 표시 |
