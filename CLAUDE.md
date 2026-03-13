@@ -2,75 +2,118 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 프로젝트 개요
+---
 
-**도메인 투자자 및 SEO 전문가를 위한 도메인 데이터 분석 플랫폼.**
-NameBio(거래 이력) + DomCop(만료/경매 탐색) 핵심 기능을 하나로 합친 서비스.
+## 이 프로젝트가 만드는 것
 
-> 상세 요구사항 → [`docs/PRD.md`](docs/PRD.md)
+**도메인 투자자·SEO 전문가용 도메인 데이터 분석 플랫폼.**
+
+- 경매·만료 도메인 목록 + SEO 지수(DA/DR/TF 등) 통합 탐색
+- 수십만 건의 도메인 거래 이력 데이터베이스
+- 도메인명 입력 시 Whois, SEO 지수, 거래 이력, Wayback 히스토리를 한 페이지에 표시
+
+상세 요구사항 → [`docs/PRD.md`](docs/PRD.md)
 
 ---
 
 ## 기술 스택
 
-| 레이어 | 기술 |
-|---|---|
-| Frontend | Next.js App Router + TypeScript + Tailwind CSS |
-| 테이블 UI | TanStack Table v8 |
-| 차트 | Recharts |
-| DB | PostgreSQL (Supabase) |
-| 캐싱 / 큐 | Redis (Upstash) |
-| 크롤러 | Python + Scrapy or Playwright |
-| 배포 | Vercel (Frontend), Railway or VPS (크롤러) |
-| Package manager | pnpm |
+### Frontend
+```
+Next.js 14 (App Router) + TypeScript + Tailwind CSS
+shadcn/ui       — UI 컴포넌트 (테이블, 배지, 필터 등)
+TanStack Table  — 도메인 목록 대용량 테이블 (클라이언트 필터·정렬)
+Recharts        — 거래가 추이, 트래픽 그래프
+```
+
+### Backend & 인프라
+```
+Next.js API Routes  — 클라이언트 ↔ DB 연결
+PostgreSQL          — 메인 DB (Supabase 관리형)
+Redis               — API 응답 캐시 + 작업 큐 (Upstash 서버리스)
+Python + Playwright — 크롤러 (JS 렌더링 사이트 대응)
+Vercel              — Frontend 배포
+Railway             — 크롤러 서버 (장시간 실행 프로세스)
+pnpm                — 패키지 매니저
+```
 
 ---
 
 ## 핵심 외부 API
 
-### 1. 도메인 SEO 지수 (RapidAPI)
+### 1. 도메인 SEO 지수 — RapidAPI domain-metrics-check
 ```
 GET https://domain-metrics-check.p.rapidapi.com/domain-metrics/{domain}
 Headers:
-  X-RapidAPI-Key: {RAPIDAPI_KEY}     # .env에 보관
+  X-RapidAPI-Key: {RAPIDAPI_KEY}        # .env에 보관
   X-RapidAPI-Host: domain-metrics-check.p.rapidapi.com
 ```
-반환 필드: `mozDA`, `mozPA`, `ahrefsDR`, `majesticTF`, `majesticCF`, `ahrefsTraffic`, `ahrefsBacklinks` 등
-- **DB 캐싱 필수**: DB 우선 조회 → 없거나 7일 경과 시 API 호출
-- 무료 플랜 한도: 15,000 req/월
 
-### 2. Wayback Machine (무료)
+**주요 응답 필드:**
+| 필드 | 지수 | 출처 |
+|---|---|---|
+| `mozDA` | Domain Authority | Moz |
+| `ahrefsDR` | Domain Rating | Ahrefs |
+| `majesticTF` | Trust Flow | Majestic |
+| `majesticCF` | Citation Flow | Majestic |
+| `ahrefsTraffic` | 월간 유기 트래픽 | Ahrefs |
+| `ahrefsBacklinks` | 총 백링크 수 | Ahrefs |
+| `ahrefsTrafficValue` | 트래픽 가치(USD) | Ahrefs |
+| `mozSpam` | Spam Score | Moz |
+
+**캐싱 규칙 (필수):**
+- DB에 저장된 지수가 있고 `updated_at < 7일` → DB에서 반환 (API 호출 X)
+- 없거나 7일 초과 → RapidAPI 호출 후 DB 저장
+- 무료 플랜 한도: **월 15,000 요청**
+
+### 2. Wayback Machine CDX API (무료)
 ```
-GET http://web.archive.org/cdx/search/cdx?url={domain}&output=json&limit=5&fl=timestamp,statuscode
+GET http://web.archive.org/cdx/search/cdx
+  ?url={domain}&output=json&limit=10&fl=timestamp,statuscode
 ```
 
 ### 3. Whois
-- whoisxmlapi.com 또는 공개 whois API 사용
+- WhoisXML API (`whoisxmlapi.com`) — 무료 플랜 있음
+
+---
+
+## DB 스키마 (핵심 테이블)
+
+```sql
+domains           -- name, tld, registrar, expires_at, status(auction/expired/active)
+domain_metrics    -- mozDA, ahrefsDR, majesticTF, ahrefsTraffic, ... , updated_at
+sales_history     -- domain_id, sold_at, price_usd, platform
+wayback_summary   -- domain_id, first_snapshot_at, last_snapshot_at, total_snapshots
+auction_listings  -- domain_id, platform, auction_end_at, current_price_usd
+```
 
 ---
 
 ## 도메인 상세 페이지 구조
 
-`/domain/[name]` 라우트에서 아래 4개 섹션을 순서대로 표시:
+라우트: `/domain/[name]` (e.g. `/domain/theverge.com`)
 
+4개 섹션 순서:
 1. **Whois** — 등록일, 만료일, 레지스트라, 네임서버
-2. **SEO 지수** — Moz / Ahrefs / Majestic 섹션 분리 표시
-3. **거래 이력** — 낙찰일, 낙찰가(USD), 플랫폼
-4. **Wayback 히스토리** — 스냅샷 횟수, 첫/마지막 크롤일, 링크
+2. **SEO 지수** — Moz / Ahrefs / Majestic 섹션 분리
+3. **거래 이력** — 낙찰일, 낙찰가(USD), 플랫폼 (테이블)
+4. **Wayback 히스토리** — 스냅샷 수, 첫/마지막 크롤일, 링크
 
 ---
 
 ## 데이터 흐름
 
 ```
-크롤러 (Python)
-  └─ GoDaddy Auctions / NameJet / ExpiredDomains.net
-       ↓ 수집
-  PostgreSQL (domains, sales_history, metrics)
-       ↓ API Routes
-  Next.js Frontend
-       ↓ 사용자 요청 시
-  RapidAPI (캐시 미스 시만 호출)
+Python 크롤러 (Railway)
+  └─ GoDaddy / NameJet / ExpiredDomains.net 수집 (매일)
+       ↓
+  PostgreSQL (Supabase)  ←──────────────────────────────┐
+       ↓ 신규 도메인 감지                                  │
+  RapidAPI 호출 (Redis 캐시 미스 시만)                      │
+       ↓ DB 저장                                          │
+  Next.js API Routes ───────────────────────────────────┘
+       ↓
+  Next.js Frontend (Vercel)
 ```
 
 ---
@@ -78,36 +121,37 @@ GET http://web.archive.org/cdx/search/cdx?url={domain}&output=json&limit=5&fl=ti
 ## 개발 명령어
 
 ```bash
-pnpm dev          # 개발 서버 실행
+# Next.js
+pnpm dev          # 개발 서버
 pnpm build        # 프로덕션 빌드
 pnpm lint         # ESLint
 pnpm typecheck    # TypeScript 타입 검사
-```
 
-크롤러 (Python):
-```bash
-python3 -m venv .venv && source .venv/bin/activate
+# Python 크롤러
+python3 -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 python3 crawler/run.py
 ```
 
 ---
 
-## 주요 DB 테이블 (설계 기준)
+## 환경 변수 (.env.local)
 
-```sql
-domains          -- 도메인 기본 정보 (name, tld, registrar, expires_at, status)
-domain_metrics   -- SEO 지수 캐시 (domain_id, mozDA, ahrefsDR, majesticTF, ..., updated_at)
-sales_history    -- 거래 이력 (domain_id, sold_at, price_usd, platform)
-wayback_summary  -- Wayback 요약 (domain_id, first_snapshot, last_snapshot, total_snapshots)
+```
+RAPIDAPI_KEY=
+DATABASE_URL=          # Supabase PostgreSQL connection string
+REDIS_URL=             # Upstash Redis URL
+WHOIS_API_KEY=
 ```
 
 ---
 
 ## Claude Code 에이전트 / 스킬
 
-이 프로젝트는 `.claude/` 디렉토리에 전문화된 서브에이전트와 스킬을 포함한다.
+`.claude/` 디렉토리에 전문 서브에이전트와 스킬 포함.
 
-- **에이전트** (`.claude/agents/`): 23개 전문 에이전트 (architect, code-reviewer, api-designer 등)
-- **스킬** (`.claude/skills/`): 재사용 가능한 지식 패키지 (skill-creator, hook-creator 등)
-- 에이전트 상세 → `.claude/agents/*.md` 각 파일의 YAML frontmatter 참조
+- **에이전트** (`.claude/agents/`): architect, code-reviewer, api-designer, test-writer 등 23개
+- **스킬** (`.claude/skills/`): skill-creator, hook-creator, subagent-creator 등
+
+각 에이전트의 역할 → 해당 `.md` 파일 YAML frontmatter의 `description` 참조.
