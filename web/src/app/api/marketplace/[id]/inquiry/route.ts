@@ -12,6 +12,12 @@ export async function POST(
       return NextResponse.json({ error: "listing ID가 필요합니다" }, { status: 400 });
     }
 
+    // UUID format validation
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(listingId)) {
+      return NextResponse.json({ error: "유효하지 않은 listing ID입니다" }, { status: 400 });
+    }
+
     const body: unknown = await req.json();
     if (typeof body !== "object" || body === null) {
       return NextResponse.json({ error: "올바른 JSON 형식이 필요합니다" }, { status: 400 });
@@ -44,7 +50,7 @@ export async function POST(
     let parsedOfferedPrice: number | undefined;
     if (offeredPrice !== undefined) {
       parsedOfferedPrice = Number(offeredPrice);
-      if (isNaN(parsedOfferedPrice) || parsedOfferedPrice <= 0) {
+      if (!isFinite(parsedOfferedPrice) || parsedOfferedPrice <= 0) {
         return NextResponse.json({ error: "제안 가격은 양수여야 합니다" }, { status: 400 });
       }
     }

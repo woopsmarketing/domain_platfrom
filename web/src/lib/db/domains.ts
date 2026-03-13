@@ -1,5 +1,7 @@
-import { createServerClient } from "@/lib/supabase";
+import { createServiceClient } from "@/lib/supabase";
 import type { DomainListItem, DomainDetail, DomainStatus, DomainSource } from "@/types/domain";
+
+const ALLOWED_SOURCES: DomainSource[] = ["godaddy", "namecheap", "dynadot"];
 
 export async function getDomains(params: {
   tab?: "auction" | "expired" | "premium";
@@ -7,9 +9,12 @@ export async function getDomains(params: {
   page?: number;
   limit?: number;
 }): Promise<{ data: DomainListItem[]; total: number }> {
-  const client = createServerClient();
+  const client = createServiceClient();
   const { tab = "auction", source = "all", page = 1, limit = 50 } = params;
   const offset = (page - 1) * limit;
+
+  // Whitelist source to prevent injection
+  const safeSource = source !== "all" && ALLOWED_SOURCES.includes(source as DomainSource) ? source : "all";
 
   let query = client
     .from("domains")
@@ -28,7 +33,7 @@ export async function getDomains(params: {
   else if (tab === "expired") query = query.eq("status", "expired");
   else if (tab === "premium") query = query.eq("status", "active");
 
-  if (source !== "all") query = query.eq("source", source);
+  if (safeSource !== "all") query = query.eq("source", safeSource);
 
   const { data, error, count } = await query;
   if (error) throw new Error(error.message);
@@ -62,20 +67,20 @@ export async function getDomains(params: {
 }
 
 export async function getDomainByName(name: string): Promise<DomainDetail | null> {
-  const client = createServerClient();
+  const client = createServiceClient();
 
   const { data: domain, error } = await client
     .from("domains")
-    .select("*")
+    .select("id, name, tld, status, source, registrar, expires_at, created_at")
     .eq("name", name)
     .single();
 
   if (error || !domain) return null;
 
   const [metricsResult, salesResult, waybackResult] = await Promise.all([
-    client.from("domain_metrics").select("*").eq("domain_id", domain.id).single(),
-    client.from("sales_history").select("*").eq("domain_id", domain.id).order("sold_at", { ascending: false }),
-    client.from("wayback_summary").select("*").eq("domain_id", domain.id).single(),
+    client.from("domain_metrics").select("domain_id, moz_da, moz_spam, ahrefs_dr, ahrefs_traffic, ahrefs_backlinks, ahrefs_traffic_value, majestic_tf, majestic_cf, updated_at").eq("domain_id", domain.id).single(),
+    client.from("sales_history").select("id, domain_id, sold_at, price_usd, platform").eq("domain_id", domain.id).order("sold_at", { ascending: false }),
+    client.from("wayback_summary").select("domain_id, first_snapshot_at, last_snapshot_at, total_snapshots").eq("domain_id", domain.id).single(),
   ]);
 
   return {

@@ -6,9 +6,20 @@ export async function GET(req: NextRequest) {
     const { searchParams } = req.nextUrl;
 
     const tabParam = searchParams.get("tab") ?? "auction";
-    const source = searchParams.get("source") ?? "all";
+    const sourceParam = searchParams.get("source") ?? "all";
     const pageParam = searchParams.get("page");
     const limitParam = searchParams.get("limit");
+
+    // Validate source
+    const allowedSources = ["all", "godaddy", "namecheap", "dynadot"] as const;
+    type Source = (typeof allowedSources)[number];
+    if (!allowedSources.includes(sourceParam as Source)) {
+      return NextResponse.json(
+        { error: "source 값은 all | godaddy | namecheap | dynadot 중 하나여야 합니다" },
+        { status: 400 }
+      );
+    }
+    const source = sourceParam as Source;
 
     // Validate tab
     const allowedTabs = ["auction", "expired", "premium"] as const;

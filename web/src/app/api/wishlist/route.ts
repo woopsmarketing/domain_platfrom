@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
       .eq("domain_id", domainId)
       .single();
     if (existing) {
-      await client.from("wishlists").delete().eq("id", existing.id);
+      await client.from("wishlists").delete().eq("id", existing.id).eq("user_id", user.id);
       return NextResponse.json({ data: { action: "removed" } });
     } else {
       await client.from("wishlists").insert({ user_id: user.id, domain_id: domainId });
