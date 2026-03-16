@@ -5,6 +5,8 @@ import { StatsOverview } from "@/components/domain/stats-overview";
 import { getDomains } from "@/lib/db/domains";
 import type { DomainListItem } from "@/types/domain";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "도메인 낙찰 이력 — GoDaddy, Namecheap 거래 데이터",
   description:

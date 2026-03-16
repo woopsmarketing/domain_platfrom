@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { getRecentlySearched, getPopularDomains, getTodayHighlights } from "@/lib/db/analytics";
 import { formatPrice } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "DomainPulse — 무료 도메인 지수 체크 | DA/DR/TF 분석",
   description:
