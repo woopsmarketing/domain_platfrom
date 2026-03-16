@@ -2,11 +2,19 @@
 크롤러 오케스트레이터.
 
 사용법:
-  python3 -m crawler.run                     # GoDaddy + Namecheap 모두 실행
+  # CSV 기반 (낙찰 이력 적재 — 기존 방식)
+  python3 -m crawler.run                     # GoDaddy + Namecheap CSV 모두 실행
   python3 -m crawler.run --source godaddy
   python3 -m crawler.run --source namecheap
   python3 -m crawler.run --files 2           # GoDaddy: 최대 파일 수 (기본 3)
   python3 -m crawler.run --rows 500          # Namecheap: 최대 행 수 (기본 전체)
+
+  # 실시간 스크래핑 (active_auctions 적재 — 새 방식)
+  python3 -m crawler.run --mode live         # 현재 진행 중인 경매 1회 수집
+  python3 -m crawler.run --mode live --source godaddy
+
+  # 상시 감시 (Railway 배포용)
+  python3 -m crawler.watcher
 """
 import argparse
 import logging
@@ -21,9 +29,11 @@ try:
 except ImportError:
     pass
 
-from crawler.db import upsert_sold_domain
+from crawler.db import upsert_sold_domain, upsert_active_auction
 from crawler.scrapers.godaddy import fetch_closed_auctions as godaddy_fetch
 from crawler.scrapers.namecheap import fetch_closed_auctions as namecheap_fetch
+from crawler.scrapers.godaddy_live import fetch_active_auctions as godaddy_live_fetch
+from crawler.scrapers.namecheap_live import fetch_active_auctions as namecheap_live_fetch
 
 logging.basicConfig(
     level=logging.INFO,
@@ -66,8 +76,54 @@ def _save(items: list[dict], source: str) -> int:
     return saved
 
 
+def run_live_godaddy() -> int:
+    logger.info("=== GODADDY 실시간 스크래핑 ===")
+    items = godaddy_live_fetch(headless=True)
+    saved = 0
+    for item in items:
+        try:
+            upsert_active_auction(
+                domain=item["domain"],
+                tld=item["tld"],
+                current_price=item.get("current_price", 0),
+                bid_count=item.get("bid_count"),
+                end_time_raw=item.get("end_time_raw"),
+            )
+            saved += 1
+        except Exception as e:
+            logger.error(f"DB 저장 실패 [{item['domain']}]: {e}")
+    logger.info(f"=== GODADDY LIVE 완료: {saved}/{len(items)}건 ===")
+    return saved
+
+
+def run_live_namecheap() -> int:
+    logger.info("=== NAMECHEAP 실시간 스크래핑 ===")
+    items = namecheap_live_fetch(headless=True)
+    saved = 0
+    for item in items:
+        try:
+            upsert_active_auction(
+                domain=item["domain"],
+                tld=item["tld"],
+                current_price=item.get("current_price", 0),
+                bid_count=item.get("bid_count"),
+                end_time_raw=item.get("end_time_raw"),
+            )
+            saved += 1
+        except Exception as e:
+            logger.error(f"DB 저장 실패 [{item['domain']}]: {e}")
+    logger.info(f"=== NAMECHEAP LIVE 완료: {saved}/{len(items)}건 ===")
+    return saved
+
+
 def main():
-    parser = argparse.ArgumentParser(description="도메인 경매 낙찰 데이터 크롤러")
+    parser = argparse.ArgumentParser(description="도메인 경매 크롤러")
+    parser.add_argument(
+        "--mode",
+        choices=["csv", "live"],
+        default="csv",
+        help="csv: CSV 기반 낙찰 이력 / live: 실시간 스크래핑 (기본 csv)",
+    )
     parser.add_argument(
         "--source",
         choices=["godaddy", "namecheap", "all"],
@@ -77,30 +133,34 @@ def main():
         "--files",
         type=int,
         default=3,
-        help="GoDaddy: 다운로드할 최대 CSV 파일 수 (기본 3)",
+        help="GoDaddy CSV: 최대 파일 수 (기본 3)",
     )
     parser.add_argument(
         "--rows",
         type=int,
         default=None,
-        help="Namecheap: 처리할 최대 행 수 (기본 전체)",
+        help="Namecheap CSV: 최대 행 수 (기본 전체)",
     )
     args = parser.parse_args()
 
-    # 환경변수 체크
     supabase_url = os.environ.get("SUPABASE_URL") or os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
     supabase_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-
     if not supabase_url or not supabase_key:
         logger.error("환경변수 누락: NEXT_PUBLIC_SUPABASE_URL 또는 SUPABASE_SERVICE_ROLE_KEY")
         logger.error("web/.env.local 파일을 확인하세요.")
         sys.exit(1)
 
     total = 0
-    if args.source in ("godaddy", "all"):
-        total += run_godaddy(args.files)
-    if args.source in ("namecheap", "all"):
-        total += run_namecheap(args.rows)
+    if args.mode == "csv":
+        if args.source in ("godaddy", "all"):
+            total += run_godaddy(args.files)
+        if args.source in ("namecheap", "all"):
+            total += run_namecheap(args.rows)
+    else:  # live
+        if args.source in ("godaddy", "all"):
+            total += run_live_godaddy()
+        if args.source in ("namecheap", "all"):
+            total += run_live_namecheap()
 
     logger.info(f"\n총 {total}건 DB 저장 완료")
 

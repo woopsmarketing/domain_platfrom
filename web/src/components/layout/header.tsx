@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Search, Globe, Heart, ShoppingCart, User, Menu, X } from "lucide-react";
+import { Search, Globe, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -32,10 +32,16 @@ export function Header() {
         {/* Navigation */}
         <nav className="hidden items-center gap-1 md:flex">
           <Link href="/">
-            <Button variant="ghost" size="sm">도메인 탐색</Button>
+            <Button variant="ghost" size="sm">도메인 분석</Button>
           </Link>
-          <Link href="/marketplace">
-            <Button variant="ghost" size="sm">도메인 상점</Button>
+          <Link href="/market-history">
+            <Button variant="ghost" size="sm">낙찰 이력</Button>
+          </Link>
+          <Link href="/tools">
+            <Button variant="ghost" size="sm">분석 도구</Button>
+          </Link>
+          <Link href="/blog">
+            <Button variant="ghost" size="sm">블로그</Button>
           </Link>
         </nav>
 
@@ -45,33 +51,13 @@ export function Header() {
             <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="도메인 검색 (예: theverge.com)"
+              placeholder="도메인 분석 (예: example.com)"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
             />
           </div>
         </form>
-
-        {/* Actions */}
-        <div className="hidden items-center gap-1 md:flex">
-          <Link href="/mypage/wishlist">
-            <Button variant="ghost" size="icon" aria-label="관심 목록">
-              <Heart className="h-4 w-4" />
-            </Button>
-          </Link>
-          <Link href="/mypage/cart">
-            <Button variant="ghost" size="icon" aria-label="장바구니">
-              <ShoppingCart className="h-4 w-4" />
-            </Button>
-          </Link>
-          <Link href="/auth/login">
-            <Button variant="outline" size="sm" className="ml-2">
-              <User className="mr-1 h-4 w-4" />
-              로그인
-            </Button>
-          </Link>
-        </div>
 
         {/* Mobile menu toggle */}
         <Button
@@ -91,27 +77,22 @@ export function Header() {
           <nav className="flex flex-col gap-1">
             <Link href="/" onClick={() => setMobileMenuOpen(false)}>
               <Button variant="ghost" size="sm" className="w-full justify-start">
-                도메인 탐색
+                도메인 분석
               </Button>
             </Link>
-            <Link href="/marketplace" onClick={() => setMobileMenuOpen(false)}>
+            <Link href="/market-history" onClick={() => setMobileMenuOpen(false)}>
               <Button variant="ghost" size="sm" className="w-full justify-start">
-                도메인 상점
+                낙찰 이력
               </Button>
             </Link>
-            <Link href="/mypage/wishlist" onClick={() => setMobileMenuOpen(false)}>
+            <Link href="/tools" onClick={() => setMobileMenuOpen(false)}>
               <Button variant="ghost" size="sm" className="w-full justify-start">
-                <Heart className="mr-2 h-4 w-4" /> 관심 목록
+                분석 도구
               </Button>
             </Link>
-            <Link href="/mypage/cart" onClick={() => setMobileMenuOpen(false)}>
+            <Link href="/blog" onClick={() => setMobileMenuOpen(false)}>
               <Button variant="ghost" size="sm" className="w-full justify-start">
-                <ShoppingCart className="mr-2 h-4 w-4" /> 장바구니
-              </Button>
-            </Link>
-            <Link href="/auth/login" onClick={() => setMobileMenuOpen(false)}>
-              <Button variant="outline" size="sm" className="mt-2 w-full">
-                <User className="mr-2 h-4 w-4" /> 로그인
+                블로그
               </Button>
             </Link>
           </nav>

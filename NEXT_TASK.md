@@ -1,92 +1,107 @@
 # NEXT_TASK.md
 
-> 마지막 업데이트: 2026-03-13
-> 코드는 완성된 상태. 아래는 **환경 설정 + 실제 동작 확인** 작업입니다.
+> 마지막 업데이트: 2026-03-15
 
 ---
 
-## 1순위 — Supabase DB 세팅 (30분)
+## 1순위 — Playwright 스크래퍼 초기화 및 테스트
 
-### 1-1. Supabase 프로젝트 생성
+### 1-1. 의존성 설치
+
+```bash
+cd /mnt/d/Documents/domain_platform
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r crawler/requirements.txt
+playwright install chromium
+```
+
+### 1-2. 첫 실행 (headless=False로 브라우저 직접 확인)
+
+```bash
+# GoDaddy 테스트
+python3 -m crawler.run --mode live --source godaddy
+
+# Namecheap 테스트
+python3 -m crawler.run --mode live --source namecheap
+```
+
+**확인할 것**: 로그에서 "인터셉트 [URL] → N건" 메시지 확인
+→ 인터셉트된 URL을 보고 `API_KEYWORDS` 수정 필요 여부 판단
+
+### 1-3. API 인터셉트 실패 시 대응
+
+로그에 "API 인터셉트 결과 없음" 뜨면:
+1. 브라우저 DevTools → Network → XHR 탭으로 실제 API URL 확인
+2. `crawler/scrapers/godaddy_live.py` 또는 `namecheap_live.py` 의 `API_KEYWORDS` 수정
+
+---
+
+## 2순위 — Supabase DB 세팅
+
+### 2-1. 프로젝트 생성
 1. https://supabase.com → New Project
 2. 프로젝트 이름: `domain-platform`
-3. 비밀번호 메모해두기 (DB 접속용)
 
-### 1-2. 스키마 실행
-1. Supabase 대시보드 → SQL Editor
-2. `web/supabase/migration.sql` 전체 복사 붙여넣기 → Run
+### 2-2. 스키마 실행
+Supabase SQL Editor에서 `web/supabase/migration.sql` 전체 실행
+→ 5개 테이블 생성 확인: `domains`, `domain_metrics`, `sales_history`, `wayback_summary`, **`active_auctions`**
 
-### 1-3. 환경변수 입력
+### 2-3. 환경변수 입력
+
 ```bash
-# web/.env.local 파일 생성
+# web/.env.local
 NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
-RAPIDAPI_KEY=                    # 일단 비워도 됨 (나중에)
-WHOIS_API_KEY=                   # 일단 비워도 됨 (나중에)
+RAPIDAPI_KEY=           # 일단 비워도 됨
+WHOIS_API_KEY=          # 일단 비워도 됨
 ```
-키 위치: Supabase 대시보드 → Settings → API
 
 ---
 
-## 2순위 — 크롤러로 데이터 적재 (15분)
+## 3순위 — Watcher 검증
 
 ```bash
-# 프로젝트 루트에서
-python3 -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+# 단발 실행으로 동작 확인
+python3 -m crawler.run --mode live
 
-python3 -m crawler.run           # GoDaddy + Namecheap 전체 수집
-# 또는
-python3 -m crawler.run --source godaddy --files 1   # 빠른 테스트
+# 상시 감시 실행 (Ctrl+C로 중단)
+python3 -m crawler.watcher --interval 15 --snapshot 120
 ```
 
-완료 후 Supabase 대시보드 → Table Editor → `domains`, `sales_history` 에 데이터 확인
+Supabase → Table Editor → `active_auctions` 데이터 확인
 
 ---
 
-## 3순위 — Next.js 로컬 실행 및 화면 확인 (10분)
+## 4순위 — Next.js 로컬 실행
 
 ```bash
-cd web
-pnpm install
-pnpm dev
-# → http://localhost:3000
+cd web && pnpm install && pnpm dev
 ```
 
-확인 사항:
-- [ ] 메인 페이지 (`/`) — 도메인 목록이 실제 DB 데이터로 표시
-- [ ] 도메인 상세 (`/domain/theverge.com`) — 4섹션 렌더링
+확인: `localhost:3000` → 검색창에 도메인 입력 → 분석 결과 표시
 
 ---
 
-## 4순위 — RapidAPI SEO 지수 연동 (선택, 15분)
+## 5순위 — Railway 배포 (Watcher)
 
-1. https://rapidapi.com → `domain-metrics-check` 검색 → 구독 (무료 플랜)
-2. API 키 복사 → `web/.env.local`의 `RAPIDAPI_KEY` 입력
-3. `/domain/theverge.com` 접속 → SEO 지수(DA/DR/TF) 로드 확인
-
----
-
-## 5순위 — 배포 (선택)
+Watcher는 상시 실행이 필요하므로 Railway에 배포.
 
 ```bash
-# Vercel CLI
-cd web
-npx vercel deploy
-
-# 환경변수를 Vercel 대시보드에도 등록
-# vercel.com → Project Settings → Environment Variables
+# Railway CLI
+railway login
+railway up
+# Start command: python3 -m crawler.watcher
 ```
+
+환경변수: `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` 설정
 
 ---
 
-## 완료 기준
+## 6순위 — 프론트엔드 인기 경매 섹션 (추후)
 
-| 작업 | 완료 기준 |
-|------|----------|
-| Supabase 세팅 | `migration.sql` 실행 후 8개 테이블 생성 확인 |
-| 크롤러 | `domains` 테이블에 100건 이상 데이터 확인 |
-| 로컬 실행 | 메인 페이지에 실제 도메인 목록 표시 |
-| SEO 지수 | `/domain/theverge.com` 에서 DA/DR 숫자 표시 |
+`active_auctions` 데이터가 쌓이면:
+- `/api/active-auctions` 라우트 구현 (가격 높은 순 / 마감 임박 순)
+- `/market-history` 또는 홈에 섹션 추가
+- 도메인명 + 현재가 + 마감시간만 표시 (플랫폼명 비노출)
+- 5~10초 간격 폴링으로 가격 변동 반영

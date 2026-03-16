@@ -1,4 +1,4 @@
-export type DomainStatus = "auction" | "expired" | "active" | "sold";
+export type DomainStatus = "sold" | "expired" | "active";
 export type DomainSource = "godaddy" | "namecheap" | "dynadot" | "other";
 
 export interface Domain {
@@ -7,8 +7,8 @@ export interface Domain {
   tld: string;
   status: DomainStatus;
   source: DomainSource;
-  currentPrice?: number;
-  auctionEndAt?: string;
+  soldPrice?: number;
+  soldAt?: string;
   registrar?: string;
   expiresAt?: string;
   createdAt: string;
@@ -61,13 +61,4 @@ export interface DomainDetail {
 
 export interface DomainListItem extends Domain {
   metrics?: Pick<DomainMetrics, "mozDA" | "ahrefsDR" | "majesticTF" | "ahrefsTraffic">;
-}
-
-export interface MarketplaceListing {
-  id: string;
-  domain: Domain;
-  askingPrice: number;
-  description?: string;
-  isNegotiable: boolean;
-  listedAt: string;
 }

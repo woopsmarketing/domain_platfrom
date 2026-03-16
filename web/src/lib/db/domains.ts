@@ -3,14 +3,47 @@ import type { DomainListItem, DomainDetail, DomainStatus, DomainSource } from "@
 
 const ALLOWED_SOURCES: DomainSource[] = ["godaddy", "namecheap", "dynadot"];
 
+/**
+ * DB에 도메인이 없으면 자동 생성하고 ID를 반환.
+ * 이미 있으면 기존 ID 반환.
+ */
+export async function ensureDomainInDb(domainName: string): Promise<string> {
+  const client = createServiceClient();
+
+  const { data: existing } = await client
+    .from("domains")
+    .select("id")
+    .eq("name", domainName)
+    .single();
+
+  if (existing) return existing.id;
+
+  const parts = domainName.split(".");
+  const tld = parts.length >= 2 ? parts[parts.length - 1] : "";
+
+  const { data: created, error } = await client
+    .from("domains")
+    .insert({
+      name: domainName,
+      tld,
+      status: "active",
+      source: "other",
+    })
+    .select("id")
+    .single();
+
+  if (error) throw new Error(`도메인 생성 실패: ${error.message}`);
+  return created.id;
+}
+
 export async function getDomains(params: {
-  tab?: "auction" | "expired" | "premium";
+  tab?: "recent" | "highvalue" | "all";
   source?: string;
   page?: number;
   limit?: number;
 }): Promise<{ data: DomainListItem[]; total: number }> {
   const client = createServiceClient();
-  const { tab = "auction", source = "all", page = 1, limit = 50 } = params;
+  const { tab = "recent", source = "all", page = 1, limit = 50 } = params;
   const offset = (page - 1) * limit;
 
   // Whitelist source to prevent injection
@@ -21,25 +54,30 @@ export async function getDomains(params: {
     .select(
       `
       id, name, tld, status, source, registrar, expires_at, created_at,
-      auction_listings!left(current_price_usd, auction_end_at, platform),
+      sales_history!left(price_usd, sold_at, platform),
       domain_metrics!left(moz_da, ahrefs_dr, majestic_tf, ahrefs_traffic)
     `,
       { count: "exact" }
     )
-    .range(offset, offset + limit - 1)
-    .order("created_at", { ascending: false });
+    .range(offset, offset + limit - 1);
 
-  if (tab === "auction") query = query.eq("status", "auction");
-  else if (tab === "expired") query = query.eq("status", "expired");
-  else if (tab === "premium") query = query.eq("status", "active");
+  if (tab === "recent") {
+    query = query.eq("status", "sold").order("created_at", { ascending: false });
+  } else if (tab === "highvalue") {
+    query = query.eq("status", "sold").order("created_at", { ascending: false });
+    // High-value filtering will be done client-side from sales_history price
+  } else {
+    query = query.order("created_at", { ascending: false });
+  }
 
   if (safeSource !== "all") query = query.eq("source", safeSource);
 
   const { data, error, count } = await query;
   if (error) throw new Error(error.message);
 
-  const domains: DomainListItem[] = (data ?? []).map((row: Record<string, unknown>) => {
-    const auctionListing = Array.isArray(row.auction_listings) ? row.auction_listings[0] : null;
+  let domains: DomainListItem[] = (data ?? []).map((row: Record<string, unknown>) => {
+    const salesArr = Array.isArray(row.sales_history) ? row.sales_history : [];
+    const latestSale = salesArr[0] ?? null;
     const metrics = Array.isArray(row.domain_metrics) ? row.domain_metrics[0] : null;
     return {
       id: row.id as string,
@@ -50,8 +88,8 @@ export async function getDomains(params: {
       registrar: row.registrar as string | undefined,
       expiresAt: row.expires_at as string | undefined,
       createdAt: row.created_at as string,
-      currentPrice: auctionListing?.current_price_usd ?? undefined,
-      auctionEndAt: auctionListing?.auction_end_at ?? undefined,
+      soldPrice: latestSale?.price_usd ?? undefined,
+      soldAt: latestSale?.sold_at ?? undefined,
       metrics: metrics
         ? {
             mozDA: metrics.moz_da,
@@ -62,6 +100,11 @@ export async function getDomains(params: {
         : undefined,
     };
   });
+
+  // High-value tab: filter to domains with price >= $500
+  if (tab === "highvalue") {
+    domains = domains.filter((d) => d.soldPrice && d.soldPrice >= 500);
+  }
 
   return { data: domains, total: count ?? 0 };
 }

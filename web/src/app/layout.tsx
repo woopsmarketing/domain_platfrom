@@ -4,9 +4,25 @@ import { Footer } from "@/components/layout/footer";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "DomainPulse — 도메인 데이터 분석 플랫폼",
+  title: {
+    default: "DomainPulse — 무료 도메인 지수 체크 | DA/DR/TF 분석",
+    template: "%s | DomainPulse",
+  },
   description:
-    "경매·만료 도메인 탐색, SEO 지수 분석, 거래 이력 조회를 한 곳에서. 도메인 투자자를 위한 데이터 플랫폼.",
+    "무료 도메인 DA 체크, DR 확인, Trust Flow 분석. 도메인명만 입력하면 SEO 지수, Whois, 거래 이력을 즉시 확인하세요.",
+  keywords: [
+    "도메인 DA 체크",
+    "도메인 품질 검사",
+    "무료 도메인 분석",
+    "Domain Authority",
+    "도메인 가치 평가",
+    "Whois 조회",
+    "도메인 거래 이력",
+  ],
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

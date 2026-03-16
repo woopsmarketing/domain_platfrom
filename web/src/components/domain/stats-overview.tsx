@@ -1,11 +1,11 @@
-import { Globe, Gavel, Clock, TrendingUp } from "lucide-react";
+import { Globe, DollarSign, TrendingUp, Database } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 const stats = [
-  { label: "경매 진행중", value: "2,847", icon: Gavel, color: "text-orange-600" },
-  { label: "만료 도메인", value: "12,350", icon: Clock, color: "text-red-600" },
-  { label: "총 등록 도메인", value: "156K", icon: Globe, color: "text-blue-600" },
-  { label: "오늘 신규", value: "+324", icon: TrendingUp, color: "text-green-600" },
+  { label: "총 낙찰 기록", value: "156K", icon: Database, color: "text-blue-600" },
+  { label: "평균 낙찰가", value: "$1,240", icon: DollarSign, color: "text-green-600" },
+  { label: "오늘 신규 수집", value: "+324", icon: TrendingUp, color: "text-orange-600" },
+  { label: "수집 플랫폼", value: "2개", icon: Globe, color: "text-purple-600" },
 ];
 
 export function StatsOverview() {

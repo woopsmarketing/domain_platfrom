@@ -1,9 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -17,22 +15,21 @@ import type { DomainListItem } from "@/types/domain";
 
 const sourceLabel: Record<string, string> = {
   godaddy: "GoDaddy",
-  namecheap: "NameCheap",
+  namecheap: "Namecheap",
   dynadot: "Dynadot",
   other: "기타",
 };
 
-const statusVariant: Record<string, "auction" | "expired" | "active"> = {
-  auction: "auction",
-  expired: "expired",
-  active: "active",
+const statusVariant: Record<string, "default" | "secondary" | "outline"> = {
+  sold: "default",
+  expired: "secondary",
+  active: "outline",
 };
 
 const statusLabel: Record<string, string> = {
-  auction: "경매",
+  sold: "낙찰",
   expired: "만료",
   active: "활성",
-  sold: "판매완료",
 };
 
 interface DomainTableProps {
@@ -42,9 +39,15 @@ interface DomainTableProps {
 export function DomainTable({ domains }: DomainTableProps) {
   if (domains.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-        <p className="text-lg">표시할 도메인이 없습니다</p>
-        <p className="text-sm">필터를 변경하거나 나중에 다시 확인해주세요.</p>
+      <div className="flex flex-col items-center justify-center gap-4 py-20 text-muted-foreground">
+        <p className="text-lg font-medium">아직 표시할 도메인이 없습니다</p>
+        <p className="text-sm">상단 검색창에서 도메인을 검색하면 여기에 표시됩니다.</p>
+        <Link
+          href="/"
+          className="mt-2 inline-flex h-10 items-center rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+        >
+          도메인 검색하기
+        </Link>
       </div>
     );
   }
@@ -60,8 +63,7 @@ export function DomainTable({ domains }: DomainTableProps) {
           <TableHead className="text-right">DR</TableHead>
           <TableHead className="text-right">TF</TableHead>
           <TableHead className="text-right">트래픽</TableHead>
-          <TableHead className="text-right">가격</TableHead>
-          <TableHead className="w-[50px]"></TableHead>
+          <TableHead className="text-right">낙찰가</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -70,7 +72,7 @@ export function DomainTable({ domains }: DomainTableProps) {
             <TableCell className="font-medium">
               <Link
                 href={`/domain/${domain.name}`}
-                className="text-primary hover:underline"
+                className="text-base text-primary hover:underline"
               >
                 {domain.name}
               </Link>
@@ -98,12 +100,7 @@ export function DomainTable({ domains }: DomainTableProps) {
                 : "—"}
             </TableCell>
             <TableCell className="text-right font-medium tabular-nums">
-              {domain.currentPrice ? formatPrice(domain.currentPrice) : "—"}
-            </TableCell>
-            <TableCell>
-              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="관심 등록">
-                <Heart className="h-4 w-4" />
-              </Button>
+              {domain.soldPrice ? formatPrice(domain.soldPrice) : "—"}
             </TableCell>
           </TableRow>
         ))}

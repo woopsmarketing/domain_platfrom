@@ -5,7 +5,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = req.nextUrl;
 
-    const tabParam = searchParams.get("tab") ?? "auction";
+    const tabParam = searchParams.get("tab") ?? "recent";
     const sourceParam = searchParams.get("source") ?? "all";
     const pageParam = searchParams.get("page");
     const limitParam = searchParams.get("limit");
@@ -22,11 +22,11 @@ export async function GET(req: NextRequest) {
     const source = sourceParam as Source;
 
     // Validate tab
-    const allowedTabs = ["auction", "expired", "premium"] as const;
+    const allowedTabs = ["recent", "highvalue", "all"] as const;
     type Tab = (typeof allowedTabs)[number];
     if (!allowedTabs.includes(tabParam as Tab)) {
       return NextResponse.json(
-        { error: "tab 값은 auction | expired | premium 중 하나여야 합니다" },
+        { error: "tab 값은 recent | highvalue | all 중 하나여야 합니다" },
         { status: 400 }
       );
     }

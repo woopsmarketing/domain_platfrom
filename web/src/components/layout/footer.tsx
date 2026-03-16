@@ -11,8 +11,10 @@ export function Footer() {
           <span>&copy; {new Date().getFullYear()}</span>
         </div>
         <nav className="flex gap-4 text-sm text-muted-foreground">
-          <Link href="/" className="hover:text-foreground transition-colors">홈</Link>
-          <Link href="/marketplace" className="hover:text-foreground transition-colors">도메인 상점</Link>
+          <Link href="/" className="hover:text-foreground transition-colors">도메인 분석</Link>
+          <Link href="/market-history" className="hover:text-foreground transition-colors">낙찰 이력</Link>
+          <Link href="/tools" className="hover:text-foreground transition-colors">분석 도구</Link>
+          <Link href="/blog" className="hover:text-foreground transition-colors">블로그</Link>
         </nav>
       </div>
     </footer>

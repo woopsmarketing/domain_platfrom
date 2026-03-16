@@ -29,6 +29,32 @@ def _post(table: str, payload: dict | list) -> dict | list:
     return resp.json()
 
 
+def upsert_active_auction(
+    domain: str,
+    tld: str,
+    current_price: int,
+    bid_count: Optional[int] = None,
+    end_time_raw: Optional[str] = None,
+) -> None:
+    """
+    active_auctions 테이블 upsert.
+    domain이 PRIMARY KEY — 가격 변동 시 덮어씀.
+    """
+    _post(
+        "active_auctions",
+        {
+            "domain":        domain,
+            "tld":           tld,
+            "current_price": current_price,
+            "bid_count":     bid_count,
+            "end_time_raw":  end_time_raw,
+            "crawled_at":    __import__("datetime").datetime.now(
+                __import__("datetime").timezone.utc
+            ).isoformat(),
+        },
+    )
+
+
 def upsert_sold_domain(
     domain_name: str,
     tld: str,

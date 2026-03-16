@@ -6,13 +6,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 이 프로젝트가 만드는 것
 
-**도메인 투자자·SEO 전문가용 도메인 데이터 분석 플랫폼.**
+**무료 도메인 거래 데이터 분석 도구.**
 
-- 경매·만료 도메인 목록 + SEO 지수(DA/DR/TF 등) 통합 탐색
-- 수십만 건의 도메인 거래 이력 데이터베이스
-- 도메인명 입력 시 Whois, SEO 지수, 거래 이력, Wayback 히스토리를 한 페이지에 표시
+- 도메인명만 입력하면 DA, DR, TF, Whois, 거래 이력, Wayback 히스토리를 즉시 분석
+- 경매 낙찰 완료된 도메인의 거래 이력 데이터베이스
+- 검색할 때마다 분석 결과가 DB에 자동 저장 (7일 캐시 → 자동 갱신)
 
-상세 요구사항 → [`docs/PRD.md`](docs/PRD.md)
+> MVP: **회원가입 없이 완전 무료** — 수익화 없이 트래픽 확보에 집중.
+> SEO 키워드: "무료 도메인 DA 체크", "도메인 품질 검사", "도메인 지수 확인" 등.
+> 추후 트래픽 확보 후 대행 구매/판매, 프리미엄 기능 확장 예정.
+
+---
+
+## 사이트 구조
+
+```
+/                    → 검색창 히어로 (킬러 기능: 도메인 입력 → 즉시 분석)
+/market-history      → 낙찰 이력 목록 (GoDaddy, Namecheap 크롤링 데이터)
+/domain/[name]       → 도메인 상세 분석 (Whois/SEO/거래이력/Wayback 4섹션)
+```
 
 ---
 
@@ -21,19 +33,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ### Frontend
 ```
 Next.js 14 (App Router) + TypeScript + Tailwind CSS
-shadcn/ui       — UI 컴포넌트 (테이블, 배지, 필터 등)
-TanStack Table  — 도메인 목록 대용량 테이블 (클라이언트 필터·정렬)
-Recharts        — 거래가 추이, 트래픽 그래프
+shadcn/ui       — UI 컴포넌트
+TanStack Table  — 대용량 테이블
 ```
 
 ### Backend & 인프라
 ```
 Next.js API Routes  — 클라이언트 ↔ DB 연결
-PostgreSQL          — 메인 DB (Supabase 관리형)
-Redis               — API 응답 캐시 + 작업 큐 (Upstash 서버리스)
-Python + Playwright — 크롤러 (JS 렌더링 사이트 대응)
+PostgreSQL          — Supabase 관리형
+Python + requests   — 크롤러 (CSV 다운로드)
 Vercel              — Frontend 배포
-Railway             — 크롤러 서버 (장시간 실행 프로세스)
+Railway             — 크롤러 스케줄링
 pnpm                — 패키지 매니저
 ```
 
@@ -44,76 +54,45 @@ pnpm                — 패키지 매니저
 ### 1. 도메인 SEO 지수 — RapidAPI domain-metrics-check
 ```
 GET https://domain-metrics-check.p.rapidapi.com/domain-metrics/{domain}
-Headers:
-  X-RapidAPI-Key: {RAPIDAPI_KEY}        # .env에 보관
-  X-RapidAPI-Host: domain-metrics-check.p.rapidapi.com
 ```
-
-**주요 응답 필드:**
-| 필드 | 지수 | 출처 |
-|---|---|---|
-| `mozDA` | Domain Authority | Moz |
-| `ahrefsDR` | Domain Rating | Ahrefs |
-| `majesticTF` | Trust Flow | Majestic |
-| `majesticCF` | Citation Flow | Majestic |
-| `ahrefsTraffic` | 월간 유기 트래픽 | Ahrefs |
-| `ahrefsBacklinks` | 총 백링크 수 | Ahrefs |
-| `ahrefsTrafficValue` | 트래픽 가치(USD) | Ahrefs |
-| `mozSpam` | Spam Score | Moz |
-
-**캐싱 규칙 (필수):**
-- DB에 저장된 지수가 있고 `updated_at < 7일` → DB에서 반환 (API 호출 X)
-- 없거나 7일 초과 → RapidAPI 호출 후 DB 저장
-- 무료 플랜 한도: **월 15,000 요청**
+**7일 캐시**: DB에 있고 7일 이내 → DB 반환 / 없거나 7일 초과 → API 호출 후 DB 저장
 
 ### 2. Wayback Machine CDX API (무료)
 ```
-GET http://web.archive.org/cdx/search/cdx
-  ?url={domain}&output=json&limit=10&fl=timestamp,statuscode
+GET http://web.archive.org/cdx/search/cdx?url={domain}&output=json&limit=10
 ```
+DB에 없으면 호출 → wayback_summary에 저장
 
-### 3. Whois
-- WhoisXML API (`whoisxmlapi.com`) — 무료 플랜 있음
+### 3. Whois — WhoisXML API
+실시간 호출 (경량, 캐시 불필요)
 
 ---
 
-## DB 스키마 (핵심 테이블)
+## DB 스키마 (4개 테이블)
 
 ```sql
-domains           -- name, tld, registrar, expires_at, status(auction/expired/active)
-domain_metrics    -- mozDA, ahrefsDR, majesticTF, ahrefsTraffic, ... , updated_at
-sales_history     -- domain_id, sold_at, price_usd, platform
-wayback_summary   -- domain_id, first_snapshot_at, last_snapshot_at, total_snapshots
-auction_listings  -- domain_id, platform, auction_end_at, current_price_usd
+domains           -- name, tld, status(sold/expired/active), source
+domain_metrics    -- SEO 지수, 7일 캐시 (updated_at 기준)
+sales_history     -- 낙찰 이력 (sold_at, price_usd, platform)
+wayback_summary   -- Wayback 스냅샷 요약
 ```
 
----
-
-## 도메인 상세 페이지 구조
-
-라우트: `/domain/[name]` (e.g. `/domain/theverge.com`)
-
-4개 섹션 순서:
-1. **Whois** — 등록일, 만료일, 레지스트라, 네임서버
-2. **SEO 지수** — Moz / Ahrefs / Majestic 섹션 분리
-3. **거래 이력** — 낙찰일, 낙찰가(USD), 플랫폼 (테이블)
-4. **Wayback 히스토리** — 스냅샷 수, 첫/마지막 크롤일, 링크
+**검색 시 자동 생성**: DB에 없는 도메인을 검색하면 `domains` 테이블에 자동 생성 (status=active, source=other)
 
 ---
 
 ## 데이터 흐름
 
 ```
-Python 크롤러 (Railway)
-  └─ GoDaddy / NameJet / ExpiredDomains.net 수집 (매일)
-       ↓
-  PostgreSQL (Supabase)  ←──────────────────────────────┐
-       ↓ 신규 도메인 감지                                  │
-  RapidAPI 호출 (Redis 캐시 미스 시만)                      │
-       ↓ DB 저장                                          │
-  Next.js API Routes ───────────────────────────────────┘
-       ↓
-  Next.js Frontend (Vercel)
+[검색] 사용자 → /domain/example.com
+  └─ DB에 없으면 자동 생성
+  └─ SEO 지수 7일 지남? → RapidAPI 호출 → DB upsert
+  └─ Wayback 없음? → CDX API 호출 → DB upsert
+  └─ Whois → 실시간 호출
+  └─ 결과 렌더링
+
+[크롤러] Python (매일)
+  └─ GoDaddy/Namecheap CSV → domains + sales_history upsert
 ```
 
 ---
@@ -121,17 +100,9 @@ Python 크롤러 (Railway)
 ## 개발 명령어
 
 ```bash
-# Next.js
-pnpm dev          # 개발 서버
-pnpm build        # 프로덕션 빌드
-pnpm lint         # ESLint
-pnpm typecheck    # TypeScript 타입 검사
-
-# Python 크롤러
-python3 -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-python3 crawler/run.py
+cd web && pnpm dev          # 개발 서버
+cd web && pnpm build        # 빌드
+python3 -m crawler.run      # 크롤러
 ```
 
 ---
@@ -139,19 +110,40 @@ python3 crawler/run.py
 ## 환경 변수 (.env.local)
 
 ```
-RAPIDAPI_KEY=
-DATABASE_URL=          # Supabase PostgreSQL connection string
-REDIS_URL=             # Upstash Redis URL
-WHOIS_API_KEY=
+NEXT_PUBLIC_SUPABASE_URL=       # Supabase > Settings > API > URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=  # Supabase > Settings > API > anon key
+SUPABASE_SERVICE_ROLE_KEY=      # Supabase > Settings > API > service_role key
+RAPIDAPI_KEY=                   # rapidapi.com → domain-metrics-check
+WHOIS_API_KEY=                  # whoisxmlapi.com (선택)
 ```
 
 ---
 
-## Claude Code 에이전트 / 스킬
+## 작업 보고서 출력 규칙
 
-`.claude/` 디렉토리에 전문 서브에이전트와 스킬 포함.
+**모든 작업 완료 후, 아래 형식으로 작업 과정 보고서를 출력할 것.**
 
-- **에이전트** (`.claude/agents/`): architect, code-reviewer, api-designer, test-writer 등 23개
-- **스킬** (`.claude/skills/`): skill-creator, hook-creator, subagent-creator 등
+```
+## 작업 보고서
 
-각 에이전트의 역할 → 해당 `.md` 파일 YAML frontmatter의 `description` 참조.
+### 호출된 에이전트
+- [에이전트명] — 수행한 작업 요약
+
+### 작업 흐름
+1. 메인 에이전트: (첫 번째 수행한 작업)
+2. → [서브에이전트명]: (위임받은 작업)
+3. 메인 에이전트: (서브에이전트 결과를 받아 수행한 작업)
+...
+
+### 변경된 파일
+- `경로/파일명` — 변경 내용 요약
+
+### 결과 요약
+(최종 결과 1~10줄)
+```
+
+**규칙:**
+- 서브에이전트를 사용하지 않고 메인 에이전트만 작업한 경우에도 보고서를 출력
+- 어떤 도구(Read, Edit, Write, Bash, Grep 등)를 왜 사용했는지 흐름을 보여줄 것
+- 병렬로 호출한 작업이 있으면 `[병렬]` 표시
+- 에이전트 간 데이터 전달이 있었으면 어떤 정보가 전달됐는지 명시

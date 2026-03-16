@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getDomainByName } from "@/lib/db/domains";
+import { getDomainByName, ensureDomainInDb } from "@/lib/db/domains";
+import { saveWaybackToDb } from "@/lib/db/wayback";
 import { fetchDomainMetrics } from "@/lib/external/rapidapi";
 import { fetchWayback } from "@/lib/external/wayback";
 import { fetchWhois } from "@/lib/external/whois";
 
-const METRICS_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7일
+const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7일
 
-function isMetricsStale(updatedAt: string): boolean {
-  return Date.now() - new Date(updatedAt).getTime() > METRICS_TTL_MS;
+function isStale(updatedAt: string): boolean {
+  return Date.now() - new Date(updatedAt).getTime() > CACHE_TTL_MS;
 }
 
 export async function GET(
@@ -21,38 +22,51 @@ export async function GET(
       return NextResponse.json({ error: "도메인 이름이 필요합니다" }, { status: 400 });
     }
 
-    // 도메인 이름 기본 검증 (길이, 허용 문자)
-    if (name.length > 253) {
+    if (name.length > 253 || !name.includes(".")) {
       return NextResponse.json({ error: "유효하지 않은 도메인 이름입니다" }, { status: 400 });
     }
 
+    // 1. DB에 도메인이 없으면 자동 생성
+    const domainId = await ensureDomainInDb(name);
+
+    // 2. DB에서 기존 데이터 조회
     const detail = await getDomainByName(name);
 
-    if (!detail) {
-      return NextResponse.json({ error: "도메인을 찾을 수 없습니다" }, { status: 404 });
-    }
-
-    // metrics 갱신 여부 판단
+    // 3. 갱신 필요 여부 판단 (7일 캐시)
     const needsMetricsRefresh =
-      !detail.metrics || isMetricsStale(detail.metrics.updatedAt);
+      !detail?.metrics || isStale(detail.metrics.updatedAt);
+    const needsWaybackRefresh = !detail?.wayback;
 
-    // wayback, whois, metrics(필요시)를 병렬 fetch
-    const [freshMetrics, wayback, whois] = await Promise.all([
+    // 4. 필요한 외부 API만 호출 (병렬)
+    const [freshMetrics, freshWayback, whois] = await Promise.all([
       needsMetricsRefresh
-        ? fetchDomainMetrics(detail.domain.id, detail.domain.name)
+        ? fetchDomainMetrics(domainId, name)
         : Promise.resolve(null),
-      fetchWayback(detail.domain.id, detail.domain.name),
-      fetchWhois(detail.domain.name),
+      needsWaybackRefresh
+        ? fetchWayback(domainId, name)
+        : Promise.resolve(null),
+      fetchWhois(name),
     ]);
 
-    const resolvedMetrics = freshMetrics ?? detail.metrics;
-    const resolvedWayback = wayback ?? detail.wayback;
+    // 5. Wayback 결과 DB 저장
+    if (freshWayback) {
+      await saveWaybackToDb(domainId, freshWayback);
+    }
 
+    // 6. 최종 데이터 조합
     return NextResponse.json({
       data: {
-        ...detail,
-        metrics: resolvedMetrics,
-        wayback: resolvedWayback,
+        domain: detail?.domain ?? {
+          id: domainId,
+          name,
+          tld: name.split(".").pop() ?? "",
+          status: "active",
+          source: "other",
+          createdAt: new Date().toISOString(),
+        },
+        metrics: freshMetrics ?? detail?.metrics ?? null,
+        salesHistory: detail?.salesHistory ?? [],
+        wayback: freshWayback ?? detail?.wayback ?? null,
         whois,
       },
     });
