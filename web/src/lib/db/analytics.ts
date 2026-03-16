@@ -1,5 +1,20 @@
 import { createServiceClient } from "@/lib/supabase";
 
+/** Shape of the domains join returned by Supabase for sales_history queries */
+export interface SaleWithDomain {
+  id: string;
+  sold_at: string;
+  price_usd: number;
+  platform: string;
+  domains: { id: string; name: string; tld: string; source: string };
+}
+
+/** Shape of the sales_history join with domains for TLD stats */
+interface SaleWithTld {
+  price_usd: number;
+  domains: { tld: string };
+}
+
 /**
  * 도메인 검색 시 search_count 증가 + last_searched_at 갱신
  */
@@ -51,9 +66,8 @@ export async function getPopularDomains(limit = 10) {
 /**
  * 오늘의 낙찰 하이라이트 (D2) — 최근 고가 낙찰 도메인
  */
-export async function getTodayHighlights(limit = 5) {
+export async function getTodayHighlights(limit = 5): Promise<SaleWithDomain[]> {
   const client = createServiceClient();
-  const today = new Date().toISOString().split("T")[0];
 
   // 오늘 데이터가 없을 수 있으므로 최근 7일 이내에서 고가순
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
@@ -66,7 +80,7 @@ export async function getTodayHighlights(limit = 5) {
     .limit(limit);
 
   if (error) throw new Error(error.message);
-  return data ?? [];
+  return (data ?? []) as unknown as SaleWithDomain[];
 }
 
 /**
@@ -101,8 +115,9 @@ export async function getTldStats() {
     statsMap.get(tld)!.count++;
   }
 
-  for (const row of salesData ?? []) {
-    const tld = (row.domains as unknown as { tld: string }).tld;
+  const salesRows = (salesData ?? []) as unknown as SaleWithTld[];
+  for (const row of salesRows) {
+    const tld = row.domains.tld;
     if (!statsMap.has(tld)) {
       statsMap.set(tld, { count: 0, totalPrice: 0, maxPrice: 0, salesCount: 0 });
     }
@@ -114,7 +129,7 @@ export async function getTldStats() {
 
   return Array.from(statsMap.entries())
     .map(([tld, stat]) => ({
-      tld: `.${tld}`,
+      tld: "." + tld,
       domainCount: stat.count,
       salesCount: stat.salesCount,
       avgPrice: stat.salesCount > 0 ? Math.round(stat.totalPrice / stat.salesCount) : 0,

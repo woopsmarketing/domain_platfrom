@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { TrendingUp, Search, Trophy, ArrowRight, BarChart3, Shield, Zap } from "lucide-react";
-import { DomainSearchBox } from "@/components/domain/domain-search-box";
+import { TrendingUp, Search, Trophy, ArrowRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getRecentlySearched, getPopularDomains, getTodayHighlights } from "@/lib/db/analytics";
 import { formatPrice } from "@/lib/utils";
+import { HeroSection } from "@/components/home/hero-section";
+import { FeaturesSection } from "@/components/home/features-section";
+import { CtaSection } from "@/components/home/cta-section";
 
 export const dynamic = "force-dynamic";
 
@@ -57,67 +59,8 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col">
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b px-4 py-24 sm:py-32 lg:py-40">
-        {/* Background decoration */}
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-primary/[0.03] via-transparent to-transparent" />
-        <div className="pointer-events-none absolute -left-40 -top-40 h-80 w-80 rounded-full bg-primary/5 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-20 -right-40 h-80 w-80 rounded-full bg-primary/5 blur-3xl" />
-
-        <div className="relative mx-auto max-w-3xl text-center">
-          <Badge variant="secondary" className="mb-6 rounded-full px-4 py-1.5 text-sm font-medium">
-            완전 무료 — 회원가입 없이 즉시 사용
-          </Badge>
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-            도메인 지수를
-            <br />
-            <span className="bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
-              무료로 분석하세요
-            </span>
-          </h1>
-          <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
-            도메인명만 입력하면 DA, DR, Trust Flow, Whois, 거래 이력을 즉시 분석합니다.
-          </p>
-
-          <div className="mt-10">
-            <DomainSearchBox />
-          </div>
-
-          <div className="mt-4 flex items-center justify-center gap-4 text-sm text-muted-foreground">
-            <span>예시:</span>
-            {["theverge.com", "github.com", "shopify.com"].map((d) => (
-              <Link
-                key={d}
-                href={`/domain/${d}`}
-                className="rounded-md border border-border/60 px-2.5 py-1 transition-colors hover:border-primary/40 hover:text-foreground"
-              >
-                {d}
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Feature highlights */}
-      <section className="border-b px-4 py-16">
-        <div className="mx-auto grid max-w-5xl gap-6 sm:grid-cols-3">
-          {[
-            { icon: BarChart3, title: "SEO 지표 분석", desc: "DA, DR, TF, CF 백링크, 트래픽을 한눈에" },
-            { icon: Shield, title: "스팸 점수 경고", desc: "위험 도메인을 사전에 식별하여 안전한 투자" },
-            { icon: Zap, title: "즉시 분석 결과", desc: "검색 즉시 7일 캐시 기반 빠른 응답" },
-          ].map((f) => (
-            <div key={f.title} className="flex items-start gap-4 rounded-xl border border-border/60 bg-card p-6">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                <f.icon className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold">{f.title}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{f.desc}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      <HeroSection />
+      <FeaturesSection />
 
       {/* 최근 검색 도메인 */}
       <section className="border-b px-4 py-16">
@@ -251,14 +194,12 @@ export default async function HomePage() {
           </div>
           {highlights.length > 0 ? (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {highlights.map((sale) => {
-                const domain = sale.domains as unknown as { id: string; name: string; tld: string; source: string };
-                return (
-                  <Link key={sale.id} href={`/domain/${domain.name}`}>
+              {highlights.map((sale) => (
+                  <Link key={sale.id} href={`/domain/${sale.domains.name}`}>
                     <Card className="group border-border/60 transition-all hover:border-primary/30 hover:shadow-md hover:shadow-primary/5">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium group-hover:text-primary transition-colors">
-                          {domain.name}
+                          {sale.domains.name}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="flex items-center justify-between">
@@ -274,8 +215,7 @@ export default async function HomePage() {
                       </CardContent>
                     </Card>
                   </Link>
-                );
-              })}
+              ))}
             </div>
           ) : (
             <Card className="border-border/60 border-dashed">
@@ -287,34 +227,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="px-4 py-20">
-        <div className="mx-auto max-w-2xl text-center">
-          <h2 className="text-2xl font-bold sm:text-3xl">
-            지금 바로 도메인을 분석해 보세요
-          </h2>
-          <p className="mt-3 text-muted-foreground">
-            완전 무료, 회원가입 없이 즉시 사용 가능합니다.
-          </p>
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link href="/tools">
-              <Badge variant="secondary" className="cursor-pointer rounded-full px-4 py-2 text-sm transition-colors hover:bg-primary hover:text-primary-foreground">
-                벌크 분석 도구
-              </Badge>
-            </Link>
-            <Link href="/market-history">
-              <Badge variant="secondary" className="cursor-pointer rounded-full px-4 py-2 text-sm transition-colors hover:bg-primary hover:text-primary-foreground">
-                낙찰 이력 검색
-              </Badge>
-            </Link>
-            <Link href="/blog">
-              <Badge variant="secondary" className="cursor-pointer rounded-full px-4 py-2 text-sm transition-colors hover:bg-primary hover:text-primary-foreground">
-                도메인 투자 가이드
-              </Badge>
-            </Link>
-          </div>
-        </div>
-      </section>
+      <CtaSection />
     </div>
   );
 }

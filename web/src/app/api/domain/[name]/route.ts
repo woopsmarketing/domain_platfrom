@@ -4,12 +4,7 @@ import { saveWaybackToDb } from "@/lib/db/wayback";
 import { fetchDomainMetrics } from "@/lib/external/rapidapi";
 import { fetchWayback } from "@/lib/external/wayback";
 import { fetchWhois } from "@/lib/external/whois";
-
-const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7일
-
-function isStale(updatedAt: string): boolean {
-  return Date.now() - new Date(updatedAt).getTime() > CACHE_TTL_MS;
-}
+import { isStale } from "@/lib/cache";
 
 export async function GET(
   _req: NextRequest,

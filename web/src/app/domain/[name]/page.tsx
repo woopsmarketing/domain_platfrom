@@ -20,7 +20,9 @@ import { fetchWhois } from "@/lib/external/whois";
 import { fetchWayback } from "@/lib/external/wayback";
 import { saveWaybackToDb } from "@/lib/db/wayback";
 import { calculateDomainGrade, calculateDomainAge, checkSpamScore } from "@/lib/domain-utils";
+import { Row, MetricBlock } from "@/components/domain/detail-helpers";
 import type { DomainDetail } from "@/types/domain";
+import { isStale } from "@/lib/cache";
 
 interface PageProps {
   params: Promise<{ name: string }>;
@@ -56,10 +58,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function DomainDetailPage({ params }: PageProps) {
   const { name } = await params;
-
-  const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-  const isStale = (updatedAt: string) =>
-    Date.now() - new Date(updatedAt).getTime() > CACHE_TTL_MS;
 
   let data: DomainDetail | null = null;
   try {
@@ -324,39 +322,6 @@ export default async function DomainDetailPage({ params }: PageProps) {
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between">
-      <span className="text-muted-foreground">{label}</span>
-      <span className="font-medium">{value}</span>
-    </div>
-  );
-}
-
-function MetricBlock({
-  title,
-  items,
-}: {
-  title: string;
-  items: { label: string; value: number | null; prefix?: string }[];
-}) {
-  return (
-    <div>
-      <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        {title}
-      </p>
-      {items.map((item) => (
-        <div key={item.label} className="flex justify-between text-sm">
-          <span className="text-muted-foreground">{item.label}</span>
-          <span className="font-medium tabular-nums">
-            {item.value !== null ? `${item.prefix ?? ""}${item.value.toLocaleString()}` : "—"}
-          </span>
-        </div>
-      ))}
     </div>
   );
 }

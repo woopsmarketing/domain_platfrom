@@ -90,3 +90,12 @@ export function checkSpamScore(mozSpam: number | null): SpamResult {
   }
   return { level: "safe", label: "안전", color: "text-green-600", description: `스팸 점수 ${mozSpam}%로 안전합니다.` };
 }
+
+/** Background color map for domain grade badges */
+export const GRADE_BG_MAP: Record<DomainGrade, string> = {
+  A: "bg-green-500",
+  B: "bg-blue-500",
+  C: "bg-yellow-500",
+  D: "bg-orange-500",
+  F: "bg-red-500",
+};
