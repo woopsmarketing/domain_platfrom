@@ -1,6 +1,6 @@
 # CURRENT_STATE.md
 
-> 마지막 업데이트: 2026-03-15
+> 마지막 업데이트: 2026-03-18
 
 ---
 
@@ -22,20 +22,35 @@
 
 ---
 
+## 인프라 상태
+
+| 항목 | 상태 |
+|------|------|
+| Supabase 프로젝트 | ✅ 생성 완료 |
+| DB 마이그레이션 (5개 테이블) | ✅ 실행 완료 |
+| Supabase 환경변수 (URL, ANON_KEY, SERVICE_ROLE_KEY) | ✅ 입력 완료 |
+| RAPIDAPI_KEY (도메인 SEO 지수) | ❌ 미발급 |
+| WHOIS_API_KEY (Whois 조회) | ❌ 미발급 |
+| DATABASE_URL | ⚠️ 비밀번호 미입력 (`[YOUR_DB_PASSWORD]`) |
+| Vercel 배포 | ❌ 미완료 |
+| Railway 배포 (Watcher) | ❌ 미완료 |
+
+---
+
 ## 크롤러 구조
 
-### CSV 크롤러 (낙찰 이력 적재 — 기존)
+### CSV 크롤러 (낙찰 이력 적재)
 - GoDaddy: 공개 CSV ZIP → `sales_history` 저장
 - Namecheap: S3 공개 CSV → `sales_history` 저장
 - 실행: `python3 -m crawler.run --mode csv`
 
-### 실시간 스크래퍼 (활성 경매 — 신규)
+### 실시간 스크래퍼 (활성 경매)
 - Playwright 기반, 내부 API 인터셉트
 - GoDaddy + Namecheap 경매 페이지에서 JSON 자동 수집
 - `active_auctions` 테이블에 upsert
 - 실행: `python3 -m crawler.run --mode live`
 
-### Watcher (상시 감시 — 신규, Railway 배포용)
+### Watcher (상시 감시, Railway 배포용)
 - 10~15초 간격 핫 경매 폴링
 - 낙찰 감지: Namecheap 스냅샷 diff (사라진 도메인 = 낙찰)
 - 실행: `python3 -m crawler.watcher`
@@ -50,7 +65,7 @@
 | `domain_metrics` | SEO 지수, 7일 캐시 |
 | `sales_history` | 낙찰 이력 (CSV 크롤러로 적재) |
 | `wayback_summary` | Wayback 스냅샷 요약 |
-| `active_auctions` | 현재 진행 중인 경매 (실시간 갱신, source 컬럼 없음) |
+| `active_auctions` | 현재 진행 중인 경매 (실시간 갱신) |
 
 ---
 
@@ -68,19 +83,18 @@
 - OG/Twitter 메타태그 (소셜 공유)
 - 블로그 SEO 콘텐츠 3편
 - CSV 크롤러 (GoDaddy + Namecheap)
-- **[신규]** Playwright 실시간 스크래퍼 (godaddy_live, namecheap_live)
-- **[신규]** Watcher (상시 감시 + 낙찰 자동 감지)
-- **[신규]** active_auctions 테이블 + API
+- Playwright 실시간 스크래퍼 (godaddy_live, namecheap_live)
+- Watcher (상시 감시 + 낙찰 자동 감지)
+- active_auctions 테이블 + API
 
 ---
 
 ## 미완료
 
-- [ ] Supabase 프로젝트 생성 + migration.sql 실행 (active_auctions 테이블 포함)
-- [ ] .env.local 환경변수 입력
-- [ ] Playwright 첫 실행 테스트 (`playwright install chromium`)
-- [ ] GoDaddy / Namecheap 내부 API URL 확인 (첫 실행 시 로그 확인)
-- [ ] RapidAPI 키 발급
+- [ ] RapidAPI 키 발급 → .env.local에 입력
+- [ ] WhoisXML API 키 발급 → .env.local에 입력
+- [ ] 로컬 `pnpm dev` 실행 → 검색 동작 확인
+- [ ] Playwright 설치 + 스크래퍼 첫 실행 테스트
 - [ ] Vercel 배포
 - [ ] Railway 배포 (Watcher 상시 실행)
-- [ ] 프론트엔드 "인기 경매 섹션" UI 구현 (active_auctions 데이터 활용)
+- [ ] 프론트엔드 "인기 경매 섹션" UI 구현
