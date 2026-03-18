@@ -3,7 +3,6 @@ import { getDomainByName, ensureDomainInDb } from "@/lib/db/domains";
 import { saveWaybackToDb } from "@/lib/db/wayback";
 import { fetchDomainMetrics } from "@/lib/external/rapidapi";
 import { fetchWayback } from "@/lib/external/wayback";
-import { fetchWhois } from "@/lib/external/whois";
 import { isStale } from "@/lib/cache";
 
 export async function GET(
@@ -33,14 +32,13 @@ export async function GET(
     const needsWaybackRefresh = !detail?.wayback;
 
     // 4. 필요한 외부 API만 호출 (병렬)
-    const [freshMetrics, freshWayback, whois] = await Promise.all([
+    const [freshMetrics, freshWayback] = await Promise.all([
       needsMetricsRefresh
         ? fetchDomainMetrics(domainId, name)
         : Promise.resolve(null),
       needsWaybackRefresh
         ? fetchWayback(domainId, name)
         : Promise.resolve(null),
-      fetchWhois(name),
     ]);
 
     // 5. Wayback 결과 DB 저장
@@ -62,7 +60,7 @@ export async function GET(
         metrics: freshMetrics ?? detail?.metrics ?? null,
         salesHistory: detail?.salesHistory ?? [],
         wayback: freshWayback ?? detail?.wayback ?? null,
-        whois,
+        whois: null,
       },
     });
   } catch (error) {

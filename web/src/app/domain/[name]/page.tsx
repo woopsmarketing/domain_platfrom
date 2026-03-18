@@ -1,26 +1,16 @@
 import type { Metadata } from "next";
-import { ArrowLeft, ExternalLink, Calendar, Server, Shield, AlertTriangle } from "lucide-react";
+import { ArrowLeft, ExternalLink, Server } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { formatPrice, formatDate } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 import { getDomainByName, ensureDomainInDb } from "@/lib/db/domains";
 import { incrementSearchCount } from "@/lib/db/analytics";
 import { fetchDomainMetrics } from "@/lib/external/rapidapi";
-import { fetchWhois } from "@/lib/external/whois";
 import { fetchWayback } from "@/lib/external/wayback";
 import { saveWaybackToDb } from "@/lib/db/wayback";
-import { calculateDomainGrade, calculateDomainAge, checkSpamScore } from "@/lib/domain-utils";
-import { Row, MetricBlock } from "@/components/domain/detail-helpers";
+import { MetricBlock } from "@/components/domain/detail-helpers";
 import type { DomainDetail } from "@/types/domain";
 import { isStale } from "@/lib/cache";
 
@@ -72,10 +62,9 @@ export default async function DomainDetailPage({ params }: PageProps) {
     const needsWayback = !dbData?.wayback;
 
     // 4. 필요한 외부 API만 호출 (병렬)
-    const [freshMetrics, freshWayback, whois] = await Promise.all([
+    const [freshMetrics, freshWayback] = await Promise.all([
       needsMetrics ? fetchDomainMetrics(domainId, name) : Promise.resolve(null),
       needsWayback ? fetchWayback(domainId, name) : Promise.resolve(null),
-      fetchWhois(name),
     ]);
 
     // 5. Wayback 결과 DB 저장 + 검색 카운트 증가
@@ -96,7 +85,7 @@ export default async function DomainDetailPage({ params }: PageProps) {
       metrics: freshMetrics ?? dbData?.metrics ?? null,
       salesHistory: dbData?.salesHistory ?? [],
       wayback: freshWayback ?? dbData?.wayback ?? null,
-      whois,
+      whois: null,
     };
   } catch {
     // DB not connected - data stays null
@@ -138,147 +127,77 @@ export default async function DomainDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* Spam Score Warning */}
-      {(() => {
-        const spam = checkSpamScore(data.metrics?.mozSpam ?? null);
-        if (spam.level === "warning" || spam.level === "danger") {
-          return (
-            <div
-              className={`mb-6 flex items-start gap-3 rounded-lg border px-4 py-3 ${
-                spam.level === "danger"
-                  ? "border-red-300 bg-red-50 text-red-800"
-                  : "border-yellow-300 bg-yellow-50 text-yellow-800"
-              }`}
-            >
-              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" />
-              <div>
-                <p className="font-semibold">스팸 점수 {spam.label}</p>
-                <p className="text-sm">{spam.description}</p>
-              </div>
-            </div>
-          );
-        }
-        return null;
-      })()}
-
-      {/* Domain Grade Badge */}
-      {(() => {
-        const grade = calculateDomainGrade(data.metrics);
-        return (
-          <Card className="mb-6">
-            <CardContent className="flex items-center gap-4 py-4">
-              <div
-                className={`flex h-14 w-14 items-center justify-center rounded-lg border-2 text-2xl font-extrabold ${grade.color}`}
-              >
-                {grade.grade}
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">종합 등급</p>
-                <p className={`text-lg font-bold ${grade.color}`}>
-                  {grade.score}점 · {grade.label}
-                </p>
-              </div>
+      {/* SEO Metrics — 3 Cards */}
+      {data.metrics ? (
+        <div className="mb-6 grid gap-4 sm:grid-cols-3">
+          {/* Moz */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold tracking-wide text-muted-foreground">Moz</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <MetricBlock items={[
+                { label: "DA", value: data.metrics.mozDA },
+                { label: "PA", value: data.metrics.mozPA },
+                { label: "Links", value: data.metrics.mozLinks },
+                { label: "Spam Score", value: data.metrics.mozSpam },
+              ]} />
             </CardContent>
           </Card>
-        );
-      })()}
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* 1. Whois */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Shield className="h-4 w-4" /> Whois 정보
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            {data.whois ? (
-              <>
-                <Row label="레지스트라" value={data.whois.registrar} />
-                <Row label="등록일" value={data.whois.createdDate} />
-                <Row label="만료일" value={data.whois.expiresDate} />
-                <Row label="수정일" value={data.whois.updatedDate} />
-                <Row label="네임서버" value={data.whois.nameServers.join(", ")} />
-                <Row label="상태" value={data.whois.status.join(", ")} />
-                {(() => {
-                  const age = calculateDomainAge(data.whois?.createdDate);
-                  if (!age) return null;
-                  return <Row label="도메인 나이" value={age.label} />;
-                })()}
-              </>
-            ) : (
-              <p className="text-muted-foreground">Whois 정보를 불러올 수 없습니다.</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* 2. SEO Metrics */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">SEO 지수</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {data.metrics ? (
-              <div className="grid grid-cols-2 gap-4">
-                <MetricBlock title="Moz" items={[
-                  { label: "DA", value: data.metrics.mozDA },
-                  { label: "Spam Score", value: data.metrics.mozSpam },
-                ]} />
-                <MetricBlock title="Ahrefs" items={[
-                  { label: "DR", value: data.metrics.ahrefsDR },
-                  { label: "트래픽", value: data.metrics.ahrefsTraffic },
-                  { label: "백링크", value: data.metrics.ahrefsBacklinks },
-                  { label: "트래픽 가치", value: data.metrics.ahrefsTrafficValue, prefix: "$" },
-                ]} />
-                <MetricBlock title="Majestic" items={[
-                  { label: "TF", value: data.metrics.majesticTF },
-                  { label: "CF", value: data.metrics.majesticCF },
-                ]} />
-                <div className="text-xs text-muted-foreground">
-                  마지막 업데이트: {formatDate(data.metrics.updatedAt)}
+          {/* Majestic */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold tracking-wide text-muted-foreground">Majestic</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <MetricBlock items={[
+                { label: "Trust Flow", value: data.metrics.majesticTF },
+                { label: "Citation Flow", value: data.metrics.majesticCF },
+                { label: "Links", value: data.metrics.majesticLinks },
+                { label: "Ref Domains", value: data.metrics.majesticRefDomains },
+              ]} />
+              {data.metrics.majesticTTF0Name && (
+                <div className="mt-2 rounded bg-muted px-2 py-1 text-xs text-muted-foreground">
+                  주제: <span className="font-medium text-foreground">{data.metrics.majesticTTF0Name}</span>
                 </div>
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground">SEO 데이터 없음</p>
-            )}
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Ahrefs */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold tracking-wide text-muted-foreground">Ahrefs</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <MetricBlock items={[
+                { label: "DR", value: data.metrics.ahrefsDR },
+                { label: "Backlinks", value: data.metrics.ahrefsBacklinks },
+                { label: "Ref Domains", value: data.metrics.ahrefsRefDomains },
+                { label: "Traffic", value: data.metrics.ahrefsTraffic },
+                { label: "Keywords", value: data.metrics.ahrefsOrganicKeywords },
+              ]} />
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <Card className="mb-6">
+          <CardContent className="py-6">
+            <p className="text-center text-sm text-muted-foreground">SEO 데이터를 불러오는 중이거나 아직 수집되지 않았습니다.</p>
           </CardContent>
         </Card>
+      )}
 
-        {/* 3. Sales History */}
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Calendar className="h-4 w-4" /> 거래 이력
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {data.salesHistory.length > 0 ? (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>날짜</TableHead>
-                    <TableHead>가격</TableHead>
-                    <TableHead>플랫폼</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {data.salesHistory.map((sale) => (
-                    <TableRow key={sale.id}>
-                      <TableCell>{sale.soldAt}</TableCell>
-                      <TableCell className="font-medium">{formatPrice(sale.priceUsd)}</TableCell>
-                      <TableCell>{sale.platform}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            ) : (
-              <p className="text-sm text-muted-foreground">거래 이력이 없습니다.</p>
-            )}
-          </CardContent>
-        </Card>
+      {data.metrics && (
+        <p className="mb-6 text-right text-xs text-muted-foreground">
+          마지막 업데이트: {formatDate(data.metrics.updatedAt)}
+        </p>
+      )}
 
-        {/* 4. Wayback */}
-        <Card className="md:col-span-2">
+      <div className="grid gap-6">
+        {/* Wayback */}
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <Server className="h-4 w-4" /> Wayback Machine 히스토리

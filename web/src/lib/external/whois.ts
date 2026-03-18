@@ -15,7 +15,6 @@ interface WhoisApiResponse {
 export async function fetchWhois(domainName: string): Promise<WhoisInfo | null> {
   const apiKey = process.env.WHOIS_API_KEY;
   if (!apiKey) {
-    console.error("WHOIS_API_KEY is not set");
     return null;
   }
 

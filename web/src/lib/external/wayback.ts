@@ -1,8 +1,43 @@
 import type { WaybackSummary } from "@/types/domain";
 
-interface CdxEntry {
-  timestamp: string;
-  statuscode: string;
+const CDX_BASE = "http://web.archive.org/cdx/search/cdx";
+
+function parseTs(ts: string): string {
+  return `${ts.slice(0, 4)}-${ts.slice(4, 6)}-${ts.slice(6, 8)}T${ts.slice(8, 10)}:${ts.slice(10, 12)}:${ts.slice(12, 14)}Z`;
+}
+
+/** limit=1 (첫 스냅샷) 또는 limit=-1 (마지막 스냅샷) */
+async function fetchOneSnapshot(domain: string, fromEnd: boolean): Promise<string | null> {
+  const url = new URL(CDX_BASE);
+  url.searchParams.set("url", domain);
+  url.searchParams.set("output", "json");
+  url.searchParams.set("fl", "timestamp");
+  url.searchParams.set("limit", fromEnd ? "-1" : "1");
+
+  const res = await fetch(url.toString(), { next: { revalidate: 0 } });
+  if (!res.ok) return null;
+
+  const raw: unknown = await res.json();
+  if (!Array.isArray(raw) || raw.length < 2) return null;
+
+  const ts = (raw[1] as string[])[0];
+  return ts ? parseTs(ts) : null;
+}
+
+/** text 모드로 줄 수를 세서 총 스냅샷 수 계산 (JSON보다 훨씬 빠름) */
+async function fetchTotalCount(domain: string): Promise<number> {
+  const url = new URL(CDX_BASE);
+  url.searchParams.set("url", domain);
+  url.searchParams.set("fl", "timestamp");
+  url.searchParams.set("limit", "500000");
+  // output=json 없이 text 모드 → 한 줄 = 한 레코드
+
+  const res = await fetch(url.toString(), { next: { revalidate: 0 } });
+  if (!res.ok) return 0;
+
+  const text = await res.text();
+  const lines = text.trim().split("\n");
+  return lines.length;
 }
 
 export async function fetchWayback(
@@ -10,46 +45,17 @@ export async function fetchWayback(
   domainName: string
 ): Promise<WaybackSummary | null> {
   try {
-    const url = new URL("http://web.archive.org/cdx/search/cdx");
-    url.searchParams.set("url", domainName);
-    url.searchParams.set("output", "json");
-    url.searchParams.set("limit", "10");
-    url.searchParams.set("fl", "timestamp,statuscode");
-
-    const res = await fetch(url.toString(), {
-      next: { revalidate: 0 },
-    });
-
-    if (!res.ok) return null;
-
-    const raw: unknown = await res.json();
-
-    // CDX returns array of arrays; first row is header
-    if (!Array.isArray(raw) || raw.length < 2) {
-      return {
-        domainId,
-        firstSnapshotAt: null,
-        lastSnapshotAt: null,
-        totalSnapshots: 0,
-      };
-    }
-
-    const rows = raw.slice(1) as string[][];
-    const entries: CdxEntry[] = rows.map((r) => ({
-      timestamp: r[0],
-      statuscode: r[1],
-    }));
-
-    const parseTs = (ts: string): string => {
-      // Format: YYYYMMDDHHmmss → ISO
-      return `${ts.slice(0, 4)}-${ts.slice(4, 6)}-${ts.slice(6, 8)}T${ts.slice(8, 10)}:${ts.slice(10, 12)}:${ts.slice(12, 14)}Z`;
-    };
+    const [firstSnapshotAt, lastSnapshotAt, totalSnapshots] = await Promise.all([
+      fetchOneSnapshot(domainName, false),
+      fetchOneSnapshot(domainName, true),
+      fetchTotalCount(domainName),
+    ]);
 
     return {
       domainId,
-      firstSnapshotAt: entries.length > 0 ? parseTs(entries[0].timestamp) : null,
-      lastSnapshotAt: entries.length > 0 ? parseTs(entries[entries.length - 1].timestamp) : null,
-      totalSnapshots: entries.length,
+      firstSnapshotAt,
+      lastSnapshotAt,
+      totalSnapshots,
     };
   } catch (err) {
     console.error("fetchWayback failed:", err);

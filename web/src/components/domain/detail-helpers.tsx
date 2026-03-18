@@ -11,14 +11,16 @@ export function MetricBlock({
   title,
   items,
 }: {
-  title: string;
+  title?: string;
   items: { label: string; value: number | null; prefix?: string }[];
 }) {
   return (
     <div>
-      <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        {title}
-      </p>
+      {title && (
+        <p className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {title}
+        </p>
+      )}
       {items.map((item) => (
         <div key={item.label} className="flex justify-between text-sm">
           <span className="text-muted-foreground">{item.label}</span>

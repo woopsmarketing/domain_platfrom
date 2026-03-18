@@ -16,14 +16,24 @@ export interface Domain {
 
 export interface DomainMetrics {
   domainId: string;
+  // Moz
   mozDA: number | null;
+  mozPA: number | null;
+  mozLinks: number | null;
   mozSpam: number | null;
-  ahrefsDR: number | null;
-  ahrefsTraffic: number | null;
-  ahrefsBacklinks: number | null;
-  ahrefsTrafficValue: number | null;
+  // Majestic
   majesticTF: number | null;
   majesticCF: number | null;
+  majesticLinks: number | null;
+  majesticRefDomains: number | null;
+  majesticTTF0Name: string | null;
+  // Ahrefs
+  ahrefsDR: number | null;
+  ahrefsBacklinks: number | null;
+  ahrefsRefDomains: number | null;
+  ahrefsTraffic: number | null;
+  ahrefsTrafficValue: number | null;
+  ahrefsOrganicKeywords: number | null;
   updatedAt: string;
 }
 

@@ -121,7 +121,7 @@ export async function getDomainByName(name: string): Promise<DomainDetail | null
   if (error || !domain) return null;
 
   const [metricsResult, salesResult, waybackResult] = await Promise.all([
-    client.from("domain_metrics").select("domain_id, moz_da, moz_spam, ahrefs_dr, ahrefs_traffic, ahrefs_backlinks, ahrefs_traffic_value, majestic_tf, majestic_cf, updated_at").eq("domain_id", domain.id).single(),
+    client.from("domain_metrics").select("domain_id, moz_da, moz_pa, moz_links, moz_spam, majestic_tf, majestic_cf, majestic_links, majestic_ref_domains, majestic_ttf0_name, ahrefs_dr, ahrefs_backlinks, ahrefs_ref_domains, ahrefs_traffic, ahrefs_traffic_value, ahrefs_organic_keywords, updated_at").eq("domain_id", domain.id).single(),
     client.from("sales_history").select("id, domain_id, sold_at, price_usd, platform").eq("domain_id", domain.id).order("sold_at", { ascending: false }),
     client.from("wayback_summary").select("domain_id, first_snapshot_at, last_snapshot_at, total_snapshots").eq("domain_id", domain.id).single(),
   ]);
@@ -141,13 +141,20 @@ export async function getDomainByName(name: string): Promise<DomainDetail | null
       ? {
           domainId: metricsResult.data.domain_id,
           mozDA: metricsResult.data.moz_da,
+          mozPA: metricsResult.data.moz_pa,
+          mozLinks: metricsResult.data.moz_links,
           mozSpam: metricsResult.data.moz_spam,
-          ahrefsDR: metricsResult.data.ahrefs_dr,
-          ahrefsTraffic: metricsResult.data.ahrefs_traffic,
-          ahrefsBacklinks: metricsResult.data.ahrefs_backlinks,
-          ahrefsTrafficValue: metricsResult.data.ahrefs_traffic_value,
           majesticTF: metricsResult.data.majestic_tf,
           majesticCF: metricsResult.data.majestic_cf,
+          majesticLinks: metricsResult.data.majestic_links,
+          majesticRefDomains: metricsResult.data.majestic_ref_domains,
+          majesticTTF0Name: metricsResult.data.majestic_ttf0_name,
+          ahrefsDR: metricsResult.data.ahrefs_dr,
+          ahrefsBacklinks: metricsResult.data.ahrefs_backlinks,
+          ahrefsRefDomains: metricsResult.data.ahrefs_ref_domains,
+          ahrefsTraffic: metricsResult.data.ahrefs_traffic,
+          ahrefsTrafficValue: metricsResult.data.ahrefs_traffic_value,
+          ahrefsOrganicKeywords: metricsResult.data.ahrefs_organic_keywords,
           updatedAt: metricsResult.data.updated_at,
         }
       : null,

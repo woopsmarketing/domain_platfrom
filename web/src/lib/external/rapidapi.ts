@@ -2,14 +2,31 @@ import { createServerClient } from "@/lib/supabase";
 import type { DomainMetrics } from "@/types/domain";
 
 interface RapidApiResponse {
-  mozDA?: number;
-  ahrefsDR?: number;
-  majesticTF?: number;
-  majesticCF?: number;
-  ahrefsTraffic?: number;
-  ahrefsBacklinks?: number;
-  ahrefsTrafficValue?: number;
-  mozSpam?: number;
+  status?: string;
+  // Moz
+  mozDA?: number | string;
+  mozPA?: number | string;
+  mozLinks?: number | string;
+  mozSpam?: number | string;
+  // Majestic
+  majesticTF?: number | string;
+  majesticCF?: number | string;
+  majesticLinks?: number | string;
+  majesticRefDomains?: number | string;
+  majesticTTF0Name?: string;
+  // Ahrefs
+  ahrefsDR?: number | string;
+  ahrefsBacklinks?: number | string;
+  ahrefsRefDomains?: number | string;
+  ahrefsTraffic?: number | string;
+  ahrefsTrafficValue?: number | string;
+  ahrefsOrganicKeywords?: number | string;
+}
+
+function toNum(v: number | string | undefined | null): number | null {
+  if (v == null) return null;
+  const n = typeof v === "string" ? parseFloat(v) : v;
+  return isNaN(n) ? null : n;
 }
 
 export async function fetchDomainMetrics(
@@ -24,11 +41,12 @@ export async function fetchDomainMetrics(
 
   try {
     const res = await fetch(
-      `https://domain-metrics-check.p.rapidapi.com/domain-metrics/${encodeURIComponent(domainName)}`,
+      `https://domain-metrics-check.p.rapidapi.com/domain-metrics/${encodeURIComponent(domainName)}/`,
       {
         headers: {
-          "X-RapidAPI-Key": apiKey,
-          "X-RapidAPI-Host": "domain-metrics-check.p.rapidapi.com",
+          "Content-Type": "application/json",
+          "x-rapidapi-key": apiKey,
+          "x-rapidapi-host": "domain-metrics-check.p.rapidapi.com",
         },
         next: { revalidate: 0 },
       }
@@ -41,16 +59,28 @@ export async function fetchDomainMetrics(
 
     const raw: RapidApiResponse = await res.json();
 
+    if (raw.status === "error") {
+      console.error("RapidAPI returned error:", raw);
+      return null;
+    }
+
     const metrics: DomainMetrics = {
       domainId,
-      mozDA: raw.mozDA ?? null,
-      mozSpam: raw.mozSpam ?? null,
-      ahrefsDR: raw.ahrefsDR ?? null,
-      ahrefsTraffic: raw.ahrefsTraffic ?? null,
-      ahrefsBacklinks: raw.ahrefsBacklinks ?? null,
-      ahrefsTrafficValue: raw.ahrefsTrafficValue ?? null,
-      majesticTF: raw.majesticTF ?? null,
-      majesticCF: raw.majesticCF ?? null,
+      mozDA: toNum(raw.mozDA),
+      mozPA: toNum(raw.mozPA),
+      mozLinks: toNum(raw.mozLinks),
+      mozSpam: toNum(raw.mozSpam),
+      majesticTF: toNum(raw.majesticTF),
+      majesticCF: toNum(raw.majesticCF),
+      majesticLinks: toNum(raw.majesticLinks),
+      majesticRefDomains: toNum(raw.majesticRefDomains),
+      majesticTTF0Name: raw.majesticTTF0Name || null,
+      ahrefsDR: toNum(raw.ahrefsDR),
+      ahrefsBacklinks: toNum(raw.ahrefsBacklinks),
+      ahrefsRefDomains: toNum(raw.ahrefsRefDomains),
+      ahrefsTraffic: toNum(raw.ahrefsTraffic),
+      ahrefsTrafficValue: toNum(raw.ahrefsTrafficValue),
+      ahrefsOrganicKeywords: toNum(raw.ahrefsOrganicKeywords),
       updatedAt: new Date().toISOString(),
     };
 
@@ -60,13 +90,20 @@ export async function fetchDomainMetrics(
       {
         domain_id: domainId,
         moz_da: metrics.mozDA,
+        moz_pa: metrics.mozPA,
+        moz_links: metrics.mozLinks,
         moz_spam: metrics.mozSpam,
-        ahrefs_dr: metrics.ahrefsDR,
-        ahrefs_traffic: metrics.ahrefsTraffic,
-        ahrefs_backlinks: metrics.ahrefsBacklinks,
-        ahrefs_traffic_value: metrics.ahrefsTrafficValue,
         majestic_tf: metrics.majesticTF,
         majestic_cf: metrics.majesticCF,
+        majestic_links: metrics.majesticLinks,
+        majestic_ref_domains: metrics.majesticRefDomains,
+        majestic_ttf0_name: metrics.majesticTTF0Name,
+        ahrefs_dr: metrics.ahrefsDR,
+        ahrefs_backlinks: metrics.ahrefsBacklinks,
+        ahrefs_ref_domains: metrics.ahrefsRefDomains,
+        ahrefs_traffic: metrics.ahrefsTraffic,
+        ahrefs_traffic_value: metrics.ahrefsTrafficValue,
+        ahrefs_organic_keywords: metrics.ahrefsOrganicKeywords,
         updated_at: metrics.updatedAt,
       },
       { onConflict: "domain_id" }
