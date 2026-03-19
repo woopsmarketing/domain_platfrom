@@ -11,9 +11,22 @@ export function DomainSearchBox() {
   const [query, setQuery] = useState("");
   const [isPending, startTransition] = useTransition();
 
+  const parseDomain = (input: string): string => {
+    let value = input.trim().toLowerCase();
+    // https:// 또는 http:// 제거
+    value = value.replace(/^https?:\/\//, "");
+    // www. 제거
+    value = value.replace(/^www\./, "");
+    // 경로(/...) 제거
+    value = value.split("/")[0];
+    // 포트(:8080 등) 제거
+    value = value.split(":")[0];
+    return value;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const domain = query.trim().toLowerCase();
+    const domain = parseDomain(query);
     if (domain) {
       startTransition(() => {
         router.push(`/domain/${domain}`);

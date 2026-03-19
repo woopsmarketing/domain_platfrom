@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { ArrowLeft, ExternalLink, Server } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -46,8 +47,23 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   };
 }
 
+function cleanDomain(raw: string): string {
+  let value = decodeURIComponent(raw).trim().toLowerCase();
+  value = value.replace(/^https?:\/\//, "");
+  value = value.replace(/^www\./, "");
+  value = value.split("/")[0];
+  value = value.split(":")[0];
+  return value;
+}
+
 export default async function DomainDetailPage({ params }: PageProps) {
   const { name } = await params;
+
+  // URL에 프로토콜/www 등이 포함된 경우 정규화 후 리다이렉트
+  const cleaned = cleanDomain(name);
+  if (cleaned !== name) {
+    redirect(`/domain/${cleaned}`);
+  }
 
   let data: DomainDetail | null = null;
   try {
