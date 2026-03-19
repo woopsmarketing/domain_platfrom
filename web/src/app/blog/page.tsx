@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "블로그 — DomainPulse | 도메인 투자 & SEO 가이드",
+  title: "블로그 — 도메인체커 | 도메인 투자 & SEO 가이드",
   description:
     "도메인 투자와 SEO 분석에 대한 실전 가이드. DA란 무엇인지, 좋은 도메인 고르는 법, 도메인 경매 활용법 등 핵심 정보를 제공합니다.",
   keywords: [
@@ -33,7 +33,7 @@ const articles = [
     slug: "domain-auction-guide",
     title: "도메인 경매 완벽 가이드 — GoDaddy, Namecheap 낙찰 데이터 활용법",
     description:
-      "도메인 경매의 작동 방식과 DomainPulse 낙찰 데이터를 활용해 투자 기회를 찾는 방법을 소개합니다.",
+      "도메인 경매의 작동 방식과 도메인체커 낙찰 데이터를 활용해 투자 기회를 찾는 방법을 소개합니다.",
   },
 ];
 

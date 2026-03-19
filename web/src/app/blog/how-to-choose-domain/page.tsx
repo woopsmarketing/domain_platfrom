@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "좋은 도메인 고르는 법 — 투자 가치 있는 도메인 5가지 기준 — DomainPulse",
+  title: "좋은 도메인 고르는 법 — 투자 가치 있는 도메인 5가지 기준 — 도메인체커",
   description:
     "DA/DR, TLD, 도메인 나이, 백링크 프로필, 브랜드 가능성까지. 수익성 높은 도메인을 고르는 5가지 핵심 기준을 실전 예시와 함께 정리합니다.",
   keywords: [
@@ -72,7 +72,7 @@ export default function HowToChooseDomainPage() {
             오래된 도메인은 검색엔진의 신뢰도 측면에서 유리합니다. 등록 후 5년 이상 된
             도메인은 신규 도메인보다 검색 순위 진입이 빠른 경향이 있으며, Wayback Machine에
             과거 웹사이트 이력이 남아 있다면 해당 도메인의 역사적 가치도 확인할 수 있습니다.
-            DomainPulse에서 Whois 등록일과 Wayback 히스토리를 한 번에 확인할 수 있습니다.
+            도메인체커에서 Whois 등록일과 Wayback 히스토리를 한 번에 확인할 수 있습니다.
           </p>
         </section>
 
@@ -106,7 +106,7 @@ export default function HowToChooseDomainPage() {
       <div className="mt-12 rounded-xl border bg-muted/30 p-6 text-center">
         <p className="text-lg font-semibold">관심 도메인의 지표를 확인해 보세요</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          DomainPulse에서 DA, DR, TF, 백링크 수, Whois 정보를 무료로 분석할 수 있습니다.
+          도메인체커에서 DA, DR, TF, 백링크 수, Whois 정보를 무료로 분석할 수 있습니다.
         </p>
         <Link
           href="/"

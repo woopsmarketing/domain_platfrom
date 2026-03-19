@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "도메인 경매 완벽 가이드 — GoDaddy, Namecheap 낙찰 데이터 활용법 — DomainPulse",
+  title: "도메인 경매 완벽 가이드 — GoDaddy, Namecheap 낙찰 데이터 활용법 — 도메인체커",
   description:
     "도메인 경매의 작동 방식부터 GoDaddy Auctions, Namecheap 경매 낙찰 데이터를 활용해 투자 기회를 찾는 방법까지. 도메인 경매 입문자를 위한 완벽 가이드.",
   keywords: [
@@ -61,10 +61,10 @@ export default function DomainAuctionGuidePage() {
 
         <section>
           <h2 className="mb-3 text-xl font-semibold text-foreground">
-            DomainPulse로 낙찰 데이터 활용하기
+            도메인체커로 낙찰 데이터 활용하기
           </h2>
           <p>
-            DomainPulse는 GoDaddy와 Namecheap의 낙찰 완료 데이터를 매일 수집하여
+            도메인체커는 GoDaddy와 Namecheap의 낙찰 완료 데이터를 매일 수집하여
             데이터베이스에 저장합니다. 이 데이터를 활용하면 다음과 같은 투자 판단이
             가능합니다.
           </p>
@@ -85,7 +85,7 @@ export default function DomainAuctionGuidePage() {
           </ul>
           <p className="mt-3">
             도메인의 SEO 지수(DA, DR, TF)와 낙찰 이력을 함께 분석하면, 단순히 도메인명만
-            보고 입찰하는 것보다 훨씬 정확한 가치 판단이 가능합니다. DomainPulse의 도메인
+            보고 입찰하는 것보다 훨씬 정확한 가치 판단이 가능합니다. 도메인체커의 도메인
             상세 페이지에서 Whois, SEO 지표, 거래 이력, Wayback 히스토리를 한 번에 확인해
             보세요.
           </p>
@@ -95,7 +95,7 @@ export default function DomainAuctionGuidePage() {
       <div className="mt-12 rounded-xl border bg-muted/30 p-6 text-center">
         <p className="text-lg font-semibold">경매 도메인의 가치를 분석해 보세요</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          DomainPulse에서 DA, DR, TF, 거래 이력을 무료로 확인할 수 있습니다.
+          도메인체커에서 DA, DR, TF, 거래 이력을 무료로 확인할 수 있습니다.
         </p>
         <Link
           href="/"

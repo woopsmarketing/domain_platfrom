@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "Domain Authority(DA)란? 도메인 품질을 판단하는 핵심 지표 — DomainPulse",
+  title: "Domain Authority(DA)란? 도메인 품질을 판단하는 핵심 지표 — 도메인체커",
   description:
     "Moz가 개발한 Domain Authority(DA)의 의미와 계산 방식, 도메인 투자에서 DA가 중요한 이유를 상세히 설명합니다. DA 점수로 도메인 가치를 판단하는 방법을 알아보세요.",
   keywords: [
@@ -73,7 +73,7 @@ export default function WhatIsDaPage() {
       <div className="mt-12 rounded-xl border bg-muted/30 p-6 text-center">
         <p className="text-lg font-semibold">도메인의 DA를 확인해 보세요</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          DomainPulse에서 DA, DR, TF를 포함한 주요 SEO 지수를 무료로 분석할 수 있습니다.
+          도메인체커에서 DA, DR, TF를 포함한 주요 SEO 지수를 무료로 분석할 수 있습니다.
         </p>
         <Link
           href="/"

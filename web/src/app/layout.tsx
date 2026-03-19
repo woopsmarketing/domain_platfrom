@@ -8,8 +8,8 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: {
-    default: "DomainPulse — 무료 도메인 지수 체크 | DA/DR/TF 분석",
-    template: "%s | DomainPulse",
+    default: "도메인체커 — 무료 도메인 지수 체크 | DA/DR/TF 분석",
+    template: "%s | 도메인체커",
   },
   description:
     "무료 도메인 DA 체크, DR 확인, Trust Flow 분석. 도메인명만 입력하면 SEO 지수, Whois, 거래 이력을 즉시 확인하세요.",

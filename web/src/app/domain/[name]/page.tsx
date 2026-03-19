@@ -21,7 +21,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { name } = await params;
-  const ogTitle = `${name} 도메인 분석 — DomainPulse`;
+  const ogTitle = `${name} 도메인 분석 — 도메인체커`;
   const ogDescription = `${name}의 DA, DR, Trust Flow, Whois, 거래 이력을 무료로 확인하세요.`;
   return {
     title: `${name} 도메인 분석 — DA, DR, Whois, 거래 이력`,
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: ogTitle,
       description: ogDescription,
       type: "website",
-      siteName: "DomainPulse",
+      siteName: "도메인체커",
     },
     twitter: {
       card: "summary_large_image",

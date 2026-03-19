@@ -23,8 +23,14 @@ export function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/domain/${searchQuery.trim().toLowerCase()}`);
-      setSearchQuery("");
+      let domain = searchQuery.trim().toLowerCase();
+      domain = domain.replace(/^https?:\/\//, "");
+      domain = domain.replace(/^www\./, "");
+      domain = domain.split("/")[0].split(":")[0];
+      if (domain) {
+        router.push(`/domain/${domain}`);
+        setSearchQuery("");
+      }
     }
   };
 
@@ -37,7 +43,7 @@ export function Header() {
             <Activity className="h-4 w-4 text-primary-foreground" />
           </div>
           <span className="hidden text-lg font-semibold tracking-tight sm:inline">
-            DomainPulse
+            도메인체커
           </span>
         </Link>
 
