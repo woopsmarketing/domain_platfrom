@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatPrice } from "@/lib/utils";
 import { getDomainByName, ensureDomainInDb } from "@/lib/db/domains";
 import { incrementSearchCount } from "@/lib/db/analytics";
 import { fetchDomainMetrics } from "@/lib/external/rapidapi";
