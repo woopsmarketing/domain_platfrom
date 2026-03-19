@@ -224,7 +224,7 @@ export default async function DomainDetailPage({ params }: PageProps) {
               <div className="flex flex-wrap gap-6 text-sm">
                 <div>
                   <p className="text-muted-foreground">총 스냅샷</p>
-                  <p className="text-xl font-bold">{data.wayback.totalSnapshots}</p>
+                  <p className="text-xl font-bold">{data.wayback.totalSnapshots === -1 ? "10,000+" : data.wayback.totalSnapshots}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">첫 크롤일</p>

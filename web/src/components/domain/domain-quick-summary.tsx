@@ -167,13 +167,13 @@ export function DomainQuickSummary({
               </div>
 
               {/* Wayback 요약 (있으면) */}
-              {data.wayback && data.wayback.totalSnapshots > 0 && (
+              {data.wayback && (data.wayback.totalSnapshots > 0 || data.wayback.totalSnapshots === -1) && (
                 <div className="flex items-start gap-2 rounded-lg bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
                   <Camera className="mt-0.5 h-3.5 w-3.5 shrink-0" />
                   <span>
                     Wayback: 총{" "}
                     <span className="font-semibold text-foreground">
-                      {formatNumber(data.wayback.totalSnapshots)}
+                      {data.wayback.totalSnapshots === -1 ? "10,000+" : formatNumber(data.wayback.totalSnapshots)}
                     </span>
                     개 스냅샷
                     {data.wayback.firstSnapshotAt && (
