@@ -1,15 +1,14 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { Search, ArrowRight, Hourglass } from "lucide-react";
+import { useState } from "react";
+import { Search, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DomainQuickSummary } from "@/components/domain/domain-quick-summary";
 
 export function DomainSearchBox() {
-  const router = useRouter();
   const [query, setQuery] = useState("");
-  const [isPending, startTransition] = useTransition();
+  const [searchedDomain, setSearchedDomain] = useState<string | null>(null);
 
   const parseDomain = (input: string): string => {
     let value = input.trim().toLowerCase();
@@ -27,10 +26,8 @@ export function DomainSearchBox() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const domain = parseDomain(query);
-    if (domain) {
-      startTransition(() => {
-        router.push(`/domain/${domain}`);
-      });
+    if (domain && domain.includes(".")) {
+      setSearchedDomain(domain);
     }
   };
 
@@ -44,34 +41,24 @@ export function DomainSearchBox() {
             placeholder="분석할 도메인을 입력하세요 — example.com"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            disabled={isPending}
             className="h-14 rounded-xl border-border/60 bg-background pl-12 text-base shadow-sm transition-shadow focus:shadow-md focus:shadow-primary/10"
           />
         </div>
         <Button
           type="submit"
           size="lg"
-          disabled={isPending}
           className="h-14 rounded-xl px-8 text-base font-medium shadow-sm shadow-primary/20 transition-all hover:shadow-md hover:shadow-primary/30"
         >
-          {isPending ? (
-            <>
-              <Hourglass className="mr-2 h-4 w-4 animate-spin" />
-              분석중...
-            </>
-          ) : (
-            <>
-              분석하기
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </>
-          )}
+          분석하기
+          <ArrowRight className="ml-2 h-4 w-4" />
         </Button>
       </form>
-      {isPending && (
-        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-          <Hourglass className="h-4 w-4 animate-pulse" />
-          <span>도메인을 분석중입니다 . . .</span>
-        </div>
+
+      {searchedDomain && (
+        <DomainQuickSummary
+          domain={searchedDomain}
+          onClose={() => setSearchedDomain(null)}
+        />
       )}
     </div>
   );
