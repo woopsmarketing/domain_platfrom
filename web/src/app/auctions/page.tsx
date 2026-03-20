@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import { Flame, Clock, TrendingUp } from "lucide-react";
+import { Flame, TrendingUp } from "lucide-react";
 import { createServiceClient } from "@/lib/supabase";
 import { AuctionGrid } from "@/components/home/auction-grid";
-import { Badge } from "@/components/ui/badge";
 
 export const dynamic = "force-dynamic";
 
@@ -31,12 +30,16 @@ interface ActiveAuction {
 async function getActiveAuctions(): Promise<ActiveAuction[]> {
   try {
     const client = createServiceClient();
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const sevenDaysAgo = new Date(
+      Date.now() - 7 * 24 * 60 * 60 * 1000
+    ).toISOString();
+    const now = new Date().toISOString();
 
     const { data, error } = await client
       .from("active_auctions")
       .select("domain, tld, current_price, bid_count, end_time_raw, crawled_at")
-      .gte("crawled_at", oneDayAgo)
+      .gte("crawled_at", sevenDaysAgo)
+      .gte("end_time_raw", now)
       .order("bid_count", { ascending: false, nullsFirst: false })
       .limit(200);
 
@@ -53,14 +56,7 @@ async function getActiveAuctions(): Promise<ActiveAuction[]> {
 export default async function AuctionsPage() {
   const auctions = await getActiveAuctions();
 
-  // 통계
   const totalBids = auctions.reduce((sum, a) => sum + (a.bid_count || 0), 0);
-  const avgPrice =
-    auctions.length > 0
-      ? Math.round(
-          auctions.reduce((sum, a) => sum + a.current_price, 0) / auctions.length
-        )
-      : 0;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -78,45 +74,35 @@ export default async function AuctionsPage() {
         </p>
       </div>
 
-      {/* Stats */}
-      <div className="mb-8 grid grid-cols-3 gap-4">
+      {/* Stats — 2 columns */}
+      <div className="mb-8 grid grid-cols-2 gap-4">
         <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
             <Flame className="h-3.5 w-3.5" />
             진행 중
           </div>
-          <p className="text-2xl font-bold">{auctions.length}<span className="text-sm font-normal text-muted-foreground ml-1">건</span></p>
+          <p className="text-2xl font-bold">
+            {auctions.length}
+            <span className="text-sm font-normal text-muted-foreground ml-1">
+              건
+            </span>
+          </p>
         </div>
         <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
             <TrendingUp className="h-3.5 w-3.5" />
             총 입찰
           </div>
-          <p className="text-2xl font-bold">{totalBids.toLocaleString()}<span className="text-sm font-normal text-muted-foreground ml-1">건</span></p>
-        </div>
-        <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-            <Clock className="h-3.5 w-3.5" />
-            평균 가격
-          </div>
-          <p className="text-2xl font-bold">${avgPrice.toLocaleString()}</p>
+          <p className="text-2xl font-bold">
+            {totalBids.toLocaleString()}
+            <span className="text-sm font-normal text-muted-foreground ml-1">
+              건
+            </span>
+          </p>
         </div>
       </div>
 
-      {/* Filter badges */}
-      <div className="mb-6 flex items-center gap-2">
-        <Badge variant="secondary" className="rounded-full text-xs">
-          입찰 2건 이상
-        </Badge>
-        <Badge variant="secondary" className="rounded-full text-xs">
-          24시간 이내 종료
-        </Badge>
-        <span className="text-xs text-muted-foreground">
-          · 2분마다 자동 갱신
-        </span>
-      </div>
-
-      {/* Auction grid */}
+      {/* Auction table */}
       {auctions.length > 0 ? (
         <AuctionGrid auctions={auctions} />
       ) : (

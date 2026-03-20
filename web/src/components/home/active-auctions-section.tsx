@@ -15,12 +15,16 @@ interface ActiveAuction {
 async function getActiveAuctions(limit = 20): Promise<ActiveAuction[]> {
   try {
     const client = createServiceClient();
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const sevenDaysAgo = new Date(
+      Date.now() - 7 * 24 * 60 * 60 * 1000
+    ).toISOString();
+    const now = new Date().toISOString();
 
     const { data, error } = await client
       .from("active_auctions")
       .select("domain, tld, current_price, bid_count, end_time_raw, crawled_at")
-      .gte("crawled_at", oneDayAgo)
+      .gte("crawled_at", sevenDaysAgo)
+      .gte("end_time_raw", now)
       .order("bid_count", { ascending: false, nullsFirst: false })
       .limit(limit);
 
@@ -57,6 +61,12 @@ export async function ActiveAuctionsSection() {
               </p>
             </div>
           </div>
+          <Link
+            href="/auctions"
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            전체 보기 &rarr;
+          </Link>
         </div>
 
         <AuctionGrid auctions={auctions} />
