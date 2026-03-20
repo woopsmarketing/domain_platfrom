@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { Flame } from "lucide-react";
-import { createServiceClient } from "@/lib/supabase";
 import { AuctionGrid } from "./auction-grid";
+
+const GRAPHQL_URL = "https://aftermarketapi.namecheap.com/client/graphql";
+const GRAPHQL_HASH =
+  "fe84e690294ebd46f5cbc0a2b3fe1fe7fc606395c28f54afab18ff6521d98110";
 
 interface ActiveAuction {
   domain: string;
@@ -12,35 +15,74 @@ interface ActiveAuction {
   crawled_at: string;
 }
 
-async function getActiveAuctions(limit = 20): Promise<ActiveAuction[]> {
+async function getActiveAuctions(limit = 10): Promise<ActiveAuction[]> {
   try {
-    const client = createServiceClient();
-    const sevenDaysAgo = new Date(
-      Date.now() - 7 * 24 * 60 * 60 * 1000
-    ).toISOString();
-    const now = new Date().toISOString();
+    // Namecheap GraphQL API 직접 호출 — timeLeft 오름차순
+    const resp = await fetch(GRAPHQL_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        Origin: "https://www.namecheap.com",
+        Referer: "https://www.namecheap.com/",
+      },
+      body: JSON.stringify({
+        operationName: "SaleTable",
+        variables: {
+          filter: {},
+          sort: [{ column: "bidCount", direction: "desc" }],
+          page: 1,
+          pageSize: 100,
+        },
+        extensions: {
+          persistedQuery: { version: 1, sha256Hash: GRAPHQL_HASH },
+        },
+      }),
+      cache: "no-store",
+    });
 
-    const { data, error } = await client
-      .from("active_auctions")
-      .select("domain, tld, current_price, bid_count, end_time_raw, crawled_at")
-      .gte("crawled_at", sevenDaysAgo)
-      .gte("end_time_raw", now)
-      .order("bid_count", { ascending: false, nullsFirst: false })
-      .limit(limit);
+    if (!resp.ok) return [];
 
-    if (error) {
-      console.error("active-auctions fetch error:", error.message);
-      return [];
+    const data = await resp.json();
+    const items = data?.data?.sales?.items ?? [];
+    const now = Date.now();
+    const maxMs = 24 * 60 * 60 * 1000;
+
+    const results: ActiveAuction[] = [];
+    for (const item of items) {
+      const endDate = item.endDate ?? "";
+      const end = new Date(endDate).getTime();
+      if (isNaN(end)) continue;
+      const diff = end - now;
+      if (diff <= 0 || diff > maxMs) continue;
+
+      const bidCount = Number(item.bidCount ?? 0);
+      if (bidCount < 2) continue;
+
+      const domain = (item.product?.name ?? "").toLowerCase().trim();
+      if (!domain || !domain.includes(".")) continue;
+
+      const parts = domain.split(".");
+      results.push({
+        domain,
+        tld: parts[parts.length - 1],
+        current_price: Math.round(Number(item.price ?? 0)),
+        bid_count: bidCount,
+        end_time_raw: endDate,
+        crawled_at: new Date().toISOString(),
+      });
+
+      if (results.length >= limit) break;
     }
 
-    return (data ?? []) as ActiveAuction[];
+    return results;
   } catch {
     return [];
   }
 }
 
 export async function ActiveAuctionsSection() {
-  const auctions = await getActiveAuctions(20);
+  const auctions = await getActiveAuctions(10);
 
   if (auctions.length === 0) {
     return null;

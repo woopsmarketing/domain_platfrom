@@ -1,68 +1,128 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServiceClient } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
+
+const GRAPHQL_URL = "https://aftermarketapi.namecheap.com/client/graphql";
+const GRAPHQL_HASH =
+  "fe84e690294ebd46f5cbc0a2b3fe1fe7fc606395c28f54afab18ff6521d98110";
+
+const HEADERS = {
+  "Content-Type": "application/json",
+  "User-Agent":
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+  Origin: "https://www.namecheap.com",
+  Referer: "https://www.namecheap.com/",
+};
+
+const MIN_BIDS = 2;
+const MAX_HOURS = 24;
+const PAGE_SIZE = 100;
+const MAX_PAGES = 20;
+
+interface AuctionItem {
+  domain: string;
+  tld: string;
+  current_price: number;
+  bid_count: number;
+  end_time_raw: string;
+}
+
+async function fetchPage(
+  page: number,
+  sortCol: string,
+  sortDir: string
+): Promise<{ items: Record<string, unknown>[]; total: number }> {
+  const payload = {
+    operationName: "SaleTable",
+    variables: {
+      filter: {},
+      sort: [{ column: sortCol, direction: sortDir }],
+      page,
+      pageSize: PAGE_SIZE,
+    },
+    extensions: {
+      persistedQuery: { version: 1, sha256Hash: GRAPHQL_HASH },
+    },
+  };
+
+  const resp = await fetch(GRAPHQL_URL, {
+    method: "POST",
+    headers: HEADERS,
+    body: JSON.stringify(payload),
+    cache: "no-store",
+  });
+
+  if (!resp.ok) return { items: [], total: 0 };
+
+  const data = await resp.json();
+  const sales = data?.data?.sales ?? {};
+  return { items: sales.items ?? [], total: sales.total ?? 0 };
+}
+
+function isWithinDeadline(endDateStr: string): boolean {
+  const end = new Date(endDateStr).getTime();
+  if (isNaN(end)) return false;
+  const diffHours = (end - Date.now()) / (1000 * 60 * 60);
+  return diffHours > 0 && diffHours <= MAX_HOURS;
+}
 
 /**
  * GET /api/active-auctions
  *
- * 현재 진행 중인 경매 도메인 목록 조회.
- * 쿼리 파라미터:
- *   - limit: 최대 개수 (기본 20, 최대 100)
- *   - sort: 정렬 기준 (price | bids | time, 기본 bids)
- *
- * crawled_at 기준 최근 7일 이내 데이터만 반환.
+ * Namecheap GraphQL API를 실시간 호출하여
+ * 24시간 이내 종료 + bids >= 2 경매 도메인을 반환합니다.
  */
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = request.nextUrl;
-    const limit = Math.min(
-      Math.max(parseInt(searchParams.get("limit") || "20", 10) || 20, 1),
-      100
-    );
-    const sort = searchParams.get("sort") || "bids";
+    const results: AuctionItem[] = [];
+    let page = 1;
 
-    const client = createServiceClient();
+    while (page <= MAX_PAGES) {
+      const { items, total } = await fetchPage(page, "timeLeft", "asc");
+      if (!items || items.length === 0) break;
 
-    // 7일 이내 데이터만
-    const sevenDaysAgo = new Date(
-      Date.now() - 7 * 24 * 60 * 60 * 1000
-    ).toISOString();
+      let passedDeadline = false;
 
-    const now = new Date().toISOString();
+      for (const item of items) {
+        const endDate = (item.endDate as string) ?? "";
 
-    let query = client
-      .from("active_auctions")
-      .select("domain, tld, current_price, bid_count, end_time_raw, crawled_at")
-      .gte("crawled_at", sevenDaysAgo)
-      .gte("end_time_raw", now);
+        if (!isWithinDeadline(endDate)) {
+          passedDeadline = true;
+          break;
+        }
 
-    // 정렬
-    switch (sort) {
-      case "price":
-        query = query.order("current_price", { ascending: false });
-        break;
-      case "time":
-        query = query.order("crawled_at", { ascending: false });
-        break;
-      case "bids":
-      default:
-        query = query.order("bid_count", { ascending: false, nullsFirst: false });
-        break;
+        const bidCount = Number(item.bidCount ?? 0);
+        if (bidCount < MIN_BIDS) continue;
+
+        const product = item.product as Record<string, string> | null;
+        const domain = (product?.name ?? "").toLowerCase().trim();
+        if (!domain || !domain.includes(".")) continue;
+
+        const parts = domain.split(".");
+        const tld = parts[parts.length - 1];
+
+        results.push({
+          domain,
+          tld,
+          current_price: Math.round(Number(item.price ?? 0)),
+          bid_count: bidCount,
+          end_time_raw: endDate,
+        });
+      }
+
+      if (passedDeadline) break;
+      page++;
     }
 
-    query = query.limit(limit);
+    // bid_count 내림차순 정렬
+    results.sort((a, b) => b.bid_count - a.bid_count);
 
-    const { data, error } = await query;
-
-    if (error) {
-      console.error("active-auctions query error:", error.message);
-      return NextResponse.json({ items: [] });
-    }
-
-    return NextResponse.json({ items: data ?? [] });
+    return NextResponse.json({
+      items: results,
+      updated_at: new Date().toISOString(),
+    });
   } catch (err) {
     console.error("active-auctions error:", err);
-    return NextResponse.json({ items: [] });
+    return NextResponse.json({ items: [], updated_at: null });
   }
 }

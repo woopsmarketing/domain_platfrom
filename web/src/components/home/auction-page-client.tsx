@@ -22,20 +22,10 @@ export function AuctionPageClient() {
 
   const fetchAuctions = useCallback(async () => {
     try {
-      const resp = await fetch("/api/active-auctions?limit=100");
+      const resp = await fetch("/api/active-auctions");
       const data = await resp.json();
-      const items: ActiveAuction[] = data.items ?? [];
-
-      // 클라이언트에서 종료된 경매 필터링
-      const now = Date.now();
-      const active = items.filter((a) => {
-        if (!a.end_time_raw) return true;
-        const end = new Date(a.end_time_raw).getTime();
-        if (isNaN(end)) return true;
-        return end > now;
-      });
-
-      setAuctions(active);
+      // API가 실시간으로 Namecheap에서 가져오므로 추가 필터링 불필요
+      setAuctions(data.items ?? []);
       setLastUpdated(new Date());
     } catch {
       // 에러 시 기존 데이터 유지
