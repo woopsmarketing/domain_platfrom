@@ -76,9 +76,9 @@ def _parse_item(item: dict) -> Optional[dict]:
     }
 
 
-def _fetch_page(page: int = 1) -> tuple:
+def _fetch_page(page: int = 1, sort_col: str = "bidCount", sort_dir: str = "desc") -> tuple:
     """한 페이지 조회. (items, total) 반환."""
-    payload = _build_payload(page=page)
+    payload = _build_payload(page=page, sort_col=sort_col, sort_dir=sort_dir)
     try:
         resp = requests.post(GRAPHQL_URL, json=payload, headers=HEADERS, timeout=15)
         resp.raise_for_status()
@@ -105,8 +105,9 @@ def fetch_active_auctions(headless: bool = True) -> List[dict]:
     """
     Namecheap 경매 도메인 수집.
 
-    bidCount 내림차순으로 페이지를 순회하며,
-    bids >= MIN_BIDS AND 24시간 이내 종료 도메인만 반환.
+    1단계: timeLeft 오름차순 (곧 끝나는 순)으로 페이지 순회
+    2단계: 24시간 넘으면 중단
+    3단계: 그 중 bids >= MIN_BIDS만 반환
 
     반환 형식:
         [{domain, name, tld, current_price, bid_count, end_time_raw, auction_id, source}, ...]
@@ -115,44 +116,46 @@ def fetch_active_auctions(headless: bool = True) -> List[dict]:
 
     all_results = []  # type: List[dict]
     page = 1
-    max_pages = 10  # 안전 장치: 최대 10페이지 (1000건)
-    consecutive_zero_bids = 0
+    max_pages = 20  # 안전 장치: 최대 20페이지 (2000건)
+    total_scanned = 0
 
     while page <= max_pages:
-        items, total = _fetch_page(page)
+        # timeLeft 오름차순: 곧 끝나는 도메인부터 조회
+        items, total = _fetch_page(page, sort_col="timeLeft", sort_dir="asc")
         if not items:
             break
 
         if page == 1:
-            logger.info("Namecheap 전체 경매: %d건 → 필터 적용 중 (bids>=%d, %dh 이내)",
-                        total, MIN_BIDS, MAX_HOURS_LEFT)
+            logger.info("Namecheap 전체 경매: %d건 → %dh 이내 도메인 수집 중",
+                        total, MAX_HOURS_LEFT)
 
+        passed_deadline = False
         for item in items:
-            bid_count = int(item.get("bidCount", 0) or 0)
-
-            # bidCount 내림차순이므로, bids < MIN_BIDS면 이후 전부 불필요
-            if bid_count < MIN_BIDS:
-                consecutive_zero_bids += 1
-                if consecutive_zero_bids >= 3:
-                    logger.info("Namecheap: bids < %d 도달 → 수집 종료 (page %d)", MIN_BIDS, page)
-                    page = max_pages + 1  # break outer
-                    break
-                continue
-
-            consecutive_zero_bids = 0
-
+            total_scanned += 1
             end_date = item.get("endDate", "")
+
+            # 24시간 넘으면 이후는 전부 더 먼 미래 → 중단
             if not _is_within_deadline(end_date):
+                passed_deadline = True
+                break
+
+            bid_count = int(item.get("bidCount", 0) or 0)
+            if bid_count < MIN_BIDS:
                 continue
 
             parsed = _parse_item(item)
             if parsed:
                 all_results.append(parsed)
 
+        if passed_deadline:
+            logger.info("Namecheap: 24h 경계 도달 → 수집 종료 (page %d, %d건 스캔)",
+                        page, total_scanned)
+            break
+
         page += 1
 
-    logger.info("Namecheap 활성 경매: %d건 (bids>=%d, %dh 이내)",
-                len(all_results), MIN_BIDS, MAX_HOURS_LEFT)
+    logger.info("Namecheap 활성 경매: %d건 (bids>=%d, %dh 이내, %d건 스캔)",
+                len(all_results), MIN_BIDS, MAX_HOURS_LEFT, total_scanned)
     return all_results
 
 
