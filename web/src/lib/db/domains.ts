@@ -67,7 +67,7 @@ export async function getDomains(params: {
     query = query.eq("status", "sold").order("created_at", { ascending: false });
     // High-value filtering will be done client-side from sales_history price
   } else {
-    query = query.order("created_at", { ascending: false });
+    query = query.eq("status", "sold").order("created_at", { ascending: false });
   }
 
   if (safeSource !== "all") query = query.eq("source", safeSource);

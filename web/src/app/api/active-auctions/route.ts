@@ -29,10 +29,13 @@ export async function GET(request: NextRequest) {
       Date.now() - 7 * 24 * 60 * 60 * 1000
     ).toISOString();
 
+    const now = new Date().toISOString();
+
     let query = client
       .from("active_auctions")
       .select("domain, tld, current_price, bid_count, end_time_raw, crawled_at")
-      .gte("crawled_at", sevenDaysAgo);
+      .gte("crawled_at", sevenDaysAgo)
+      .gte("end_time_raw", now);
 
     // 정렬
     switch (sort) {

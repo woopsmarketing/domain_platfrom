@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
-import { Flame, TrendingUp } from "lucide-react";
-import { createServiceClient } from "@/lib/supabase";
-import { AuctionGrid } from "@/components/home/auction-grid";
+import { AuctionPageClient } from "@/components/home/auction-page-client";
 
 export const dynamic = "force-dynamic";
 
@@ -18,104 +16,6 @@ export const metadata: Metadata = {
   ],
 };
 
-interface ActiveAuction {
-  domain: string;
-  tld: string;
-  current_price: number;
-  bid_count: number | null;
-  end_time_raw: string | null;
-  crawled_at: string;
-}
-
-async function getActiveAuctions(): Promise<ActiveAuction[]> {
-  try {
-    const client = createServiceClient();
-    const sevenDaysAgo = new Date(
-      Date.now() - 7 * 24 * 60 * 60 * 1000
-    ).toISOString();
-    const now = new Date().toISOString();
-
-    const { data, error } = await client
-      .from("active_auctions")
-      .select("domain, tld, current_price, bid_count, end_time_raw, crawled_at")
-      .gte("crawled_at", sevenDaysAgo)
-      .gte("end_time_raw", now)
-      .order("bid_count", { ascending: false, nullsFirst: false })
-      .limit(200);
-
-    if (error) {
-      console.error("auctions page fetch error:", error.message);
-      return [];
-    }
-    return (data ?? []) as ActiveAuction[];
-  } catch {
-    return [];
-  }
-}
-
-export default async function AuctionsPage() {
-  const auctions = await getActiveAuctions();
-
-  const totalBids = auctions.reduce((sum, a) => sum + (a.bid_count || 0), 0);
-
-  return (
-    <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-500/10">
-            <Flame className="h-5 w-5 text-orange-500" />
-          </div>
-          <h1 className="text-2xl font-bold sm:text-3xl">실시간 경매 도메인</h1>
-        </div>
-        <p className="text-muted-foreground max-w-2xl">
-          현재 활발하게 입찰 경쟁이 진행 중인 도메인입니다.
-          남은 시간이 실시간으로 표시되며, 2분마다 데이터가 갱신됩니다.
-        </p>
-      </div>
-
-      {/* Stats — 2 columns */}
-      <div className="mb-8 grid grid-cols-2 gap-4">
-        <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-            <Flame className="h-3.5 w-3.5" />
-            진행 중
-          </div>
-          <p className="text-2xl font-bold">
-            {auctions.length}
-            <span className="text-sm font-normal text-muted-foreground ml-1">
-              건
-            </span>
-          </p>
-        </div>
-        <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-            <TrendingUp className="h-3.5 w-3.5" />
-            총 입찰
-          </div>
-          <p className="text-2xl font-bold">
-            {totalBids.toLocaleString()}
-            <span className="text-sm font-normal text-muted-foreground ml-1">
-              건
-            </span>
-          </p>
-        </div>
-      </div>
-
-      {/* Auction table */}
-      {auctions.length > 0 ? (
-        <AuctionGrid auctions={auctions} />
-      ) : (
-        <div className="rounded-xl border border-dashed border-border/60 p-16 text-center">
-          <Flame className="mx-auto h-8 w-8 text-muted-foreground/50 mb-3" />
-          <p className="text-muted-foreground">
-            현재 진행 중인 인기 경매가 없습니다.
-          </p>
-          <p className="text-sm text-muted-foreground/70 mt-1">
-            데이터는 주기적으로 갱신됩니다.
-          </p>
-        </div>
-      )}
-    </div>
-  );
+export default function AuctionsPage() {
+  return <AuctionPageClient />;
 }
