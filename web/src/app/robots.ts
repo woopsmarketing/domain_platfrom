@@ -6,21 +6,21 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: ["/", "/domain/", "/market-history", "/tools", "/blog/"],
-        disallow: ["/api/", "/_next/", "/api/submissions/"],
+        disallow: [
+          "/api/",           // API 엔드포인트
+          "/_next/",         // Next.js 내부 빌드 파일
+          "/api/submissions/", // 브라우저 확장 더미 라우트
+        ],
       },
       {
         userAgent: "Googlebot",
-        allow: "/",
-        disallow: ["/api/"],
+        allow: ["/", "/domain/", "/market-history", "/tools", "/blog/"],
+        disallow: ["/api/", "/_next/"],
       },
       {
         userAgent: "Yeti",
-        allow: "/",
-        disallow: ["/api/"],
-      },
-      {
-        userAgent: ["GPTBot", "ChatGPT-User", "CCBot", "anthropic-ai", "Claude-Web"],
-        disallow: "/",
+        allow: ["/", "/domain/", "/market-history", "/tools", "/blog/"],
+        disallow: ["/api/", "/_next/"],
       },
     ],
     sitemap: "https://domainchecker.co.kr/sitemap.xml",
