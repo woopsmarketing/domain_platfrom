@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
-import { Search, Menu, X, Activity } from "lucide-react";
+import { Search, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -39,9 +39,10 @@ export function Header() {
       <div className="mx-auto flex h-16 max-w-7xl items-center px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link href="/" className="mr-6 flex items-center gap-2.5 lg:mr-8" aria-label="도메인체커 홈">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <Activity className="h-4 w-4 text-primary-foreground" />
-          </div>
+          <svg width="28" height="28" viewBox="0 0 32 32" fill="none" className="shrink-0 text-primary">
+            <circle cx="13" cy="13" r="10" stroke="currentColor" strokeWidth="2.5" />
+            <line x1="20.5" y1="20.5" x2="29" y2="29" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+          </svg>
           <span className="hidden text-lg font-semibold tracking-tight sm:inline">
             도메인체커
           </span>

@@ -1,4 +1,3 @@
-import { Activity } from "lucide-react";
 import Link from "next/link";
 
 export function Footer() {
@@ -9,9 +8,10 @@ export function Footer() {
           {/* Brand */}
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
-                <Activity className="h-3.5 w-3.5 text-primary-foreground" />
-              </div>
+              <svg width="24" height="24" viewBox="0 0 32 32" fill="none" className="shrink-0 text-primary">
+                <circle cx="13" cy="13" r="10" stroke="currentColor" strokeWidth="2.5" />
+                <line x1="20.5" y1="20.5" x2="29" y2="29" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
               <span className="text-base font-semibold">도메인체커</span>
             </div>
             <p className="max-w-xs text-sm text-muted-foreground">
