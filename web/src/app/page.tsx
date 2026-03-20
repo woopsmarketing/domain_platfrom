@@ -50,6 +50,14 @@ export const metadata: Metadata = {
   },
 };
 
+const faqItems = [
+  { q: "도메인체커는 정말 무료인가요?", a: "네, 완전 무료입니다. 회원가입 없이 도메인명만 입력하면 Moz DA, Ahrefs DR, Majestic TF, Wayback 히스토리를 즉시 확인할 수 있습니다." },
+  { q: "DA(Domain Authority)는 왜 중요한가요?", a: "DA는 Moz가 개발한 검색엔진 순위 예측 점수(1~100)입니다. DA가 높은 도메인은 같은 품질의 콘텐츠를 올려도 검색 결과 상위에 노출될 확률이 높습니다. 새 사업을 시작할 때 DA가 높은 만료 도메인을 활용하면 SEO 시간을 크게 단축할 수 있습니다." },
+  { q: "DR과 DA는 어떻게 다른가요?", a: "DA(Domain Authority)는 Moz 제공, DR(Domain Rating)은 Ahrefs 제공입니다. 둘 다 백링크 기반이지만 계산 알고리즘이 다릅니다. 도메인체커에서는 두 지표를 한 번에 비교할 수 있어 더 정확한 판단이 가능합니다." },
+  { q: "도메인의 Wayback 히스토리는 왜 확인해야 하나요?", a: "과거에 스팸 사이트나 불법 콘텐츠가 호스팅되었던 도메인은 검색엔진에서 페널티를 받았을 수 있습니다. Wayback 이력으로 도메인의 과거를 확인하면 이런 리스크를 사전에 차단할 수 있습니다." },
+  { q: "분석 결과는 얼마나 정확한가요?", a: "도메인체커는 Moz, Ahrefs, Majestic의 공식 데이터를 기반으로 분석 결과를 제공합니다. 공식 사이트와 소폭의 차이가 있을 수 있으나, 도메인 비교와 투자 판단에는 충분한 참고 자료입니다. 데이터는 7일마다 자동 갱신됩니다." },
+];
+
 export default async function HomePage() {
   let popularDomains: Awaited<ReturnType<typeof getPopularDomains>> = [];
   let highlights: Awaited<ReturnType<typeof getTodayHighlights>> = [];
@@ -68,6 +76,21 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqItems.map((faq) => ({
+              "@type": "Question",
+              name: faq.q,
+              acceptedAnswer: { "@type": "Answer", text: faq.a },
+            })),
+          }),
+        }}
+      />
+
       <HeroSection />
 
       {/* ────────────────────────────────────────────────
@@ -149,7 +172,7 @@ export default async function HomePage() {
               href="/market-history"
               className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-primary"
             >
-              전체 보기 <ArrowRight className="h-3.5 w-3.5" />
+              낙찰 이력 전체 보기 <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
           {highlights.length > 0 ? (
@@ -506,28 +529,7 @@ export default async function HomePage() {
           </div>
 
           <div className="mt-12 space-y-4">
-            {[
-              {
-                q: "도메인체커는 정말 무료인가요?",
-                a: "네, 완전 무료입니다. 회원가입 없이 도메인명만 입력하면 Moz DA, Ahrefs DR, Majestic TF, Wayback 히스토리를 즉시 확인할 수 있습니다.",
-              },
-              {
-                q: "DA(Domain Authority)는 왜 중요한가요?",
-                a: "DA는 Moz가 개발한 검색엔진 순위 예측 점수(1~100)입니다. DA가 높은 도메인은 같은 품질의 콘텐츠를 올려도 검색 결과 상위에 노출될 확률이 높습니다. 새 사업을 시작할 때 DA가 높은 만료 도메인을 활용하면 SEO 시간을 크게 단축할 수 있습니다.",
-              },
-              {
-                q: "DR과 DA는 어떻게 다른가요?",
-                a: "DA(Domain Authority)는 Moz 제공, DR(Domain Rating)은 Ahrefs 제공입니다. 둘 다 백링크 기반이지만 계산 알고리즘이 다릅니다. 도메인체커에서는 두 지표를 한 번에 비교할 수 있어 더 정확한 판단이 가능합니다.",
-              },
-              {
-                q: "도메인의 Wayback 히스토리는 왜 확인해야 하나요?",
-                a: "과거에 스팸 사이트나 불법 콘텐츠가 호스팅되었던 도메인은 검색엔진에서 페널티를 받았을 수 있습니다. Wayback 이력으로 도메인의 과거를 확인하면 이런 리스크를 사전에 차단할 수 있습니다.",
-              },
-              {
-                q: "분석 결과는 얼마나 정확한가요?",
-                a: "도메인체커는 Moz, Ahrefs, Majestic의 공식 데이터를 기반으로 분석 결과를 제공합니다. 공식 사이트와 소폭의 차이가 있을 수 있으나, 도메인 비교와 투자 판단에는 충분한 참고 자료입니다. 데이터는 7일마다 자동 갱신됩니다.",
-              },
-            ].map((faq) => (
+            {faqItems.map((faq) => (
               <details key={faq.q} className="group rounded-xl border border-border/60 bg-card transition-shadow hover:shadow-md [&_summary::-webkit-details-marker]:hidden">
                 <summary className="flex cursor-pointer items-center justify-between p-5">
                   <h3 className="pr-4 text-sm font-semibold">{faq.q}</h3>

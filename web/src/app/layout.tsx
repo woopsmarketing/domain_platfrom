@@ -4,7 +4,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
   title: {
@@ -36,6 +36,34 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@graph": [
+                {
+                  "@type": "Organization",
+                  name: "도메인체커",
+                  url: "https://domainchecker.co.kr",
+                  logo: "https://domainchecker.co.kr/icon.svg",
+                  description: "무료 도메인 DA/DR/TF 분석 도구",
+                },
+                {
+                  "@type": "WebSite",
+                  name: "도메인체커",
+                  url: "https://domainchecker.co.kr",
+                  potentialAction: {
+                    "@type": "SearchAction",
+                    target:
+                      "https://domainchecker.co.kr/domain/{search_term_string}",
+                    "query-input": "required name=search_term_string",
+                  },
+                },
+              ],
+            }),
+          }}
+        />
         <div className="flex min-h-screen flex-col">
           <Header />
           <main className="flex-1">{children}</main>
