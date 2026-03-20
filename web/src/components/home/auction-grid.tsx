@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
-import { ArrowDownWideNarrow, Clock, DollarSign } from "lucide-react";
+import { ArrowDownWideNarrow, Clock, DollarSign, Loader2 } from "lucide-react";
 
 interface Auction {
   domain: string;
@@ -10,7 +10,7 @@ interface Auction {
   current_price: number;
   bid_count: number | null;
   end_time_raw: string | null;
-  crawled_at: string;
+  crawled_at?: string;
 }
 
 type SortMode = "bids" | "time" | "price";
@@ -18,20 +18,20 @@ type SortMode = "bids" | "time" | "price";
 function getTimeLeft(endTimeRaw: string | null): {
   text: string;
   urgent: boolean;
-  expired: boolean;
+  checking: boolean;
 } {
-  if (!endTimeRaw) return { text: "", urgent: false, expired: false };
+  if (!endTimeRaw) return { text: "", urgent: false, checking: false };
 
   const end = new Date(endTimeRaw).getTime();
   if (isNaN(end)) {
-    // "11 days", "2 hours", "1 month" 같은 상대 시간 텍스트 그대로 표시
-    return { text: endTimeRaw, urgent: false, expired: false };
+    return { text: endTimeRaw, urgent: false, checking: false };
   }
 
   const now = Date.now();
   const diff = end - now;
 
-  if (diff <= 0) return { text: "종료", urgent: true, expired: true };
+  // 0초 이하: "종료" 대신 "확인 중..." — 30초 후 API가 진짜 종료/연장 판단
+  if (diff <= 0) return { text: "확인 중...", urgent: true, checking: true };
 
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
@@ -40,27 +40,32 @@ function getTimeLeft(endTimeRaw: string | null): {
   if (hours > 0) {
     return {
       text: `${hours}시간 ${minutes}분 ${seconds}초`,
-      urgent: hours < 1,
-      expired: false,
+      urgent: false,
+      checking: false,
     };
   }
   if (minutes > 0) {
     return {
       text: `${minutes}분 ${seconds}초`,
-      urgent: true,
-      expired: false,
+      urgent: minutes < 5,
+      checking: false,
     };
   }
-  return { text: `${seconds}초`, urgent: true, expired: false };
+  return { text: `${seconds}초`, urgent: true, checking: false };
 }
 
 function TimeCell({ endTimeRaw }: { endTimeRaw: string | null }) {
   const [timeLeft, setTimeLeft] = useState(() => getTimeLeft(endTimeRaw));
 
   useEffect(() => {
+    // endTimeRaw가 변경되면 즉시 업데이트 (API 갱신 반영)
+    setTimeLeft(getTimeLeft(endTimeRaw));
+  }, [endTimeRaw]);
+
+  useEffect(() => {
     if (!endTimeRaw) return;
     const end = new Date(endTimeRaw).getTime();
-    if (isNaN(end)) return; // 상대 시간 텍스트는 카운트다운 불필요
+    if (isNaN(end)) return;
 
     const timer = setInterval(() => {
       setTimeLeft(getTimeLeft(endTimeRaw));
@@ -70,8 +75,13 @@ function TimeCell({ endTimeRaw }: { endTimeRaw: string | null }) {
 
   if (!timeLeft.text) return <span className="text-muted-foreground">—</span>;
 
-  if (timeLeft.expired) {
-    return <span className="text-muted-foreground">종료</span>;
+  if (timeLeft.checking) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-amber-500 font-medium">
+        <Loader2 className="h-3 w-3 animate-spin" />
+        확인 중...
+      </span>
+    );
   }
 
   return (
@@ -100,19 +110,11 @@ function formatUSD(price: number): string {
 export function AuctionGrid({ auctions }: { auctions: Auction[] }) {
   const [sortMode, setSortMode] = useState<SortMode>("bids");
 
-  // Filter out expired auctions on client side
-  const activeAuctions = useMemo(() => {
-    const now = Date.now();
-    return auctions.filter((a) => {
-      if (!a.end_time_raw) return true; // no end time, keep it
-      const end = new Date(a.end_time_raw).getTime();
-      if (isNaN(end)) return true; // unparseable, keep it
-      return end > now;
-    });
-  }, [auctions]);
-
+  // 종료된 경매를 즉시 제거하지 않음
+  // API가 30초마다 갱신 → 진짜 종료된 건 다음 갱신에서 목록에서 사라짐
+  // "확인 중..." 상태는 유지
   const sorted = useMemo(() => {
-    const list = [...activeAuctions];
+    const list = [...auctions];
     switch (sortMode) {
       case "bids":
         return list.sort((a, b) => (b.bid_count || 0) - (a.bid_count || 0));
@@ -134,7 +136,7 @@ export function AuctionGrid({ auctions }: { auctions: Auction[] }) {
       default:
         return list;
     }
-  }, [activeAuctions, sortMode]);
+  }, [auctions, sortMode]);
 
   const sortButtons: { mode: SortMode; label: string; icon: React.ReactNode }[] = [
     {
@@ -234,7 +236,7 @@ export function AuctionGrid({ auctions }: { auctions: Auction[] }) {
       </div>
 
       <p className="mt-3 text-xs text-muted-foreground text-right">
-        {sorted.length}개 경매 진행 중
+        {sorted.length}개 경매 · 30초마다 자동 갱신
       </p>
     </div>
   );
