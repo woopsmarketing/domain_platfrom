@@ -71,6 +71,123 @@ export default async function HomePage() {
       <HeroSection />
 
       {/* ────────────────────────────────────────────────
+          인기 검색 도메인 TOP 10
+          ──────────────────────────────────────────────── */}
+      <section className="border-b px-4 py-16">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-8 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                <TrendingUp className="h-4 w-4 text-primary" />
+              </div>
+              <h2 className="text-xl font-semibold">인기 검색 도메인 TOP 10</h2>
+            </div>
+          </div>
+          {popularDomains.length > 0 ? (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+              {popularDomains.map((domain, index) => {
+                const metrics = Array.isArray(domain.domain_metrics)
+                  ? domain.domain_metrics[0]
+                  : domain.domain_metrics;
+                return (
+                  <Link key={domain.id} href={`/domain/${domain.name}`}>
+                    <Card className="group border-border/60 transition-all hover:border-primary/30 hover:shadow-md hover:shadow-primary/5">
+                      <CardContent className="p-5">
+                        <div className="flex items-center gap-2.5">
+                          <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                            index < 3
+                              ? "bg-primary text-primary-foreground"
+                              : "bg-muted text-muted-foreground"
+                          }`}>
+                            {index + 1}
+                          </span>
+                          <span className="truncate text-sm font-medium group-hover:text-primary transition-colors">
+                            {domain.name}
+                          </span>
+                        </div>
+                        <div className="mt-3 flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">
+                            {domain.search_count}회
+                          </span>
+                          <div className="flex gap-1">
+                            {metrics?.moz_da != null && (
+                              <Badge variant="secondary" className="rounded-md text-xs font-normal">
+                                DA {metrics.moz_da}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <Card className="border-border/60 border-dashed">
+              <CardContent className="py-12 text-center text-sm text-muted-foreground">
+                아직 데이터가 없습니다. 도메인을 검색해 보세요.
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </section>
+
+      {/* ────────────────────────────────────────────────
+          낙찰 하이라이트
+          ──────────────────────────────────────────────── */}
+      <section className="border-b px-4 py-16">
+        <div className="mx-auto max-w-5xl">
+          <div className="mb-8 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                <Trophy className="h-4 w-4 text-primary" />
+              </div>
+              <h2 className="text-xl font-semibold">낙찰 하이라이트</h2>
+            </div>
+            <Link
+              href="/market-history"
+              className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-primary"
+            >
+              전체 보기 <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          {highlights.length > 0 ? (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {highlights.map((sale) => (
+                  <Link key={sale.id} href={`/domain/${sale.domains.name}`}>
+                    <Card className="group border-border/60 transition-all hover:border-primary/30 hover:shadow-md hover:shadow-primary/5">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-sm font-medium group-hover:text-primary transition-colors">
+                          {sale.domains.name}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="flex items-center justify-between">
+                        <span className="text-xl font-bold text-primary">
+                          {formatPrice(sale.price_usd)}
+                        </span>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <Badge variant="outline" className="rounded-md border-border/60 font-normal">
+                            {sale.platform}
+                          </Badge>
+                          <span>{new Date(sale.sold_at).toLocaleDateString("ko-KR")}</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
+              ))}
+            </div>
+          ) : (
+            <Card className="border-border/60 border-dashed">
+              <CardContent className="py-12 text-center text-sm text-muted-foreground">
+                아직 데이터가 없습니다.
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </section>
+
+      {/* ────────────────────────────────────────────────
           Section 1: 도메인이 왜 중요한가
           ──────────────────────────────────────────────── */}
       <section className="border-b px-4 py-20 sm:py-24">
@@ -408,7 +525,7 @@ export default async function HomePage() {
               },
               {
                 q: "분석 결과는 얼마나 정확한가요?",
-                a: "도메인체커는 Moz, Ahrefs, Majestic의 데이터를 RapidAPI를 통해 가져옵니다. 공식 사이트와 소폭의 차이가 있을 수 있으나, 도메인 비교와 투자 판단에는 충분한 참고 자료입니다. 데이터는 7일마다 자동 갱신됩니다.",
+                a: "도메인체커는 Moz, Ahrefs, Majestic의 공식 데이터를 기반으로 분석 결과를 제공합니다. 공식 사이트와 소폭의 차이가 있을 수 있으나, 도메인 비교와 투자 판단에는 충분한 참고 자료입니다. 데이터는 7일마다 자동 갱신됩니다.",
               },
             ].map((faq) => (
               <details key={faq.q} className="group rounded-xl border border-border/60 bg-card transition-shadow hover:shadow-md [&_summary::-webkit-details-marker]:hidden">
@@ -422,123 +539,6 @@ export default async function HomePage() {
               </details>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ────────────────────────────────────────────────
-          Section 7: 인기 검색 도메인 TOP 10
-          ──────────────────────────────────────────────── */}
-      <section className="border-b px-4 py-16">
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-8 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                <TrendingUp className="h-4 w-4 text-primary" />
-              </div>
-              <h2 className="text-xl font-semibold">인기 검색 도메인 TOP 10</h2>
-            </div>
-          </div>
-          {popularDomains.length > 0 ? (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-              {popularDomains.map((domain, index) => {
-                const metrics = Array.isArray(domain.domain_metrics)
-                  ? domain.domain_metrics[0]
-                  : domain.domain_metrics;
-                return (
-                  <Link key={domain.id} href={`/domain/${domain.name}`}>
-                    <Card className="group border-border/60 transition-all hover:border-primary/30 hover:shadow-md hover:shadow-primary/5">
-                      <CardContent className="p-5">
-                        <div className="flex items-center gap-2.5">
-                          <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-                            index < 3
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-muted text-muted-foreground"
-                          }`}>
-                            {index + 1}
-                          </span>
-                          <span className="truncate text-sm font-medium group-hover:text-primary transition-colors">
-                            {domain.name}
-                          </span>
-                        </div>
-                        <div className="mt-3 flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">
-                            {domain.search_count}회
-                          </span>
-                          <div className="flex gap-1">
-                            {metrics?.moz_da != null && (
-                              <Badge variant="secondary" className="rounded-md text-xs font-normal">
-                                DA {metrics.moz_da}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                );
-              })}
-            </div>
-          ) : (
-            <Card className="border-border/60 border-dashed">
-              <CardContent className="py-12 text-center text-sm text-muted-foreground">
-                아직 데이터가 없습니다. 도메인을 검색해 보세요.
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </section>
-
-      {/* ────────────────────────────────────────────────
-          Section 8: 낙찰 하이라이트
-          ──────────────────────────────────────────────── */}
-      <section className="border-b px-4 py-16">
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-8 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                <Trophy className="h-4 w-4 text-primary" />
-              </div>
-              <h2 className="text-xl font-semibold">낙찰 하이라이트</h2>
-            </div>
-            <Link
-              href="/market-history"
-              className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-primary"
-            >
-              전체 보기 <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-          {highlights.length > 0 ? (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {highlights.map((sale) => (
-                  <Link key={sale.id} href={`/domain/${sale.domains.name}`}>
-                    <Card className="group border-border/60 transition-all hover:border-primary/30 hover:shadow-md hover:shadow-primary/5">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium group-hover:text-primary transition-colors">
-                          {sale.domains.name}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="flex items-center justify-between">
-                        <span className="text-xl font-bold text-primary">
-                          {formatPrice(sale.price_usd)}
-                        </span>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Badge variant="outline" className="rounded-md border-border/60 font-normal">
-                            {sale.platform}
-                          </Badge>
-                          <span>{new Date(sale.sold_at).toLocaleDateString("ko-KR")}</span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-              ))}
-            </div>
-          ) : (
-            <Card className="border-border/60 border-dashed">
-              <CardContent className="py-12 text-center text-sm text-muted-foreground">
-                아직 데이터가 없습니다.
-              </CardContent>
-            </Card>
-          )}
         </div>
       </section>
 
