@@ -10,7 +10,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatPrice, formatNumber } from "@/lib/utils";
+import { formatPrice } from "@/lib/utils";
 import type { DomainListItem } from "@/types/domain";
 
 const sourceLabel: Record<string, string> = {
@@ -31,6 +31,21 @@ const statusLabel: Record<string, string> = {
   expired: "만료",
   active: "활성",
 };
+
+function formatSoldDate(dateStr?: string): string {
+  if (!dateStr) return "—";
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  } catch {
+    return "—";
+  }
+}
 
 interface DomainTableProps {
   domains: DomainListItem[];
@@ -57,13 +72,10 @@ export function DomainTable({ domains }: DomainTableProps) {
       <TableHeader>
         <TableRow>
           <TableHead className="w-[250px]">도메인</TableHead>
-          <TableHead>상태</TableHead>
-          <TableHead>출처</TableHead>
-          <TableHead className="text-right">DA</TableHead>
-          <TableHead className="text-right">DR</TableHead>
-          <TableHead className="text-right">TF</TableHead>
-          <TableHead className="text-right">트래픽</TableHead>
+          <TableHead>낙찰일</TableHead>
           <TableHead className="text-right">낙찰가</TableHead>
+          <TableHead className="text-right">입찰수</TableHead>
+          <TableHead>출처</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -77,30 +89,19 @@ export function DomainTable({ domains }: DomainTableProps) {
                 {domain.name}
               </Link>
             </TableCell>
-            <TableCell>
-              <Badge variant={statusVariant[domain.status] ?? "outline"}>
-                {statusLabel[domain.status] ?? domain.status}
-              </Badge>
-            </TableCell>
-            <TableCell className="text-muted-foreground text-xs">
-              {sourceLabel[domain.source] ?? domain.source}
-            </TableCell>
-            <TableCell className="text-right tabular-nums">
-              {domain.metrics?.mozDA ?? "—"}
-            </TableCell>
-            <TableCell className="text-right tabular-nums">
-              {domain.metrics?.ahrefsDR ?? "—"}
-            </TableCell>
-            <TableCell className="text-right tabular-nums">
-              {domain.metrics?.majesticTF ?? "—"}
-            </TableCell>
-            <TableCell className="text-right tabular-nums text-muted-foreground">
-              {domain.metrics?.ahrefsTraffic
-                ? formatNumber(domain.metrics.ahrefsTraffic)
-                : "—"}
+            <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+              {formatSoldDate(domain.soldAt)}
             </TableCell>
             <TableCell className="text-right font-medium tabular-nums">
               {domain.soldPrice ? formatPrice(domain.soldPrice) : "—"}
+            </TableCell>
+            <TableCell className="text-right tabular-nums">
+              {domain.bidCount != null && domain.bidCount > 0
+                ? `${domain.bidCount}건`
+                : "—"}
+            </TableCell>
+            <TableCell className="text-muted-foreground text-xs">
+              {sourceLabel[domain.source] ?? domain.source}
             </TableCell>
           </TableRow>
         ))}

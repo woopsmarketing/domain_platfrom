@@ -70,5 +70,6 @@ export interface DomainDetail {
 }
 
 export interface DomainListItem extends Domain {
+  bidCount?: number | null;
   metrics?: Pick<DomainMetrics, "mozDA" | "ahrefsDR" | "majesticTF" | "ahrefsTraffic">;
 }
