@@ -1,6 +1,22 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { TrendingUp, Trophy, ArrowRight, BarChart3, Clock, History, TrendingUp as TrendingUpAlt } from "lucide-react";
+import {
+  TrendingUp,
+  Trophy,
+  ArrowRight,
+  BarChart3,
+  Clock,
+  History,
+  Globe,
+  Search,
+  Shield,
+  Zap,
+  Target,
+  Users,
+  CheckCircle2,
+  ChevronDown,
+  Sparkles,
+} from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getPopularDomains, getTodayHighlights } from "@/lib/db/analytics";
@@ -34,29 +50,6 @@ export const metadata: Metadata = {
   },
 };
 
-const serviceFeatures = [
-  {
-    icon: BarChart3,
-    title: "3대 SEO 지수",
-    description: "Moz DA·PA, Ahrefs DR·백링크, Majestic TF·CF를 한 화면에서 비교",
-  },
-  {
-    icon: Clock,
-    title: "7일 자동 캐시",
-    description: "한 번 분석한 도메인은 7일간 즉시 로딩. 반복 조회도 빠르게",
-  },
-  {
-    icon: History,
-    title: "Wayback 히스토리",
-    description: "인터넷 아카이브의 스냅샷 이력으로 도메인 과거 이력 추적",
-  },
-  {
-    icon: TrendingUpAlt,
-    title: "낙찰 이력 DB",
-    description: "GoDaddy·Namecheap 경매 낙찰 데이터로 도메인 시세 파악",
-  },
-];
-
 export default async function HomePage() {
   let popularDomains: Awaited<ReturnType<typeof getPopularDomains>> = [];
   let highlights: Awaited<ReturnType<typeof getTodayHighlights>> = [];
@@ -77,47 +70,364 @@ export default async function HomePage() {
     <div className="flex flex-col">
       <HeroSection />
 
-      {/* ServiceIntroSection */}
-      <section className="border-b bg-muted/30 px-4 py-20">
-        <div className="mx-auto max-w-5xl text-center">
-          <h2 className="text-3xl font-bold">도메인 투자, 데이터로 결정하세요</h2>
-          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-            도메인체커는 Moz, Ahrefs, Majestic 3대 SEO 지수를 한 번에 무료로 제공합니다.
-            도메인명만 입력하면 DA, DR, Trust Flow, 거래 이력, Wayback 아카이브까지 즉시 확인.
-          </p>
-
-          <div className="mt-12 grid grid-cols-2 gap-4 lg:grid-cols-4">
-            {serviceFeatures.map((feature) => (
-              <Card key={feature.title} className="border-border/60 text-left">
-                <CardContent className="p-6">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                    <feature.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <h3 className="mt-4 font-semibold">{feature.title}</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{feature.description}</p>
-                </CardContent>
-              </Card>
-            ))}
+      {/* ────────────────────────────────────────────────
+          Section 1: 도메인이 왜 중요한가
+          ──────────────────────────────────────────────── */}
+      <section className="border-b px-4 py-20 sm:py-24">
+        <div className="mx-auto max-w-5xl">
+          <div className="text-center">
+            <Badge variant="secondary" className="mb-4 rounded-full px-3 py-1 text-xs font-medium">
+              온라인 비즈니스의 시작
+            </Badge>
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              도메인은 단순한 주소가 아닙니다
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
+              모든 온라인 사업의 첫 시작이자 SEO의 첫 발걸음. 좋은 도메인 하나가
+              검색 순위, 브랜드 신뢰도, 사업 가치를 결정합니다.
+            </p>
           </div>
 
-          <div className="mt-12 flex justify-center gap-12 border-t pt-10">
-            <div>
-              <p className="text-3xl font-bold">3개</p>
-              <p className="mt-1 text-sm text-muted-foreground">연동 SEO 툴</p>
+          <div className="mt-16 grid gap-6 sm:grid-cols-3">
+            <div className="relative rounded-2xl border border-border/60 bg-card p-8 transition-shadow hover:shadow-lg hover:shadow-primary/5">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10">
+                <Search className="h-6 w-6 text-blue-500" />
+              </div>
+              <h3 className="mt-5 text-lg font-semibold">검색엔진 최적화</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                구글은 도메인의 나이, 백링크 프로필, DA 점수를 신뢰 지표로 활용합니다.
+                높은 DA를 가진 도메인은 같은 콘텐츠로도 검색 상위에 노출됩니다.
+              </p>
             </div>
-            <div>
-              <p className="text-3xl font-bold">무료</p>
-              <p className="mt-1 text-sm text-muted-foreground">완전 무료 서비스</p>
+            <div className="relative rounded-2xl border border-border/60 bg-card p-8 transition-shadow hover:shadow-lg hover:shadow-primary/5">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500/10">
+                <Shield className="h-6 w-6 text-violet-500" />
+              </div>
+              <h3 className="mt-5 text-lg font-semibold">브랜드 신뢰도</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                고객이 처음 접하는 것은 당신의 도메인입니다.
+                깔끔하고 기억하기 쉬운 도메인은 클릭률을 높이고
+                브랜드 인지도를 만듭니다.
+              </p>
             </div>
-            <div>
-              <p className="text-3xl font-bold">즉시</p>
-              <p className="mt-1 text-sm text-muted-foreground">실시간 분석</p>
+            <div className="relative rounded-2xl border border-border/60 bg-card p-8 transition-shadow hover:shadow-lg hover:shadow-primary/5">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10">
+                <TrendingUp className="h-6 w-6 text-emerald-500" />
+              </div>
+              <h3 className="mt-5 text-lg font-semibold">자산 가치</h3>
+              <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                프리미엄 도메인은 해마다 가치가 오릅니다. 높은 SEO 지수를 가진
+                도메인은 수천~수만 달러에 거래되며, 그 자체가 디지털 부동산입니다.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* 인기 검색 도메인 TOP 10 */}
+      {/* ────────────────────────────────────────────────
+          Section 2: 핵심 기능 소개 (기존 ServiceIntro 업그레이드)
+          ──────────────────────────────────────────────── */}
+      <section className="border-b bg-muted/30 px-4 py-20 sm:py-24">
+        <div className="mx-auto max-w-5xl">
+          <div className="text-center">
+            <Badge variant="secondary" className="mb-4 rounded-full px-3 py-1 text-xs font-medium">
+              도메인체커 핵심 기능
+            </Badge>
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              도메인 분석, 이제 한 곳에서
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
+              Moz, Ahrefs, Majestic 세 곳의 SEO 데이터를 각각 구독하면 월 $300 이상.
+              도메인체커는 이 모든 핵심 지표를 <strong className="text-foreground">완전 무료</strong>로 제공합니다.
+            </p>
+          </div>
+
+          <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                icon: BarChart3,
+                title: "3대 SEO 지수",
+                description: "Moz DA/PA, Ahrefs DR/백링크, Majestic TF/CF를 한 화면에서 비교 분석",
+                color: "text-blue-500 bg-blue-500/10",
+              },
+              {
+                icon: Clock,
+                title: "7일 자동 캐시",
+                description: "한 번 분석한 도메인은 7일간 즉시 결과 반환. API 낭비 없이 빠르게",
+                color: "text-amber-500 bg-amber-500/10",
+              },
+              {
+                icon: History,
+                title: "Wayback 히스토리",
+                description: "인터넷 아카이브 스냅샷으로 도메인의 과거 콘텐츠와 이력 추적",
+                color: "text-emerald-500 bg-emerald-500/10",
+              },
+              {
+                icon: Trophy,
+                title: "경매 낙찰 DB",
+                description: "GoDaddy/Namecheap 경매 낙찰가를 수집하여 도메인 시세 파악",
+                color: "text-violet-500 bg-violet-500/10",
+              },
+            ].map((feature) => (
+              <Card key={feature.title} className="border-border/60 transition-shadow hover:shadow-lg hover:shadow-primary/5">
+                <CardContent className="p-6">
+                  <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${feature.color}`}>
+                    <feature.icon className="h-5 w-5" />
+                  </div>
+                  <h3 className="mt-4 font-semibold">{feature.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <div className="mt-14 grid grid-cols-3 divide-x divide-border/60 rounded-2xl border border-border/60 bg-card py-8">
+            <div className="text-center">
+              <p className="text-3xl font-bold text-primary">3개</p>
+              <p className="mt-1 text-sm text-muted-foreground">연동 SEO 툴</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-bold text-primary">무료</p>
+              <p className="mt-1 text-sm text-muted-foreground">완전 무료 서비스</p>
+            </div>
+            <div className="text-center">
+              <p className="text-3xl font-bold text-primary">즉시</p>
+              <p className="mt-1 text-sm text-muted-foreground">실시간 분석 결과</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ────────────────────────────────────────────────
+          Section 3: 3단계 사용법 (How it works)
+          ──────────────────────────────────────────────── */}
+      <section className="border-b px-4 py-20 sm:py-24">
+        <div className="mx-auto max-w-5xl">
+          <div className="text-center">
+            <Badge variant="secondary" className="mb-4 rounded-full px-3 py-1 text-xs font-medium">
+              간단한 사용법
+            </Badge>
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              3단계로 도메인을 분석하세요
+            </h2>
+          </div>
+
+          <div className="mt-14 grid gap-8 sm:grid-cols-3">
+            {[
+              {
+                step: "01",
+                icon: Globe,
+                title: "도메인 입력",
+                description: "분석하고 싶은 도메인을 검색창에 입력합니다. URL, www 붙여도 자동으로 정리됩니다.",
+              },
+              {
+                step: "02",
+                icon: Zap,
+                title: "즉시 분석",
+                description: "Moz, Ahrefs, Majestic API와 Wayback Machine에서 데이터를 실시간으로 수집합니다.",
+              },
+              {
+                step: "03",
+                icon: CheckCircle2,
+                title: "결과 확인",
+                description: "DA, DR, TF, 백링크, 스팸 점수, Wayback 이력까지 한 화면에서 확인하세요.",
+              },
+            ].map((item) => (
+              <div key={item.step} className="relative text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
+                  <item.icon className="h-7 w-7 text-primary" />
+                </div>
+                <span className="mt-4 inline-block text-xs font-bold uppercase tracking-widest text-primary">
+                  Step {item.step}
+                </span>
+                <h3 className="mt-2 text-lg font-semibold">{item.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{item.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ────────────────────────────────────────────────
+          Section 4: 이런 분들에게 추천합니다
+          ──────────────────────────────────────────────── */}
+      <section className="border-b bg-muted/30 px-4 py-20 sm:py-24">
+        <div className="mx-auto max-w-5xl">
+          <div className="text-center">
+            <Badge variant="secondary" className="mb-4 rounded-full px-3 py-1 text-xs font-medium">
+              누구를 위한 서비스인가요
+            </Badge>
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              이런 분들이 사용하고 있습니다
+            </h2>
+          </div>
+
+          <div className="mt-14 grid gap-5 sm:grid-cols-2">
+            {[
+              {
+                icon: Target,
+                title: "도메인 투자자",
+                points: [
+                  "만료 도메인의 SEO 가치를 빠르게 판단",
+                  "경매 전 DA/DR/TF 사전 분석으로 입찰 전략 수립",
+                  "낙찰 이력 DB로 적정 매입가 파악",
+                ],
+              },
+              {
+                icon: Users,
+                title: "스타트업 / 소규모 사업자",
+                points: [
+                  "사업 시작 전 도메인 품질 검증",
+                  "경쟁사 도메인 SEO 지수 벤치마킹",
+                  "브랜드 도메인의 Wayback 이력 확인",
+                ],
+              },
+              {
+                icon: Search,
+                title: "SEO / 마케팅 담당자",
+                points: [
+                  "백링크 구축 대상 도메인의 신뢰도 확인",
+                  "Moz DA + Ahrefs DR + Majestic TF 교차 검증",
+                  "스팸 점수 체크로 페널티 리스크 회피",
+                ],
+              },
+              {
+                icon: Sparkles,
+                title: "블로거 / 콘텐츠 크리에이터",
+                points: [
+                  "새 블로그 도메인 선정 시 품질 비교",
+                  "게스트 포스팅 대상 사이트의 DA 확인",
+                  "자신의 도메인 SEO 성장 추이 모니터링",
+                ],
+              },
+            ].map((persona) => (
+              <Card key={persona.title} className="border-border/60 transition-shadow hover:shadow-lg hover:shadow-primary/5">
+                <CardContent className="p-7">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+                      <persona.icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="text-lg font-semibold">{persona.title}</h3>
+                  </div>
+                  <ul className="mt-4 space-y-2.5">
+                    {persona.points.map((point) => (
+                      <li key={point} className="flex items-start gap-2.5 text-sm text-muted-foreground">
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                        <span>{point}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ────────────────────────────────────────────────
+          Section 5: 도메인 선택이 중요한 이유 (SEO 콘텐츠)
+          ──────────────────────────────────────────────── */}
+      <section className="border-b px-4 py-20 sm:py-24">
+        <div className="mx-auto max-w-5xl">
+          <div className="grid items-center gap-12 lg:grid-cols-2">
+            <div>
+              <Badge variant="secondary" className="mb-4 rounded-full px-3 py-1 text-xs font-medium">
+                도메인 투자 인사이트
+              </Badge>
+              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                시작이 반이다
+                <br />
+                <span className="text-primary">좋은 도메인이 사업의 절반</span>
+              </h2>
+              <p className="mt-4 text-muted-foreground leading-relaxed">
+                온라인 사업에서 도메인은 가장 먼저 결정하는 것이자, 가장 오래 유지되는 자산입니다.
+                높은 DA를 가진 도메인 위에 콘텐츠를 쌓으면 검색 노출이 빨라지고,
+                기억하기 쉬운 도메인은 직접 유입 트래픽을 만듭니다.
+              </p>
+              <p className="mt-4 text-muted-foreground leading-relaxed">
+                도메인체커를 통해 구매 전 반드시 DA, DR, TF, 스팸 점수, Wayback 이력을
+                확인하세요. 데이터 기반 의사결정이 실패 확률을 줄여줍니다.
+              </p>
+              <div className="mt-8">
+                <Link
+                  href="/blog/what-is-da"
+                  className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+                >
+                  DA(Domain Authority)란 무엇인가? <ArrowRight className="h-4 w-4" />
+                </Link>
+              </div>
+            </div>
+            <div className="space-y-4">
+              {[
+                { metric: "DA (Domain Authority)", source: "Moz", desc: "도메인의 검색엔진 권위도. 1~100점으로 사이트의 순위 예측력을 측정" },
+                { metric: "DR (Domain Rating)", source: "Ahrefs", desc: "백링크 프로필 강도 기반 점수. 양질의 백링크가 많을수록 높아짐" },
+                { metric: "TF (Trust Flow)", source: "Majestic", desc: "링크의 품질 기반 신뢰도. 스팸이 아닌 신뢰할 수 있는 사이트에서 오는 링크 측정" },
+              ].map((item) => (
+                <div key={item.metric} className="rounded-xl border border-border/60 bg-card p-5 transition-shadow hover:shadow-md">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-semibold">{item.metric}</h3>
+                    <Badge variant="outline" className="text-xs">{item.source}</Badge>
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ────────────────────────────────────────────────
+          Section 6: FAQ (SEO rich)
+          ──────────────────────────────────────────────── */}
+      <section className="border-b bg-muted/30 px-4 py-20 sm:py-24">
+        <div className="mx-auto max-w-3xl">
+          <div className="text-center">
+            <Badge variant="secondary" className="mb-4 rounded-full px-3 py-1 text-xs font-medium">
+              자주 묻는 질문
+            </Badge>
+            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">FAQ</h2>
+          </div>
+
+          <div className="mt-12 space-y-4">
+            {[
+              {
+                q: "도메인체커는 정말 무료인가요?",
+                a: "네, 완전 무료입니다. 회원가입 없이 도메인명만 입력하면 Moz DA, Ahrefs DR, Majestic TF, Wayback 히스토리를 즉시 확인할 수 있습니다.",
+              },
+              {
+                q: "DA(Domain Authority)는 왜 중요한가요?",
+                a: "DA는 Moz가 개발한 검색엔진 순위 예측 점수(1~100)입니다. DA가 높은 도메인은 같은 품질의 콘텐츠를 올려도 검색 결과 상위에 노출될 확률이 높습니다. 새 사업을 시작할 때 DA가 높은 만료 도메인을 활용하면 SEO 시간을 크게 단축할 수 있습니다.",
+              },
+              {
+                q: "DR과 DA는 어떻게 다른가요?",
+                a: "DA(Domain Authority)는 Moz 제공, DR(Domain Rating)은 Ahrefs 제공입니다. 둘 다 백링크 기반이지만 계산 알고리즘이 다릅니다. 도메인체커에서는 두 지표를 한 번에 비교할 수 있어 더 정확한 판단이 가능합니다.",
+              },
+              {
+                q: "도메인의 Wayback 히스토리는 왜 확인해야 하나요?",
+                a: "과거에 스팸 사이트나 불법 콘텐츠가 호스팅되었던 도메인은 검색엔진에서 페널티를 받았을 수 있습니다. Wayback 이력으로 도메인의 과거를 확인하면 이런 리스크를 사전에 차단할 수 있습니다.",
+              },
+              {
+                q: "분석 결과는 얼마나 정확한가요?",
+                a: "도메인체커는 Moz, Ahrefs, Majestic의 데이터를 RapidAPI를 통해 가져옵니다. 공식 사이트와 소폭의 차이가 있을 수 있으나, 도메인 비교와 투자 판단에는 충분한 참고 자료입니다. 데이터는 7일마다 자동 갱신됩니다.",
+              },
+            ].map((faq) => (
+              <details key={faq.q} className="group rounded-xl border border-border/60 bg-card transition-shadow hover:shadow-md [&_summary::-webkit-details-marker]:hidden">
+                <summary className="flex cursor-pointer items-center justify-between p-5">
+                  <h3 className="pr-4 text-sm font-semibold">{faq.q}</h3>
+                  <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+                </summary>
+                <div className="border-t px-5 pb-5 pt-4">
+                  <p className="text-sm leading-relaxed text-muted-foreground">{faq.a}</p>
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ────────────────────────────────────────────────
+          Section 7: 인기 검색 도메인 TOP 10
+          ──────────────────────────────────────────────── */}
       <section className="border-b px-4 py-16">
         <div className="mx-auto max-w-5xl">
           <div className="mb-8 flex items-center justify-between">
@@ -178,7 +488,9 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* 낙찰 하이라이트 */}
+      {/* ────────────────────────────────────────────────
+          Section 8: 낙찰 하이라이트
+          ──────────────────────────────────────────────── */}
       <section className="border-b px-4 py-16">
         <div className="mx-auto max-w-5xl">
           <div className="mb-8 flex items-center justify-between">
