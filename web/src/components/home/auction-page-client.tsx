@@ -13,7 +13,7 @@ interface ActiveAuction {
   crawled_at: string;
 }
 
-const REFRESH_INTERVAL = 5 * 60 * 1000; // 5분
+const REFRESH_INTERVAL = 30 * 1000; // 30초마다 갱신
 
 export function AuctionPageClient() {
   const [auctions, setAuctions] = useState<ActiveAuction[]>([]);
@@ -56,7 +56,7 @@ export function AuctionPageClient() {
         </div>
         <p className="text-muted-foreground max-w-2xl">
           현재 활발하게 입찰 경쟁이 진행 중인 도메인입니다.
-          5분마다 최신 데이터로 자동 갱신됩니다.
+          30초마다 최신 데이터로 자동 갱신됩니다.
         </p>
       </div>
 
@@ -112,7 +112,7 @@ export function AuctionPageClient() {
         <div className="rounded-xl border border-dashed border-border/60 p-16 text-center">
           <Flame className="mx-auto h-8 w-8 text-muted-foreground/50 mb-3" />
           <p className="text-muted-foreground">현재 진행 중인 인기 경매가 없습니다.</p>
-          <p className="text-sm text-muted-foreground/70 mt-1">데이터는 5분마다 갱신됩니다.</p>
+          <p className="text-sm text-muted-foreground/70 mt-1">데이터는 30초마다 갱신됩니다.</p>
         </div>
       )}
     </div>
