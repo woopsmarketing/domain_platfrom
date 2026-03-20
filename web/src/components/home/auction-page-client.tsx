@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Flame, TrendingUp, RefreshCw } from "lucide-react";
 import { AuctionGrid } from "./auction-grid";
 
@@ -10,7 +10,7 @@ interface ActiveAuction {
   current_price: number;
   bid_count: number | null;
   end_time_raw: string | null;
-  crawled_at: string;
+  crawled_at?: string;
 }
 
 const REFRESH_INTERVAL = 30 * 1000; // 30초마다 갱신
@@ -19,13 +19,31 @@ export function AuctionPageClient() {
   const [auctions, setAuctions] = useState<ActiveAuction[]>([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const prevAuctionsRef = useRef<ActiveAuction[]>([]);
 
   const fetchAuctions = useCallback(async () => {
     try {
       const resp = await fetch("/api/active-auctions");
       const data = await resp.json();
-      // API가 실시간으로 Namecheap에서 가져오므로 추가 필터링 불필요
-      setAuctions(data.items ?? []);
+      const newItems: ActiveAuction[] = data.items ?? [];
+
+      // 낙찰 감지: 이전 목록에 있었는데 새 목록에서 사라진 도메인
+      const prev = prevAuctionsRef.current;
+      if (prev.length > 0) {
+        const newDomains = new Set(newItems.map((a) => a.domain));
+        const sold = prev.filter((a) => !newDomains.has(a.domain));
+        if (sold.length > 0) {
+          // 서버에 낙찰 처리 요청 (fire and forget)
+          fetch("/api/active-auctions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ sold }),
+          }).catch(() => {});
+        }
+      }
+
+      prevAuctionsRef.current = newItems;
+      setAuctions(newItems);
       setLastUpdated(new Date());
     } catch {
       // 에러 시 기존 데이터 유지

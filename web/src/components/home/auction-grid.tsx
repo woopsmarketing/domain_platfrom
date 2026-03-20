@@ -37,17 +37,20 @@ function getTimeLeft(endTimeRaw: string | null): {
   const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
   const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
+  const totalMinutes = hours * 60 + minutes;
+  const isUrgent = totalMinutes < 10; // 10분 미만 빨간색
+
   if (hours > 0) {
     return {
       text: `${hours}시간 ${minutes}분 ${seconds}초`,
-      urgent: false,
+      urgent: isUrgent,
       checking: false,
     };
   }
   if (minutes > 0) {
     return {
       text: `${minutes}분 ${seconds}초`,
-      urgent: minutes < 5,
+      urgent: isUrgent,
       checking: false,
     };
   }

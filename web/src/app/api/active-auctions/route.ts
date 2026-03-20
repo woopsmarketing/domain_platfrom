@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createServiceClient } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -124,5 +125,63 @@ export async function GET(request: NextRequest) {
   } catch (err) {
     console.error("active-auctions error:", err);
     return NextResponse.json({ items: [], updated_at: null });
+  }
+}
+
+/**
+ * POST /api/active-auctions
+ *
+ * 낙찰 감지: 클라이언트가 이전 목록에서 사라진 도메인을 보내면
+ * sold_auctions 테이블에 저장합니다.
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const sold: { domain: string; tld: string; current_price: number; bid_count: number | null; end_time_raw: string | null }[] =
+      body.sold ?? [];
+
+    if (sold.length === 0) {
+      return NextResponse.json({ saved: 0 });
+    }
+
+    const client = createServiceClient();
+    let savedCount = 0;
+
+    for (const item of sold) {
+      // 1. domains 테이블에 upsert
+      const { data: domainRow } = await client
+        .from("domains")
+        .upsert(
+          {
+            name: item.domain,
+            tld: item.tld,
+            status: "sold",
+            source: "namecheap",
+          },
+          { onConflict: "name" }
+        )
+        .select("id")
+        .single();
+
+      if (!domainRow) continue;
+
+      // 2. sales_history에 저장
+      await client.from("sales_history").upsert(
+        {
+          domain_id: domainRow.id,
+          sold_at: new Date().toISOString().split("T")[0],
+          price_usd: item.current_price,
+          platform: "Namecheap",
+        },
+        { onConflict: "domain_id,sold_at,platform" }
+      );
+
+      savedCount++;
+    }
+
+    return NextResponse.json({ saved: savedCount });
+  } catch (err) {
+    console.error("active-auctions POST error:", err);
+    return NextResponse.json({ saved: 0 }, { status: 500 });
   }
 }
