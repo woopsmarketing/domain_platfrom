@@ -7,6 +7,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://domainchecker.co.kr"),
   title: {
     default: "도메인체커 — 무료 도메인 지수 체크 | DA/DR/TF 분석",
     template: "%s | 도메인체커",
@@ -25,6 +26,17 @@ export const metadata: Metadata = {
   robots: {
     index: true,
     follow: true,
+  },
+  openGraph: {
+    type: "website",
+    siteName: "도메인체커",
+    locale: "ko_KR",
+  },
+  twitter: {
+    card: "summary",
+  },
+  alternates: {
+    canonical: "https://domainchecker.co.kr",
   },
 };
 
