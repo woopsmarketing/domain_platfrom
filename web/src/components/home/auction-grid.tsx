@@ -23,7 +23,10 @@ function getTimeLeft(endTimeRaw: string | null): {
   if (!endTimeRaw) return { text: "", urgent: false, expired: false };
 
   const end = new Date(endTimeRaw).getTime();
-  if (isNaN(end)) return { text: "", urgent: false, expired: false };
+  if (isNaN(end)) {
+    // "11 days", "2 hours", "1 month" 같은 상대 시간 텍스트 그대로 표시
+    return { text: endTimeRaw, urgent: false, expired: false };
+  }
 
   const now = Date.now();
   const diff = end - now;
@@ -57,7 +60,7 @@ function TimeCell({ endTimeRaw }: { endTimeRaw: string | null }) {
   useEffect(() => {
     if (!endTimeRaw) return;
     const end = new Date(endTimeRaw).getTime();
-    if (isNaN(end)) return;
+    if (isNaN(end)) return; // 상대 시간 텍스트는 카운트다운 불필요
 
     const timer = setInterval(() => {
       setTimeLeft(getTimeLeft(endTimeRaw));
