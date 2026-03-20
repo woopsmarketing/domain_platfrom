@@ -9,6 +9,8 @@ Namecheap Marketplace — 공개 S3 CSV 다운로드 크롤러
 
 bids 정보는 CSV에 없으므로 price > 0 이고 endDate가 과거인 항목만 수집.
 """
+from __future__ import annotations
+
 import io
 import csv
 import logging
@@ -105,7 +107,7 @@ def fetch_closed_auctions(max_rows: int | None = None) -> list[dict]:
 
         results.append({
             "domain":           domain_full,
-            "name":             name,
+            "name":             domain_full,  # DB의 name 컬럼에 전체 도메인명 저장 (기존 관례)
             "tld":              tld,
             "price_usd":        price,
             "bid_count":        None,  # Namecheap CSV에 bids 컬럼 없음

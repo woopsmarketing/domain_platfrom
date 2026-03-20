@@ -11,9 +11,10 @@ import asyncio
 import logging
 import re
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Dict, List, Optional
 
 from playwright.async_api import async_playwright, Page, Response
+from bs4 import BeautifulSoup
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +23,10 @@ LIST_URL = (
     "?bids=1&sortColumn=bids&sortDirection=desc"
 )
 
-# 상세 페이지 URL 패턴: 인터셉트된 API 응답에서 auction ID 추출 후 조합
 DETAIL_URL_TMPL = "https://auctions.godaddy.com/trpItemListing.aspx?miid={miid}"
 
 # 인터셉트 대상 URL 키워드 (GoDaddy 내부 API 패턴)
-API_KEYWORDS = ("ux3api", "expireddomains", "auctions/search", "GetAuctions")
+API_KEYWORDS = ("ux3api", "expireddomains", "auctions/search", "GetAuctions", "find.godaddy")
 
 
 # ---------------------------------------------------------------------------
@@ -35,14 +35,16 @@ API_KEYWORDS = ("ux3api", "expireddomains", "auctions/search", "GetAuctions")
 
 def _parse_price(val) -> int:
     try:
-        return int(float(str(val).replace("$", "").replace(",", "").strip() or "0"))
+        cleaned = re.sub(r'[^\d.]', '', str(val or '0'))
+        return int(float(cleaned)) if cleaned else 0
     except (ValueError, TypeError):
         return 0
 
 
 def _parse_bids(val) -> int:
     try:
-        return int(val or 0)
+        cleaned = re.sub(r'[^\d]', '', str(val or '0'))
+        return int(cleaned) if cleaned else 0
     except (ValueError, TypeError):
         return 0
 
@@ -81,7 +83,6 @@ def _extract_domain_fields(item: dict) -> Optional[dict]:
             end_raw = str(v)
             break
 
-    # miid (경매 상세 ID)
     miid = item.get("miid") or item.get("id") or item.get("auctionId") or ""
 
     parts = domain.rsplit(".", 1)
@@ -93,29 +94,85 @@ def _extract_domain_fields(item: dict) -> Optional[dict]:
         "bid_count":    bids,
         "end_time_raw": end_raw,
         "miid":         str(miid),
+        "source":       "godaddy",
     }
 
 
-def _flatten_api_response(data) -> list[dict]:
+def _flatten_api_response(data) -> List[dict]:
     """다양한 API 응답 구조에서 item 목록 평탄화."""
     if isinstance(data, list):
         return data
-    for key in ("items", "auctions", "domains", "results", "data", "Domains"):
-        val = data.get(key)
-        if isinstance(val, list):
-            return val
+    if isinstance(data, dict):
+        for key in ("items", "auctions", "domains", "results", "data", "Domains"):
+            val = data.get(key)
+            if isinstance(val, list):
+                return val
     return []
+
+
+# ---------------------------------------------------------------------------
+# HTML 폴백 파싱 (API 인터셉트 실패 시)
+# ---------------------------------------------------------------------------
+
+def _parse_html_fallback(html: str) -> List[dict]:
+    """BeautifulSoup로 GoDaddy 경매 목록 HTML 파싱."""
+    soup = BeautifulSoup(html, "lxml")
+    results = []
+
+    # 테이블 행 기반 파싱
+    rows = soup.select("tr, .auction-item, [data-domain], [class*='auction']")
+    for row in rows:
+        text = row.get_text(" ", strip=True)
+        # 도메인 패턴 찾기
+        domain_match = re.search(
+            r'([a-z0-9][-a-z0-9]*\.(?:com|net|org|io|co|info|xyz|dev|app|ai|us|me|biz|cc|tv))',
+            text.lower()
+        )
+        if not domain_match:
+            continue
+        domain_text = domain_match.group(1)
+
+        # 가격 추출
+        price_match = re.search(r'\$[\d,]+(?:\.\d+)?', text)
+        price = _parse_price(price_match.group() if price_match else "0")
+        if price <= 0:
+            continue
+
+        # 입찰수 추출
+        bids_match = re.search(r'(\d+)\s*(?:bid|Bid)', text)
+        bids = int(bids_match.group(1)) if bids_match else 0
+
+        parts = domain_text.rsplit(".", 1)
+        results.append({
+            "domain":        domain_text,
+            "name":          parts[0],
+            "tld":           parts[1] if len(parts) == 2 else "",
+            "current_price": price,
+            "bid_count":     bids,
+            "end_time_raw":  None,
+            "miid":          "",
+            "source":        "godaddy",
+        })
+
+    # 중복 제거
+    seen = set()
+    unique = []
+    for item in results:
+        if item["domain"] not in seen:
+            seen.add(item["domain"])
+            unique.append(item)
+
+    return unique
 
 
 # ---------------------------------------------------------------------------
 # Playwright 스크래퍼
 # ---------------------------------------------------------------------------
 
-async def _scrape(url: str, headless: bool = True) -> list[dict]:
-    captured: list[dict] = []
+async def _scrape(url: str, headless: bool = True) -> List[dict]:
+    captured: List[dict] = []
 
     async def on_response(resp: Response):
-        # 인터셉트 조건: API 키워드 포함 + JSON 응답
         if not any(kw in resp.url for kw in API_KEYWORDS):
             return
         try:
@@ -142,17 +199,30 @@ async def _scrape(url: str, headless: bool = True) -> list[dict]:
         page: Page = await ctx.new_page()
         page.on("response", on_response)
 
+        html_content = ""
         try:
             await page.goto(url, wait_until="networkidle", timeout=30_000)
             await page.wait_for_timeout(3_000)
+
+            # API 인터셉트 실패 시 HTML 수집
+            if not captured:
+                html_content = await page.content()
         except Exception as e:
-            logger.warning(f"페이지 로드 경고: {e}")
+            logger.warning(f"GoDaddy 페이지 로드 경고: {e}")
+            try:
+                html_content = await page.content()
+            except Exception:
+                pass
         finally:
             await browser.close()
 
-    # API 인터셉트 실패 시 로그
+    # API 인터셉트 실패 시 HTML 폴백
+    if not captured and html_content:
+        logger.info("GoDaddy: API 인터셉트 실패 → HTML 폴백 파싱 시도")
+        captured = _parse_html_fallback(html_content)
+
     if not captured:
-        logger.warning("GoDaddy: API 인터셉트 결과 없음 — HTML 파싱 필요 (미구현)")
+        logger.warning("GoDaddy: 수집 결과 없음 (API 인터셉트 + HTML 폴백 모두 실패)")
 
     return captured
 
@@ -192,12 +262,12 @@ async def _scrape_detail(miid: str, headless: bool = True) -> Optional[dict]:
 # 공개 인터페이스
 # ---------------------------------------------------------------------------
 
-def fetch_active_auctions(headless: bool = True) -> list[dict]:
+def fetch_active_auctions(headless: bool = True) -> List[dict]:
     """
     GoDaddy 진행 중인 경매 목록 반환 (입찰 많은 순).
 
     반환 형식:
-        [{domain, name, tld, current_price, bid_count, end_time_raw, miid}, ...]
+        [{domain, name, tld, current_price, bid_count, end_time_raw, miid, source}, ...]
     """
     logger.info("GoDaddy 활성 경매 스크래핑 시작")
     results = asyncio.run(_scrape(LIST_URL, headless=headless))

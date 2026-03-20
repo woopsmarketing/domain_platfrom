@@ -6,6 +6,8 @@
   python3 -m crawler.run                     # GoDaddy + Namecheap CSV 모두 실행
   python3 -m crawler.run --source godaddy
   python3 -m crawler.run --source namecheap
+  python3 -m crawler.run --mode csv --source godaddy
+  python3 -m crawler.run --mode csv --source namecheap
   python3 -m crawler.run --files 2           # GoDaddy: 최대 파일 수 (기본 3)
   python3 -m crawler.run --rows 500          # Namecheap: 최대 행 수 (기본 전체)
 
@@ -16,24 +18,45 @@
   # 상시 감시 (Railway 배포용)
   python3 -m crawler.watcher
 """
+from __future__ import annotations
+
 import argparse
 import logging
 import os
 import sys
 
-# web/.env.local 자동 로드
-try:
-    from dotenv import load_dotenv
+# web/.env.local 자동 로드 (dotenv 없어도 동작)
+def _load_env_file():
     env_path = os.path.join(os.path.dirname(__file__), "..", "web", ".env.local")
-    load_dotenv(env_path)
-except ImportError:
-    pass
+    if not os.path.exists(env_path):
+        return
+    try:
+        from dotenv import load_dotenv
+        load_dotenv(env_path)
+        return
+    except ImportError:
+        pass
+    # dotenv 없으면 수동 파싱
+    with open(env_path, "r") as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if "=" in line:
+                key, _, value = line.partition("=")
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")
+                if key and key not in os.environ:
+                    os.environ[key] = value
 
-from crawler.db import upsert_sold_domain, upsert_active_auction
+_load_env_file()
+
+# CSV 크롤러는 항상 import (경량, 외부 의존성 없음)
 from crawler.scrapers.godaddy import fetch_closed_auctions as godaddy_fetch
 from crawler.scrapers.namecheap import fetch_closed_auctions as namecheap_fetch
-from crawler.scrapers.godaddy_live import fetch_active_auctions as godaddy_live_fetch
-from crawler.scrapers.namecheap_live import fetch_active_auctions as namecheap_live_fetch
+
+# Live 크롤러는 lazy import (Playwright 의존 — csv 모드에서는 불필요)
+# godaddy_live, namecheap_live 는 --mode live 일 때만 import
 
 logging.basicConfig(
     level=logging.INFO,
@@ -41,6 +64,12 @@ logging.basicConfig(
     datefmt="%H:%M:%S",
 )
 logger = logging.getLogger("run")
+
+
+def _get_db_funcs():
+    """DB 함수를 lazy로 가져옴 (환경변수 로드 후 호출되도록)."""
+    from crawler.db import upsert_sold_domain, upsert_active_auction
+    return upsert_sold_domain, upsert_active_auction
 
 
 def run_godaddy(max_files: int) -> int:
@@ -57,6 +86,7 @@ def run_namecheap(max_rows: int | None) -> int:
 
 
 def _save(items: list[dict], source: str) -> int:
+    upsert_sold_domain, _ = _get_db_funcs()
     saved = 0
     for item in items:
         try:
@@ -70,13 +100,20 @@ def _save(items: list[dict], source: str) -> int:
             )
             saved += 1
         except Exception as e:
-            logger.error(f"DB 저장 실패 [{item['domain']}]: {e}")
+            logger.error(f"DB 저장 실패 [{item.get('domain', 'unknown')}]: {e}")
 
     logger.info(f"=== {source.upper()} 완료: {saved}/{len(items)}건 저장 ===")
     return saved
 
 
 def run_live_godaddy() -> int:
+    try:
+        from crawler.scrapers.godaddy_live import fetch_active_auctions as godaddy_live_fetch
+    except ImportError as e:
+        logger.error(f"GoDaddy live 모드 import 실패 (Playwright 설치 필요): {e}")
+        return 0
+
+    _, upsert_active_auction = _get_db_funcs()
     logger.info("=== GODADDY 실시간 스크래핑 ===")
     items = godaddy_live_fetch(headless=True)
     saved = 0
@@ -88,6 +125,7 @@ def run_live_godaddy() -> int:
                 current_price=item.get("current_price", 0),
                 bid_count=item.get("bid_count"),
                 end_time_raw=item.get("end_time_raw"),
+                source=item.get("source", "godaddy"),
             )
             saved += 1
         except Exception as e:
@@ -97,6 +135,13 @@ def run_live_godaddy() -> int:
 
 
 def run_live_namecheap() -> int:
+    try:
+        from crawler.scrapers.namecheap_live import fetch_active_auctions as namecheap_live_fetch
+    except ImportError as e:
+        logger.error(f"Namecheap live 모드 import 실패 (Playwright 설치 필요): {e}")
+        return 0
+
+    _, upsert_active_auction = _get_db_funcs()
     logger.info("=== NAMECHEAP 실시간 스크래핑 ===")
     items = namecheap_live_fetch(headless=True)
     saved = 0
@@ -108,6 +153,7 @@ def run_live_namecheap() -> int:
                 current_price=item.get("current_price", 0),
                 bid_count=item.get("bid_count"),
                 end_time_raw=item.get("end_time_raw"),
+                source=item.get("source", "namecheap"),
             )
             saved += 1
         except Exception as e:

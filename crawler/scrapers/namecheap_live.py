@@ -1,186 +1,168 @@
 """
-Namecheap Marketplace 실시간 스크래퍼 (Playwright 기반)
+Namecheap Marketplace 경매 수집기 (GraphQL API 직접 호출)
 
-내부 API를 자동 인터셉트해 JSON 데이터 수집.
+Playwright 불필요 — requests만으로 동작.
+필터: bids >= 2, 24시간 이내 종료 예정 도메인만 수집.
 
-경매 목록 URL:
-  https://www.namecheap.com/domains/marketplace/
+데이터 소스:
+  aftermarketapi.namecheap.com/client/graphql (SaleTable operation)
 """
-import asyncio
 import logging
-from typing import Optional
+import math
+from datetime import datetime, timezone, timedelta
+from typing import Dict, List, Optional
 
-from playwright.async_api import async_playwright, Page, Response
+import requests
 
 logger = logging.getLogger(__name__)
 
-LIST_URL = "https://www.namecheap.com/domains/marketplace/"
+GRAPHQL_URL = "https://aftermarketapi.namecheap.com/client/graphql"
+GRAPHQL_HASH = "fe84e690294ebd46f5cbc0a2b3fe1fe7fc606395c28f54afab18ff6521d98110"
 
-# 인터셉트 대상 URL 키워드 (Namecheap 내부 API 패턴)
-API_KEYWORDS = ("marketplace", "auction", "listings", "domains/search")
-
-# 최근 낙찰 감지: 이전 스냅샷과 비교해 사라진 도메인 = 낙찰
-# snapshot은 호출 측(watcher/run.py)에서 관리
-
+HEADERS = {
+    "Content-Type": "application/json",
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/122.0.0.0 Safari/537.36"
+    ),
+    "Origin": "https://www.namecheap.com",
+    "Referer": "https://www.namecheap.com/",
+}
 
 # ---------------------------------------------------------------------------
-# 내부 유틸 (godaddy_live.py와 동일 패턴)
+# 필터 설정
 # ---------------------------------------------------------------------------
-
-def _parse_price(val) -> int:
-    try:
-        return int(float(str(val).replace("$", "").replace(",", "").strip() or "0"))
-    except (ValueError, TypeError):
-        return 0
+MIN_BIDS = 2           # 최소 입찰 수
+MAX_HOURS_LEFT = 24    # 종료까지 남은 최대 시간 (시간)
+PAGE_SIZE = 100        # 한 번에 가져올 건수
 
 
-def _parse_bids(val) -> int:
-    try:
-        return int(val or 0)
-    except (ValueError, TypeError):
-        return 0
+def _build_payload(page: int = 1, sort_col: str = "bidCount", sort_dir: str = "desc") -> dict:
+    return {
+        "operationName": "SaleTable",
+        "variables": {
+            "filter": {},
+            "sort": [{"column": sort_col, "direction": sort_dir}],
+            "page": page,
+            "pageSize": PAGE_SIZE,
+        },
+        "extensions": {
+            "persistedQuery": {
+                "version": 1,
+                "sha256Hash": GRAPHQL_HASH,
+            }
+        },
+    }
 
 
-def _extract_domain_fields(item: dict) -> Optional[dict]:
-    domain = ""
-    for k in ("domain", "domainName", "name", "Domain", "DomainName"):
-        v = item.get(k, "")
-        if v and "." in str(v):
-            domain = str(v).lower().strip()
-            break
-    if not domain:
+def _parse_item(item: dict) -> Optional[dict]:
+    """GraphQL 응답 item을 내부 형식으로 변환."""
+    product = item.get("product") or {}
+    domain = (product.get("name") or "").lower().strip()
+    if not domain or "." not in domain:
         return None
-
-    price = 0
-    for k in ("price", "currentBid", "currentPrice", "salePrice", "Price", "buyNowPrice"):
-        v = item.get(k)
-        if v is not None:
-            price = _parse_price(v)
-            if price > 0:
-                break
-
-    bids = 0
-    for k in ("bids", "bidCount", "numberOfBids", "bidNumber"):
-        v = item.get(k)
-        if v is not None:
-            bids = _parse_bids(v)
-            if bids > 0:
-                break
-
-    end_raw = None
-    for k in ("endDate", "endTime", "auctionEndDate", "expiryDate", "endDateUtc"):
-        v = item.get(k)
-        if v:
-            end_raw = str(v)
-            break
-
-    # Namecheap 경매 ID (상세 추적용)
-    auction_id = item.get("auctionId") or item.get("id") or item.get("listingId") or ""
 
     parts = domain.rsplit(".", 1)
     return {
         "domain":        domain,
         "name":          parts[0],
         "tld":           parts[1] if len(parts) == 2 else "",
-        "current_price": price,
-        "bid_count":     bids,
-        "end_time_raw":  end_raw,
-        "auction_id":    str(auction_id),
+        "current_price": int(float(item.get("price", 0) or 0)),
+        "bid_count":     int(item.get("bidCount", 0) or 0),
+        "end_time_raw":  item.get("endDate"),
+        "auction_id":    item.get("id", ""),
+        "source":        "namecheap",
     }
 
 
-def _flatten_api_response(data) -> list[dict]:
-    if isinstance(data, list):
-        return data
-    for key in ("items", "domains", "listings", "results", "data", "auctions"):
-        val = data.get(key)
-        if isinstance(val, list):
-            return val
-    return []
+def _fetch_page(page: int = 1) -> tuple:
+    """한 페이지 조회. (items, total) 반환."""
+    payload = _build_payload(page=page)
+    try:
+        resp = requests.post(GRAPHQL_URL, json=payload, headers=HEADERS, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+        sales = data.get("data", {}).get("sales", {})
+        return sales.get("items", []), sales.get("total", 0)
+    except Exception as e:
+        logger.warning("Namecheap GraphQL 요청 실패 (page=%d): %s", page, e)
+        return [], 0
 
 
-# ---------------------------------------------------------------------------
-# Playwright 스크래퍼
-# ---------------------------------------------------------------------------
+def _is_within_deadline(end_date_str: str, max_hours: float = MAX_HOURS_LEFT) -> bool:
+    """종료 시간이 현재로부터 max_hours 이내인지 확인."""
+    try:
+        end_dt = datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
+        now = datetime.now(timezone.utc)
+        diff = (end_dt - now).total_seconds() / 3600
+        return 0 < diff <= max_hours
+    except Exception:
+        return False
 
-async def _scrape(headless: bool = True) -> list[dict]:
-    captured: list[dict] = []
 
-    async def on_response(resp: Response):
-        if not any(kw in resp.url for kw in API_KEYWORDS):
-            return
-        try:
-            data = await resp.json()
-        except Exception:
-            return
-        items = _flatten_api_response(data)
+def fetch_active_auctions(headless: bool = True) -> List[dict]:
+    """
+    Namecheap 경매 도메인 수집.
+
+    bidCount 내림차순으로 페이지를 순회하며,
+    bids >= MIN_BIDS AND 24시간 이내 종료 도메인만 반환.
+
+    반환 형식:
+        [{domain, name, tld, current_price, bid_count, end_time_raw, auction_id, source}, ...]
+    """
+    logger.info("Namecheap 활성 경매 수집 시작 (GraphQL API)")
+
+    all_results = []  # type: List[dict]
+    page = 1
+    max_pages = 10  # 안전 장치: 최대 10페이지 (1000건)
+    consecutive_zero_bids = 0
+
+    while page <= max_pages:
+        items, total = _fetch_page(page)
+        if not items:
+            break
+
+        if page == 1:
+            logger.info("Namecheap 전체 경매: %d건 → 필터 적용 중 (bids>=%d, %dh 이내)",
+                        total, MIN_BIDS, MAX_HOURS_LEFT)
+
         for item in items:
-            parsed = _extract_domain_fields(item)
+            bid_count = int(item.get("bidCount", 0) or 0)
+
+            # bidCount 내림차순이므로, bids < MIN_BIDS면 이후 전부 불필요
+            if bid_count < MIN_BIDS:
+                consecutive_zero_bids += 1
+                if consecutive_zero_bids >= 3:
+                    logger.info("Namecheap: bids < %d 도달 → 수집 종료 (page %d)", MIN_BIDS, page)
+                    page = max_pages + 1  # break outer
+                    break
+                continue
+
+            consecutive_zero_bids = 0
+
+            end_date = item.get("endDate", "")
+            if not _is_within_deadline(end_date):
+                continue
+
+            parsed = _parse_item(item)
             if parsed:
-                captured.append(parsed)
-        if items:
-            logger.debug(f"  인터셉트 [{resp.url[:80]}] → {len(items)}건")
+                all_results.append(parsed)
 
-    async with async_playwright() as pw:
-        browser = await pw.chromium.launch(headless=headless)
-        ctx = await browser.new_context(
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/122.0.0.0 Safari/537.36"
-            )
-        )
-        page: Page = await ctx.new_page()
-        page.on("response", on_response)
+        page += 1
 
-        try:
-            await page.goto(LIST_URL, wait_until="networkidle", timeout=30_000)
-            await page.wait_for_timeout(3_000)
-
-            # 스크롤 → 더보기 트리거 (lazy load 대응)
-            await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            await page.wait_for_timeout(2_000)
-        except Exception as e:
-            logger.warning(f"Namecheap 페이지 로드 경고: {e}")
-        finally:
-            await browser.close()
-
-    if not captured:
-        logger.warning("Namecheap: API 인터셉트 결과 없음 — HTML 파싱 필요 (미구현)")
-
-    return captured
+    logger.info("Namecheap 활성 경매: %d건 (bids>=%d, %dh 이내)",
+                len(all_results), MIN_BIDS, MAX_HOURS_LEFT)
+    return all_results
 
 
 # ---------------------------------------------------------------------------
-# 낙찰 감지 (스냅샷 diff)
+# 낙찰 감지 (스냅샷 diff) — watcher.py 용
 # ---------------------------------------------------------------------------
 
-def detect_sold(prev_snapshot: dict[str, dict], curr_snapshot: dict[str, dict]) -> list[dict]:
-    """
-    이전 스냅샷에 있었고 현재 스냅샷에 없는 도메인 = 낙찰.
-
-    prev_snapshot / curr_snapshot: {domain: {...auction data...}}
-    반환: 낙찰된 도메인 목록
-    """
+def detect_sold(prev_snapshot: Dict[str, dict], curr_snapshot: Dict[str, dict]) -> List[dict]:
     sold = []
     for domain, data in prev_snapshot.items():
         if domain not in curr_snapshot and data.get("current_price", 0) > 0:
             sold.append({**data, "sold_detected": True})
     return sold
-
-
-# ---------------------------------------------------------------------------
-# 공개 인터페이스
-# ---------------------------------------------------------------------------
-
-def fetch_active_auctions(headless: bool = True) -> list[dict]:
-    """
-    Namecheap 진행 중인 경매 목록 반환.
-
-    반환 형식:
-        [{domain, name, tld, current_price, bid_count, end_time_raw, auction_id}, ...]
-    """
-    logger.info("Namecheap 활성 경매 스크래핑 시작")
-    results = asyncio.run(_scrape(headless=headless))
-    logger.info(f"Namecheap 활성 경매: {len(results)}건")
-    return results

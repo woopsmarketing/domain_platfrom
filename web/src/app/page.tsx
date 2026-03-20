@@ -23,6 +23,7 @@ import { getPopularDomains, getTodayHighlights } from "@/lib/db/analytics";
 import { formatPrice } from "@/lib/utils";
 import { HeroSection } from "@/components/home/hero-section";
 import { CtaSection } from "@/components/home/cta-section";
+import { ActiveAuctionsSection } from "@/components/home/active-auctions-section";
 
 export const dynamic = "force-dynamic";
 
@@ -156,6 +157,7 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <ActiveAuctionsSection />
       {/* ────────────────────────────────────────────────
           낙찰 하이라이트
           ──────────────────────────────────────────────── */}

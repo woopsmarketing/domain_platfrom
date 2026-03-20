@@ -64,23 +64,38 @@ export async function getPopularDomains(limit = 10) {
 }
 
 /**
- * 오늘의 낙찰 하이라이트 (D2) — 최근 고가 낙찰 도메인
+ * 낙찰 하이라이트 (D2) — 최근 고가 낙찰 도메인
+ * 
+ * fallback 전략: 7일 → 30일 → 90일 → 전체 (데이터가 없으면 범위 확장)
  */
 export async function getTodayHighlights(limit = 5): Promise<SaleWithDomain[]> {
   const client = createServiceClient();
 
-  // 오늘 데이터가 없을 수 있으므로 최근 7일 이내에서 고가순
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+  const ranges = [7, 30, 90, 365, 0]; // 0 = 전체
 
-  const { data, error } = await client
-    .from("sales_history")
-    .select("id, sold_at, price_usd, platform, domains!inner(id, name, tld, source)")
-    .gte("sold_at", sevenDaysAgo)
-    .order("price_usd", { ascending: false })
-    .limit(limit);
+  for (const days of ranges) {
+    let query = client
+      .from("sales_history")
+      .select("id, sold_at, price_usd, platform, domains!inner(id, name, tld, source)")
+      .order("price_usd", { ascending: false })
+      .limit(limit);
 
-  if (error) throw new Error(error.message);
-  return (data ?? []) as unknown as SaleWithDomain[];
+    if (days > 0) {
+      const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0];
+      query = query.gte("sold_at", since);
+    }
+
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+
+    if (data && data.length > 0) {
+      return data as unknown as SaleWithDomain[];
+    }
+  }
+
+  return [];
 }
 
 /**

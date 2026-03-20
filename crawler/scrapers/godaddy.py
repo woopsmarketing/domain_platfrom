@@ -1,20 +1,23 @@
 """
-GoDaddy Auctions Inventory — CSV 다운로드 기반 크롤러
+GoDaddy Auctions Inventory — JSON/CSV 다운로드 기반 크롤러
 
 공식 인벤토리: https://inventory.auctions.godaddy.com/
-  - metadata.json : 파일 목록 (매일 07-08 PST 갱신)
-  - *.csv.zip     : 경매 도메인 목록 (expired / closeout)
+  - metadata.json : 파일 목록 (매일 갱신)
+  - *.json.zip / *.csv.zip : 경매 도메인 목록
 
 Bids > 0 인 도메인만 수집해 sales_history에 저장.
 """
+from __future__ import annotations
+
 import io
 import csv
+import json
 import zipfile
 import logging
 import time
 import requests
 from datetime import datetime, timezone, date
-from typing import Iterator
+from typing import Iterator, Optional, List, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -29,59 +32,98 @@ HEADERS = {
     )
 }
 
-# GoDaddy CSV 컬럼 → 우리 필드 매핑 (실제 헤더는 첫 실행 시 로그로 출력됨)
-COLUMN_MAP = {
-    # 도메인명
+# 우선순위별 다운로드 대상 파일 (JSON 우선, CSV 폴백)
+PREFERRED_FILES = [
+    "auctions_ending_today.json.zip",       # 오늘 종료 경매 (낙찰 직전)
+    "auctions_ending_tomorrow.json.zip",    # 내일 종료 경매
+    "bidding_service_auctions.csv.zip",     # 입찰 진행 중 (CSV)
+]
+
+# CSV 컬럼 → 내부 필드 매핑
+CSV_COLUMN_MAP = {
     "Domain":            "domain",
     "DomainName":        "domain",
-    # 입찰 수
+    "domainName":        "domain",
     "Bids":              "bid_count",
     "BidCount":          "bid_count",
     "NumberOfBids":      "bid_count",
-    # 낙찰가
+    "numberOfBids":      "bid_count",
     "Price":             "price_usd",
     "ClosePrice":        "price_usd",
     "SalePrice":         "price_usd",
     "CurrentBid":        "price_usd",
-    # 종료일
+    "price":             "price_usd",
     "EndTime":           "end_time",
     "CloseDate":         "end_time",
     "AuctionEndDate":    "end_time",
-    # SEO 지수 (보너스)
-    "MajesticTrustFlow":    "majestic_tf",
-    "MajesticCitationFlow": "majestic_cf",
-    "Backlinks":            "backlinks",
-    "ReferringDomains":     "referring_domains",
+    "auctionEndTime":    "end_time",
 }
 
 
-def _get_csv_urls() -> list[str]:
-    """metadata.json에서 다운로드 가능한 CSV URL 목록 반환."""
+def _get_file_urls(max_files: int) -> List[str]:
+    """metadata.json에서 다운로드 가능한 파일 URL 목록 반환."""
     try:
         resp = requests.get(METADATA_URL, headers=HEADERS, timeout=15)
         resp.raise_for_status()
         meta = resp.json()
-        # metadata 구조: {"files": [{"url": "...", "type": "csv", ...}]}
-        files = meta.get("files") or meta.get("items") or []
-        urls = [f.get("url") or f.get("path") for f in files if f]
-        urls = [u for u in urls if u and (".csv" in u or ".zip" in u)]
-        logger.info(f"GoDaddy metadata: {len(urls)}개 파일 발견")
+
+        # metadata 구조: list of {"FileName": "...", "FileSize": ..., ...}
+        if isinstance(meta, list):
+            available = {item.get("FileName", ""): item for item in meta}
+        elif isinstance(meta, dict):
+            items = meta.get("files") or meta.get("items") or []
+            available = {item.get("FileName", "") or item.get("url", ""): item for item in items}
+        else:
+            available = {}
+
+        urls = []
+        for pref in PREFERRED_FILES:
+            if pref in available:
+                urls.append(f"{INVENTORY_BASE}/{pref}")
+                if len(urls) >= max_files:
+                    break
+
+        if not urls:
+            # fallback: CSV 파일 아무거나
+            for name in available:
+                if ".csv" in name or ".json" in name:
+                    urls.append(f"{INVENTORY_BASE}/{name}")
+                    if len(urls) >= max_files:
+                        break
+
+        logger.info(f"GoDaddy metadata: {len(urls)}개 파일 선택 (전체 {len(available)}개)")
         return urls
+
     except Exception as e:
         logger.error(f"metadata.json 로드 실패: {e}")
-        # fallback: 알려진 파일명 패턴 시도
-        today = datetime.now(timezone.utc).strftime("%Y%m%d")
-        return [
-            f"{INVENTORY_BASE}/expired_domains_{today}.csv.zip",
-            f"{INVENTORY_BASE}/closeout_domains_{today}.csv.zip",
-        ]
+        return [f"{INVENTORY_BASE}/auctions_ending_today.json.zip"]
 
 
-def _download_csv(url: str) -> list[dict]:
-    """URL에서 CSV(또는 ZIP 내 CSV) 다운로드 후 rows 반환."""
+def _parse_price(text) -> int:
+    """가격 문자열을 int로 변환."""
+    try:
+        s = str(text or "0").replace("$", "").replace(",", "").strip()
+        return int(float(s or "0"))
+    except (ValueError, TypeError):
+        return 0
+
+
+def _parse_date(text: str) -> date:
+    """날짜 문자열을 date로 변환."""
+    text = str(text or "").strip()
+    for fmt in ("%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%d", "%m/%d/%Y"):
+        try:
+            return datetime.strptime(text, fmt).date()
+        except ValueError:
+            continue
+    return datetime.now(timezone.utc).date()
+
+
+def _download_and_parse(url: str) -> List[dict]:
+    """URL에서 JSON 또는 CSV 파일을 다운로드하고 파싱한 raw items 반환."""
     logger.info(f"GoDaddy 다운로드: {url}")
     try:
-        resp = requests.get(url, headers=HEADERS, timeout=60)
+        resp = requests.get(url, headers=HEADERS, timeout=120)
         resp.raise_for_status()
     except requests.HTTPError as e:
         logger.warning(f"다운로드 실패 {url}: {e}")
@@ -93,103 +135,138 @@ def _download_csv(url: str) -> list[dict]:
     if url.endswith(".zip") or resp.headers.get("Content-Type", "").startswith("application/zip"):
         try:
             with zipfile.ZipFile(io.BytesIO(content)) as z:
-                csv_names = [n for n in z.namelist() if n.endswith(".csv")]
-                if not csv_names:
-                    logger.warning("ZIP 내 CSV 없음")
+                if not z.namelist():
+                    logger.warning("ZIP 내 파일 없음")
                     return []
-                content = z.read(csv_names[0])
+                inner_name = z.namelist()[0]
+                content = z.read(inner_name)
+                logger.info(f"  ZIP 내 파일: {inner_name}")
         except zipfile.BadZipFile:
-            pass  # zip 아니면 그대로 진행
+            pass
 
     text = content.decode("utf-8", errors="replace")
-    reader = csv.DictReader(io.StringIO(text))
 
+    # JSON인지 CSV인지 판단
+    if text.lstrip().startswith("{") or text.lstrip().startswith("["):
+        return _parse_json(text)
+    else:
+        return _parse_csv(text)
+
+
+def _parse_json(text: str) -> List[dict]:
+    """JSON 데이터 파싱. GoDaddy 형식: {"meta": ..., "data": [...]}"""
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError as e:
+        logger.error(f"JSON 파싱 실패: {e}")
+        return []
+
+    if isinstance(data, list):
+        items = data
+    elif isinstance(data, dict):
+        items = data.get("data") or data.get("items") or data.get("auctions") or []
+    else:
+        return []
+
+    if items:
+        logger.info(f"  JSON 항목 수: {len(items)}")
+        logger.info(f"  컬럼 목록: {list(items[0].keys())}")
+
+    return items
+
+
+def _parse_csv(text: str) -> List[dict]:
+    """CSV 데이터 파싱."""
+    reader = csv.DictReader(io.StringIO(text))
     rows = list(reader)
     if rows:
-        # 첫 실행 시 실제 컬럼명 로깅 (디버깅용)
+        logger.info(f"  CSV 행 수: {len(rows)}")
         logger.info(f"  컬럼 목록: {list(rows[0].keys())}")
     return rows
 
 
-def _normalize_row(raw: dict) -> dict | None:
-    """CSV row → 내부 필드로 변환. bid_count=0 이면 None 반환."""
-    normalized = {}
-    for csv_col, value in raw.items():
-        key = COLUMN_MAP.get(csv_col.strip())
-        if key:
-            normalized[key] = value.strip() if isinstance(value, str) else value
+def _normalize_item(raw: dict) -> Optional[dict]:
+    """raw item → 내부 필드로 변환. bid_count=0이면 None 반환."""
 
-    domain = normalized.get("domain", "").lower().strip()
-    if not domain or "." not in domain:
+    # 도메인명 추출
+    domain = ""
+    for key in ("domainName", "DomainName", "Domain", "domain", "name"):
+        v = raw.get(key, "")
+        if v and "." in str(v):
+            domain = str(v).lower().strip()
+            break
+    if not domain:
         return None
 
-    # 입찰 수 파싱
+    # 입찰 수
     bid_count = 0
-    try:
-        bid_count = int(normalized.get("bid_count", 0) or 0)
-    except (ValueError, TypeError):
-        pass
+    for key in ("numberOfBids", "NumberOfBids", "BidCount", "Bids", "bids", "bid_count"):
+        v = raw.get(key)
+        if v is not None:
+            try:
+                bid_count = int(v)
+            except (ValueError, TypeError):
+                pass
+            if bid_count > 0:
+                break
 
     if bid_count == 0:
-        return None  # bids 없는 도메인 제외
+        return None
 
-    # 가격 파싱
+    # 가격
     price_usd = 0
-    try:
-        price_str = str(normalized.get("price_usd", "0") or "0")
-        price_usd = int(float(price_str.replace("$", "").replace(",", "").strip() or "0"))
-    except (ValueError, TypeError):
-        pass
-
-    # 종료일 파싱
-    end_time_str = normalized.get("end_time", "")
-    sold_at: date = datetime.now(timezone.utc).date()
-    if end_time_str:
-        for fmt in ("%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%dT%H:%M:%SZ", "%Y-%m-%d", "%m/%d/%Y"):
-            try:
-                sold_at = datetime.strptime(end_time_str, fmt).date()
+    for key in ("price", "Price", "ClosePrice", "SalePrice", "CurrentBid", "currentBid"):
+        v = raw.get(key)
+        if v is not None:
+            price_usd = _parse_price(v)
+            if price_usd > 0:
                 break
-            except ValueError:
-                continue
+
+    # 종료일
+    end_time_str = ""
+    for key in ("auctionEndTime", "EndTime", "CloseDate", "AuctionEndDate", "endTime"):
+        v = raw.get(key)
+        if v:
+            end_time_str = str(v)
+            break
+
+    sold_at = _parse_date(end_time_str) if end_time_str else datetime.now(timezone.utc).date()
 
     # TLD 분리
     parts = domain.rsplit(".", 1)
     name = parts[0]
-    tld  = parts[1] if len(parts) == 2 else ""
+    tld = parts[1] if len(parts) == 2 else ""
 
     return {
         "domain":    domain,
-        "name":      name,
+        "name":      domain,  # DB의 name 컬럼에 전체 도메인명 저장 (기존 관례)
         "tld":       tld,
         "price_usd": price_usd,
         "bid_count": bid_count,
         "sold_at":   sold_at,
-        # 보너스 SEO 지수 (있으면)
-        "majestic_tf": normalized.get("majestic_tf"),
-        "majestic_cf": normalized.get("majestic_cf"),
     }
 
 
-def fetch_closed_auctions(max_files: int = 3) -> list[dict]:
+def fetch_closed_auctions(max_files: int = 3) -> List[dict]:
     """
-    GoDaddy 인벤토리 CSV에서 bids > 0 도메인 목록 반환.
+    GoDaddy 인벤토리에서 bids > 0 도메인 목록 반환.
 
     max_files: 다운로드할 최대 파일 수 (기본 3개)
     """
-    urls = _get_csv_urls()[:max_files]
+    urls = _get_file_urls(max_files)
     if not urls:
         logger.error("GoDaddy: 다운로드 URL 없음")
         return []
 
     results = []
     for url in urls:
-        rows = _download_csv(url)
+        items = _download_and_parse(url)
         before = len(results)
-        for row in rows:
-            item = _normalize_row(row)
-            if item:
-                results.append(item)
-        logger.info(f"  → bids>0 수집: {len(results) - before}건 / 전체 {len(rows)}건")
+        for item in items:
+            normalized = _normalize_item(item)
+            if normalized:
+                results.append(normalized)
+        logger.info(f"  -> bids>0 수집: {len(results) - before}건 / 전체 {len(items)}건")
         time.sleep(1)
 
     logger.info(f"GoDaddy 총 수집: {len(results)}건 (bids > 0)")
