@@ -93,6 +93,18 @@ def upsert_active_auction(
             raise
 
 
+def delete_active_auction(domain: str) -> None:
+    """낙찰 완료된 도메인을 active_auctions에서 삭제."""
+    url, key = _get_config()
+    endpoint = f"{url}/rest/v1/active_auctions?domain=eq.{domain}"
+    resp = requests.delete(
+        endpoint,
+        headers=_headers(key),
+        timeout=15,
+    )
+    resp.raise_for_status()
+
+
 def upsert_sold_domain(
     domain_name: str,
     tld: str,

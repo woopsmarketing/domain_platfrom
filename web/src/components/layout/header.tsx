@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 
 const navItems = [
   { href: "/", label: "도메인 분석" },
+  { href: "/auctions", label: "실시간 경매" },
   { href: "/market-history", label: "낙찰 이력" },
   { href: "/tools", label: "분석 도구" },
   { href: "/blog", label: "블로그" },

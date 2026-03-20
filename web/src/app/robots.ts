@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/domain/", "/market-history", "/tools", "/blog/"],
+        allow: ["/", "/domain/", "/auctions", "/market-history", "/tools", "/blog/"],
         disallow: [
           "/api/",           // API 엔드포인트
           "/_next/",         // Next.js 내부 빌드 파일
@@ -14,12 +14,12 @@ export default function robots(): MetadataRoute.Robots {
       },
       {
         userAgent: "Googlebot",
-        allow: ["/", "/domain/", "/market-history", "/tools", "/blog/"],
+        allow: ["/", "/domain/", "/auctions", "/market-history", "/tools", "/blog/"],
         disallow: ["/api/", "/_next/"],
       },
       {
         userAgent: "Yeti",
-        allow: ["/", "/domain/", "/market-history", "/tools", "/blog/"],
+        allow: ["/", "/domain/", "/auctions", "/market-history", "/tools", "/blog/"],
         disallow: ["/api/", "/_next/"],
       },
     ],

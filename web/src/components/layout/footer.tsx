@@ -31,6 +31,9 @@ export function Footer() {
                 <Link href="/" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
                   도메인 분석
                 </Link>
+                <Link href="/auctions" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                  실시간 경매
+                </Link>
                 <Link href="/market-history" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
                   낙찰 이력
                 </Link>
