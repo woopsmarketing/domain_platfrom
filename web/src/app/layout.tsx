@@ -47,6 +47,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" suppressHydrationWarning>
+      <head>
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-N255DR94BE" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-N255DR94BE');`,
+          }}
+        />
+      </head>
       <body className={`${inter.className} antialiased`}>
         <script
           type="application/ld+json"
