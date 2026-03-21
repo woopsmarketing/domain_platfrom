@@ -105,9 +105,9 @@ def fetch_active_auctions(headless: bool = True) -> List[dict]:
     """
     Namecheap 경매 도메인 수집.
 
-    1단계: timeLeft 오름차순 (곧 끝나는 순)으로 페이지 순회
-    2단계: 24시간 넘으면 중단
-    3단계: 그 중 bids >= MIN_BIDS만 반환
+    1단계: bidCount 내림차순 (입찰 많은 순)으로 페이지 순회
+    2단계: bids < MIN_BIDS면 중단
+    3단계: 그 중 24시간 이내 종료 도메인만 반환
 
     반환 형식:
         [{domain, name, tld, current_price, bid_count, end_time_raw, auction_id, source}, ...]
@@ -120,36 +120,36 @@ def fetch_active_auctions(headless: bool = True) -> List[dict]:
     total_scanned = 0
 
     while page <= max_pages:
-        # timeLeft 오름차순: 곧 끝나는 도메인부터 조회
-        items, total = _fetch_page(page, sort_col="timeLeft", sort_dir="asc")
+        # bidCount 내림차순: 입찰 많은 순으로 조회
+        items, total = _fetch_page(page, sort_col="bidCount", sort_dir="desc")
         if not items:
             break
 
         if page == 1:
-            logger.info("Namecheap 전체 경매: %d건 → %dh 이내 도메인 수집 중",
-                        total, MAX_HOURS_LEFT)
+            logger.info("Namecheap 전체 경매: %d건 → bids>=%d 필터 적용 중",
+                        total, MIN_BIDS)
 
-        passed_deadline = False
+        all_below_min = False
         for item in items:
             total_scanned += 1
-            end_date = item.get("endDate", "")
+            bid_count = int(item.get("bidCount", 0) or 0)
 
-            # 24시간 넘으면 이후는 전부 더 먼 미래 → 중단
-            if not _is_within_deadline(end_date):
-                passed_deadline = True
+            # bidCount DESC이므로, MIN_BIDS 미만이면 이후 전부 불필요
+            if bid_count < MIN_BIDS:
+                all_below_min = True
                 break
 
-            bid_count = int(item.get("bidCount", 0) or 0)
-            if bid_count < MIN_BIDS:
+            end_date = item.get("endDate", "")
+            if not _is_within_deadline(end_date):
                 continue
 
             parsed = _parse_item(item)
             if parsed:
                 all_results.append(parsed)
 
-        if passed_deadline:
-            logger.info("Namecheap: 24h 경계 도달 → 수집 종료 (page %d, %d건 스캔)",
-                        page, total_scanned)
+        if all_below_min:
+            logger.info("Namecheap: bids < %d 도달 → 수집 종료 (page %d, %d건 스캔)",
+                        MIN_BIDS, page, total_scanned)
             break
 
         page += 1

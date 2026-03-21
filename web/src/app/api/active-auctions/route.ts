@@ -146,21 +146,23 @@ export async function GET(request: NextRequest) {
     let page = 1;
 
     while (page <= MAX_PAGES) {
-      const { items } = await fetchPage(page, "timeLeft", "asc");
+      // bidCount 내림차순: 입찰 많은 순으로 가져옴
+      const { items } = await fetchPage(page, "bidCount", "desc");
       if (!items || items.length === 0) break;
 
-      let passedDeadline = false;
+      let allBelowMin = false;
 
       for (const item of items) {
-        const endDate = (item.endDate as string) ?? "";
+        const bidCount = Number(item.bidCount ?? 0);
 
-        if (!isWithinDeadline(endDate)) {
-          passedDeadline = true;
+        // bidCount DESC이므로, MIN_BIDS 미만이면 이후 전부 불필요
+        if (bidCount < MIN_BIDS) {
+          allBelowMin = true;
           break;
         }
 
-        const bidCount = Number(item.bidCount ?? 0);
-        if (bidCount < MIN_BIDS) continue;
+        const endDate = (item.endDate as string) ?? "";
+        if (!isWithinDeadline(endDate)) continue;
 
         const product = item.product as Record<string, string> | null;
         const domain = (product?.name ?? "").toLowerCase().trim();
@@ -178,7 +180,7 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      if (passedDeadline) break;
+      if (allBelowMin) break;
       page++;
     }
 
