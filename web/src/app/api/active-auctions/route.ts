@@ -67,11 +67,78 @@ function isWithinDeadline(endDateStr: string): boolean {
   return diffHours > 0 && diffHours <= MAX_HOURS;
 }
 
+// ---------------------------------------------------------------------------
+// 서버 사이드 낙찰 감지:
+// active_auctions(이전 스냅샷) vs 현재 Namecheap 데이터 비교
+// → 사라진 도메인 = 낙찰 → sold_auctions에 저장
+// → active_auctions를 현재 데이터로 갱신
+// ---------------------------------------------------------------------------
+async function detectAndSaveSold(currentItems: AuctionItem[]) {
+  try {
+    const client = createServiceClient();
+
+    // 1. active_auctions에서 이전 스냅샷 가져오기
+    const { data: prevData } = await client
+      .from("active_auctions")
+      .select("domain, tld, current_price, bid_count");
+
+    const prevMap = new Map<string, { domain: string; tld: string; current_price: number; bid_count: number | null }>();
+    for (const row of prevData ?? []) {
+      prevMap.set(row.domain, row);
+    }
+
+    // 2. 현재 목록에 없는 도메인 = 낙찰
+    const currentDomains = new Set(currentItems.map((i) => i.domain));
+    const soldItems = [];
+    for (const [domain, data] of prevMap) {
+      if (!currentDomains.has(domain)) {
+        soldItems.push(data);
+      }
+    }
+
+    // 3. 낙찰된 도메인 sold_auctions에 저장
+    if (soldItems.length > 0) {
+      const rows = soldItems.map((item) => ({
+        domain: item.domain,
+        tld: item.tld,
+        price_usd: item.current_price,
+        bid_count: item.bid_count,
+        sold_at: new Date().toISOString(),
+        platform: "namecheap",
+      }));
+
+      await client.from("sold_auctions").insert(rows);
+    }
+
+    // 4. active_auctions를 현재 데이터로 갱신 (전체 교체)
+    // 기존 데이터 삭제
+    await client.from("active_auctions").delete().neq("domain", "");
+
+    // 현재 데이터 삽입
+    if (currentItems.length > 0) {
+      const rows = currentItems.map((item) => ({
+        domain: item.domain,
+        tld: item.tld,
+        current_price: item.current_price,
+        bid_count: item.bid_count,
+        end_time_raw: item.end_time_raw,
+        source: "namecheap",
+      }));
+
+      await client.from("active_auctions").upsert(rows, { onConflict: "domain" });
+    }
+  } catch (err) {
+    console.error("detectAndSaveSold error:", err);
+  }
+}
+
 /**
  * GET /api/active-auctions
  *
- * Namecheap GraphQL API를 실시간 호출하여
- * 24시간 이내 종료 + bids >= 2 경매 도메인을 반환합니다.
+ * 1. Namecheap GraphQL 실시간 호출 (24h 이내 + bids >= 2)
+ * 2. active_auctions 테이블과 비교 → 사라진 도메인 = 낙찰 → sold_auctions 저장
+ * 3. active_auctions를 현재 데이터로 갱신
+ * 4. 결과 반환
  */
 export async function GET(request: NextRequest) {
   try {
@@ -79,7 +146,7 @@ export async function GET(request: NextRequest) {
     let page = 1;
 
     while (page <= MAX_PAGES) {
-      const { items, total } = await fetchPage(page, "timeLeft", "asc");
+      const { items } = await fetchPage(page, "timeLeft", "asc");
       if (!items || items.length === 0) break;
 
       let passedDeadline = false;
@@ -118,6 +185,9 @@ export async function GET(request: NextRequest) {
     // bid_count 내림차순 정렬
     results.sort((a, b) => b.bid_count - a.bid_count);
 
+    // 서버 사이드 낙찰 감지 (비동기 — 응답 지연 없음)
+    detectAndSaveSold(results).catch(() => {});
+
     return NextResponse.json({
       items: results,
       updated_at: new Date().toISOString(),
@@ -125,63 +195,5 @@ export async function GET(request: NextRequest) {
   } catch (err) {
     console.error("active-auctions error:", err);
     return NextResponse.json({ items: [], updated_at: null });
-  }
-}
-
-/**
- * POST /api/active-auctions
- *
- * 낙찰 감지: 클라이언트가 이전 목록에서 사라진 도메인을 보내면
- * sold_auctions 테이블에 저장합니다.
- */
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const sold: { domain: string; tld: string; current_price: number; bid_count: number | null; end_time_raw: string | null }[] =
-      body.sold ?? [];
-
-    if (sold.length === 0) {
-      return NextResponse.json({ saved: 0 });
-    }
-
-    const client = createServiceClient();
-    let savedCount = 0;
-
-    for (const item of sold) {
-      // 1. domains 테이블에 upsert
-      const { data: domainRow } = await client
-        .from("domains")
-        .upsert(
-          {
-            name: item.domain,
-            tld: item.tld,
-            status: "sold",
-            source: "namecheap",
-          },
-          { onConflict: "name" }
-        )
-        .select("id")
-        .single();
-
-      if (!domainRow) continue;
-
-      // 2. sales_history에 저장
-      await client.from("sales_history").upsert(
-        {
-          domain_id: domainRow.id,
-          sold_at: new Date().toISOString().split("T")[0],
-          price_usd: item.current_price,
-          platform: "Namecheap",
-        },
-        { onConflict: "domain_id,sold_at,platform" }
-      );
-
-      savedCount++;
-    }
-
-    return NextResponse.json({ saved: savedCount });
-  } catch (err) {
-    console.error("active-auctions POST error:", err);
-    return NextResponse.json({ saved: 0 }, { status: 500 });
   }
 }
