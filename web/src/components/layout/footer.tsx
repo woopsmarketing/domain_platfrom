@@ -40,6 +40,12 @@ export function Footer() {
                 <Link href="/tools" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
                   분석 도구
                 </Link>
+                <Link href="/tools/domain-availability" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                  도메인 가용성 확인
+                </Link>
+                <Link href="/tools/domain-generator" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                  도메인 이름 생성기
+                </Link>
               </nav>
             </div>
             <div className="flex flex-col gap-2.5">

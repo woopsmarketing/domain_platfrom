@@ -8,6 +8,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/auctions`, lastModified: new Date(), changeFrequency: "always", priority: 0.9 },
     { url: `${base}/market-history`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
     { url: `${base}/tools`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
+    { url: `${base}/tools/domain-availability`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
+    { url: `${base}/tools/domain-generator`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/blog`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/blog/what-is-da`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/blog/how-to-choose-domain`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
