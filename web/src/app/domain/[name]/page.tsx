@@ -26,23 +26,15 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   return {
     title: `${name} 도메인 분석 — DA, DR, Whois, 거래 이력`,
     description: `${name} 도메인의 DA, DR, Trust Flow, Whois 정보, 거래 이력을 무료로 확인하세요. 도메인 품질 검사 및 SEO 지수 분석.`,
-    keywords: [
-      `${name} 도메인 분석`,
-      `${name} DA`,
-      `${name} Whois`,
-      "도메인 품질 검사",
-      "무료 도메인 지수",
-    ],
+    robots: {
+      index: false,
+      follow: false,
+    },
     openGraph: {
       title: ogTitle,
       description: ogDescription,
       type: "website",
       siteName: "도메인체커",
-    },
-    twitter: {
-      card: "summary_large_image",
-      title: ogTitle,
-      description: ogDescription,
     },
   };
 }

@@ -5,22 +5,12 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/domain/", "/auctions", "/market-history", "/tools", "/blog/"],
+        allow: ["/", "/auctions", "/market-history", "/tools", "/blog/"],
         disallow: [
-          "/api/",           // API 엔드포인트
-          "/_next/",         // Next.js 내부 빌드 파일
-          "/api/submissions/", // 브라우저 확장 더미 라우트
+          "/domain/",          // 도메인 분석 페이지 색인 차단
+          "/api/",             // API 엔드포인트
+          "/_next/",           // Next.js 내부 빌드 파일
         ],
-      },
-      {
-        userAgent: "Googlebot",
-        allow: ["/", "/domain/", "/auctions", "/market-history", "/tools", "/blog/"],
-        disallow: ["/api/", "/_next/"],
-      },
-      {
-        userAgent: "Yeti",
-        allow: ["/", "/domain/", "/auctions", "/market-history", "/tools", "/blog/"],
-        disallow: ["/api/", "/_next/"],
       },
     ],
     sitemap: "https://domainchecker.co.kr/sitemap.xml",
