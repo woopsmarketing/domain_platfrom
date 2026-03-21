@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Flame, TrendingUp, RefreshCw } from "lucide-react";
+import { Flame, AlertTriangle, RefreshCw } from "lucide-react";
 import { AuctionGrid } from "./auction-grid";
 
 interface ActiveAuction {
@@ -41,7 +41,12 @@ export function AuctionPageClient() {
     return () => clearInterval(timer);
   }, [fetchAuctions]);
 
-  const totalBids = auctions.reduce((sum, a) => sum + (a.bid_count || 0), 0);
+  const urgentCount = auctions.filter((a) => {
+    if (!a.end_time_raw) return false;
+    const end = new Date(a.end_time_raw).getTime();
+    if (isNaN(end)) return false;
+    return (end - Date.now()) > 0 && (end - Date.now()) <= 10 * 60 * 1000;
+  }).length;
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
@@ -71,14 +76,14 @@ export function AuctionPageClient() {
             <span className="text-sm font-normal text-muted-foreground ml-1">건</span>
           </p>
         </div>
-        <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-            <TrendingUp className="h-3.5 w-3.5" />
-            총 입찰
+        <div className={`rounded-xl border p-4 ${urgentCount > 0 ? "border-red-500/30 bg-red-500/5" : "border-border/60 bg-muted/30"}`}>
+          <div className={`flex items-center gap-2 text-sm mb-1 ${urgentCount > 0 ? "text-red-500" : "text-muted-foreground"}`}>
+            <AlertTriangle className="h-3.5 w-3.5" />
+            종료 임박
           </div>
-          <p className="text-2xl font-bold">
-            {totalBids.toLocaleString()}
-            <span className="text-sm font-normal text-muted-foreground ml-1">건</span>
+          <p className={`text-2xl font-bold ${urgentCount > 0 ? "text-red-500" : ""}`}>
+            {urgentCount}
+            <span className={`text-sm font-normal ml-1 ${urgentCount > 0 ? "text-red-400" : "text-muted-foreground"}`}>건</span>
           </p>
         </div>
       </div>
