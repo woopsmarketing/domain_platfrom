@@ -18,7 +18,7 @@ const HEADERS = {
 const MIN_BIDS = 2;
 const MAX_HOURS = 24;
 const PAGE_SIZE = 100;
-const MAX_PAGES = 20;
+const MAX_PAGES = 50;
 
 interface AuctionItem {
   domain: string;

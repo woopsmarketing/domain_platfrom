@@ -116,7 +116,7 @@ def fetch_active_auctions(headless: bool = True) -> List[dict]:
 
     all_results = []  # type: List[dict]
     page = 1
-    max_pages = 20  # 안전 장치: 최대 20페이지 (2000건)
+    max_pages = 50  # 안전 장치: 최대 50페이지 (5000건)
     total_scanned = 0
 
     while page <= max_pages:
