@@ -3,6 +3,9 @@
 .env.local
 .env.*.local
 
+# Data files
+*.csv
+
 # Dependencies
 node_modules/
 __pycache__/

@@ -79,9 +79,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## 사이트 구조
 
 ```
-/                    → 검색창 히어로 (킬러 기능: 도메인 입력 → 즉시 분석)
-/market-history      → 낙찰 이력 목록 (GoDaddy, Namecheap 크롤링 데이터)
-/domain/[name]       → 도메인 상세 분석 (Whois/SEO/거래이력/Wayback 4섹션)
+/                         → 검색창 히어로 + 인기 경매 섹션 + SaaS 랜딩 8섹션 + FAQ JSON-LD
+/domain/[name]            → 도메인 상세 분석 (SEO 지수/Whois/거래이력/Wayback 4섹션)
+/market-history           → 낙찰 이력 목록 (GoDaddy, Namecheap 크롤링 데이터)
+/auctions                 → 실시간 경매 전용 페이지 (Namecheap GraphQL 직접 호출)
+/tools                    → 벌크 분석 / 도메인 비교 / TLD 통계 탭 통합
+/blog                     → 블로그 목록
+/blog/what-is-da          → SEO 콘텐츠 1편
+/blog/how-to-choose-domain → SEO 콘텐츠 2편
+/blog/domain-auction-guide → SEO 콘텐츠 3편
 ```
 
 ---
@@ -90,7 +96,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Frontend
 ```
-Next.js 14 (App Router) + TypeScript + Tailwind CSS
+Next.js 16 (App Router) + TypeScript + Tailwind CSS v4
 shadcn/ui       — UI 컴포넌트
 TanStack Table  — 대용량 테이블
 ```
@@ -126,13 +132,15 @@ DB에 없으면 호출 → wayback_summary에 저장
 
 ---
 
-## DB 스키마 (4개 테이블)
+## DB 스키마 (6개 테이블)
 
 ```sql
 domains           -- name, tld, status(sold/expired/active), source
 domain_metrics    -- SEO 지수, 7일 캐시 (updated_at 기준)
 sales_history     -- 낙찰 이력 (sold_at, price_usd, platform)
 wayback_summary   -- Wayback 스냅샷 요약
+active_auctions   -- 이전 경매 스냅샷 저장 (서버 사이드 diff 비교용)
+sold_auctions     -- 낙찰 확정 도메인 저장 (⚠️ migration.sql에 DDL 추가 필요)
 ```
 
 **검색 시 자동 생성**: DB에 없는 도메인을 검색하면 `domains` 테이블에 자동 생성 (status=active, source=other)
@@ -149,8 +157,17 @@ wayback_summary   -- Wayback 스냅샷 요약
   └─ Whois → 실시간 호출
   └─ 결과 렌더링
 
-[크롤러] Python (매일)
+[크롤러] Python CSV (수동/스케줄)
   └─ GoDaddy/Namecheap CSV → domains + sales_history upsert
+
+[VPS 폴링] Windows VPS PowerShell — 30초마다 curl
+  └─ GET /api/active-auctions → Namecheap GraphQL 호출
+  └─ active_auctions 스냅샷과 서버 사이드 diff → 낙찰 감지
+  └─ 낙찰 확정 → sold_auctions + sales_history upsert
+
+[경매 페이지] /auctions
+  └─ 클라이언트 30초마다 GET /api/active-auctions → 화면 갱신
+  └─ 타이머 0초 도달 → "확인 중..." → 30초 후 연장/종료 판단
 ```
 
 ---

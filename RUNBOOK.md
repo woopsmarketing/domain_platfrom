@@ -1,6 +1,6 @@
 # RUNBOOK.md
 
-> 마지막 업데이트: 2026-03-15
+> 마지막 업데이트: 2026-03-21 (경매 시스템 전환 반영)
 
 ---
 
@@ -16,8 +16,10 @@
 NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
-RAPIDAPI_KEY=
-WHOIS_API_KEY=
+RAPIDAPI_KEY=                    # ✅ 구독 완료
+WHOIS_API_KEY=                   # 선택 — 없으면 Whois 섹션 null 반환
+# DATABASE_URL                   # 코드 미사용 — 제거 권장
+# REDIS_URL / REDIS_TOKEN        # 코드 미사용 — 제거 권장
 ```
 
 ---
@@ -31,16 +33,36 @@ cd web && pnpm install && pnpm dev
 
 | URL | 설명 |
 |-----|------|
-| `/` | 메인 — 검색창 + 최근 낙찰 도메인 목록 |
-| `/domain/example.com` | 도메인 상세 분석 (Whois/SEO/거래이력/Wayback) |
-| `/market-history` | 낙찰 이력 + (추후) 인기 경매 섹션 |
+| `/` | 메인 — 검색창 + 인기 경매 섹션 + 낙찰 하이라이트 + SaaS 랜딩 |
+| `/domain/example.com` | 도메인 상세 분석 (SEO 지수/Whois/거래이력/Wayback) |
+| `/market-history` | 낙찰 이력 목록 |
+| `/auctions` | 실시간 경매 전용 페이지 (Namecheap GraphQL) |
+| `/tools` | 벌크 분석 / 도메인 비교 / TLD 통계 |
+| `/blog` | 블로그 목록 |
+| `/blog/what-is-da` | SEO 콘텐츠 1편 |
+| `/blog/how-to-choose-domain` | SEO 콘텐츠 2편 |
+| `/blog/domain-auction-guide` | SEO 콘텐츠 3편 |
 
 ---
 
 ## DB 세팅 (최초 1회)
 
 Supabase SQL Editor에서 `web/supabase/migration.sql` 실행.
-5개 테이블: `domains`, `domain_metrics`, `sales_history`, `wayback_summary`, `active_auctions`
+6개 테이블: `domains`, `domain_metrics`, `sales_history`, `wayback_summary`, `active_auctions`, `sold_auctions`
+
+> ⚠️ **P0**: `sold_auctions` DDL이 migration.sql에 아직 없음. 아래 SQL을 Supabase SQL Editor에서 별도 실행해야 함.
+> ```sql
+> -- sold_auctions: 낙찰 확정 도메인 저장
+> CREATE TABLE IF NOT EXISTS sold_auctions (
+>   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+>   domain text NOT NULL,
+>   sold_at timestamptz NOT NULL DEFAULT now(),
+>   price_usd numeric,
+>   platform text,
+>   created_at timestamptz NOT NULL DEFAULT now()
+> );
+> ```
+> 실행 후 migration.sql 파일에도 추가할 것.
 
 ---
 
@@ -49,7 +71,6 @@ Supabase SQL Editor에서 `web/supabase/migration.sql` 실행.
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r crawler/requirements.txt
-playwright install chromium   # 최초 1회
 ```
 
 ---
@@ -68,25 +89,45 @@ python3 -m crawler.run --mode csv --files 1      # 빠른 테스트
 ## 크롤러 — Live 모드 (활성 경매 1회 수집)
 
 ```bash
-python3 -m crawler.run --mode live               # 양쪽 모두
-python3 -m crawler.run --mode live --source godaddy
+python3 -m crawler.run --mode live               # Namecheap GraphQL 직접 호출
 python3 -m crawler.run --mode live --source namecheap
 ```
 
-결과: `active_auctions` 테이블에 현재 진행 중인 경매 저장
+결과: Namecheap GraphQL API에서 실시간 경매 목록 조회
 
 ---
 
-## Watcher — 상시 감시 (Railway 배포용)
+## VPS 폴링 — 상시 낙찰 감지 (GitHub Actions 대체)
+
+Windows VPS PowerShell에서 30초마다 실행:
+
+```powershell
+while ($true) {
+    Invoke-WebRequest -Uri "https://domainchecker.co.kr/api/active-auctions" -UseBasicParsing | Out-Null
+    Start-Sleep -Seconds 30
+}
+```
+
+**동작 원리**: GET `/api/active-auctions` 호출 시 서버 사이드에서 자동으로:
+1. Namecheap GraphQL API 실시간 호출
+2. `active_auctions` 스냅샷과 diff 비교
+3. 사라진 도메인 = 낙찰 확정 → `sold_auctions` + `sales_history` upsert
+4. 스냅샷 갱신
+
+> GitHub Actions `.github/workflows/crawl-auctions.yml` 은 삭제됨.
+
+---
+
+## Watcher — 상시 감시 (Railway 배포용, 선택)
 
 ```bash
-python3 -m crawler.watcher                        # 기본값 (15초 폴링, 10분 스냅샷)
-python3 -m crawler.watcher --interval 10          # 10초 폴링
-python3 -m crawler.watcher --snapshot 300         # 5분마다 전체 갱신
-python3 -m crawler.watcher --hot-threshold 3      # 입찰 3개 이상 = 핫
+python3 -m crawler.watcher                        # 기본값 (2분 폴링)
 ```
 
 **Railway 배포 시 Start command**: `python3 -m crawler.watcher`
+**환경변수**: `NEXT_PUBLIC_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
+
+> VPS 폴링이 활성 상태이면 Railway Watcher는 중복 배포 불필요.
 
 ---
 

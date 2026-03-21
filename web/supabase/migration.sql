@@ -81,6 +81,24 @@ CREATE INDEX IF NOT EXISTS idx_active_crawled    ON active_auctions(crawled_at D
 CREATE INDEX IF NOT EXISTS idx_active_bid_count  ON active_auctions(bid_count DESC NULLS LAST);
 
 -- =============================================
+-- 6. sold_auctions  (낙찰 확정 도메인)
+-- =============================================
+CREATE TABLE IF NOT EXISTS sold_auctions (
+  id            UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  domain        TEXT NOT NULL,
+  tld           TEXT NOT NULL DEFAULT '',
+  price_usd     INTEGER NOT NULL DEFAULT 0,
+  bid_count     INTEGER,
+  sold_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  platform      TEXT NOT NULL DEFAULT 'namecheap',
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_sold_auctions_domain  ON sold_auctions(domain);
+CREATE INDEX IF NOT EXISTS idx_sold_auctions_sold_at ON sold_auctions(sold_at DESC);
+CREATE INDEX IF NOT EXISTS idx_sold_auctions_price   ON sold_auctions(price_usd DESC);
+
+-- =============================================
 -- RPC: 검색 카운트 증가
 -- =============================================
 CREATE OR REPLACE FUNCTION increment_search_count(domain_id_input UUID)
