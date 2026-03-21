@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Globe, Gavel, Search, BookOpen, ChevronDown, ArrowRight } from "lucide-react";
+import { Globe, Gavel, Search, BookOpen, ChevronDown, ArrowRight, CircleCheck, ShoppingBag, Coffee, Code, GraduationCap, Heart, Building2 } from "lucide-react";
 import { DomainGeneratorClient } from "@/components/tools/domain-generator-client";
 
 export const metadata: Metadata = {
@@ -138,6 +138,134 @@ export default function DomainGeneratorPage() {
                 <p className="mt-1 text-sm text-muted-foreground">
                   {item.desc}
                 </p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 스타일별 가이드 */}
+        <section className="mt-16">
+          <h2 className="text-2xl font-bold tracking-tight">어떤 스타일을 선택해야 할까?</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            목적에 맞는 스타일을 선택하면 더 효과적인 도메인 이름을 찾을 수 있습니다.
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-3">
+            {[
+              {
+                badge: "SEO",
+                badgeColor: "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400",
+                title: "SEO 스타일",
+                when: "검색엔진에서 잘 노출되고 싶을 때",
+                desc: "키워드가 포함되어 직관적이며 검색 유입에 유리합니다.",
+                examples: ["coffeehub.com", "bestcoffee.io"],
+                recommend: "블로그, 정보성 사이트, 니치 비즈니스",
+              },
+              {
+                badge: "브랜드",
+                badgeColor: "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400",
+                title: "브랜드 스타일",
+                when: "독특하고 기억에 남는 이름을 원할 때",
+                desc: "짧고 발음하기 쉬운 창작 이름으로 강한 브랜드를 만듭니다.",
+                examples: ["brewly.com", "kafex.io"],
+                recommend: "스타트업, 앱, SaaS 서비스",
+              },
+              {
+                badge: "유사성",
+                badgeColor: "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-400",
+                title: "유사성 스타일",
+                when: "성공한 브랜드에서 영감을 받고 싶을 때",
+                desc: "인기 도메인과 비슷하지만 고유한 이름으로 빠르게 포지셔닝합니다.",
+                examples: ["shopwave.com", "techiflow.io"],
+                recommend: "경쟁사 벤치마킹, 빠른 시장 진입",
+              },
+            ].map((item) => (
+              <div key={item.badge} className="rounded-lg border p-5">
+                <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-semibold ${item.badgeColor}`}>
+                  {item.badge}
+                </span>
+                <h3 className="mt-3 font-semibold">{item.title}</h3>
+                <p className="mt-1 text-xs text-primary font-medium">{item.when}</p>
+                <p className="mt-2 text-sm text-muted-foreground">{item.desc}</p>
+                <div className="mt-3">
+                  <p className="text-xs font-medium text-muted-foreground">예시</p>
+                  <div className="mt-1 flex flex-wrap gap-1">
+                    {item.examples.map((ex) => (
+                      <span key={ex} className="rounded bg-muted px-2 py-0.5 font-mono text-xs">{ex}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="mt-3 border-t pt-3">
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-medium">추천: </span>{item.recommend}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 네이밍 체크리스트 */}
+        <section className="mt-16">
+          <h2 className="text-2xl font-bold tracking-tight">도메인 이름 선택 체크리스트</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            도메인을 최종 결정하기 전에 아래 항목을 확인하세요.
+          </p>
+          <div className="mt-6 rounded-lg border">
+            <div className="grid divide-y sm:grid-cols-2 sm:divide-x sm:divide-y-0">
+              {[
+                { left: true, items: [
+                  "발음이 쉽고 기억하기 좋은가?",
+                  "10자 이내인가?",
+                  "하이픈이나 숫자가 없는가?",
+                  "브랜드 상표와 충돌하지 않는가?",
+                ] },
+                { left: false, items: [
+                  "SNS 핸들(아이디)도 사용 가능한가?",
+                  "모바일에서 타이핑하기 편한가?",
+                  "비즈니스 확장 시에도 적합한 이름인가?",
+                  ".com 확장자로 등록 가능한가?",
+                ] },
+              ].map((col, ci) => (
+                <ul key={ci} className="divide-y">
+                  {col.items.map((item) => (
+                    <li key={item} className="flex items-center gap-3 px-5 py-3.5 text-sm">
+                      <CircleCheck className="h-4 w-4 shrink-0 text-green-500" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* 업종별 추천 예시 */}
+        <section className="mt-16">
+          <h2 className="text-2xl font-bold tracking-tight">업종별 도메인 네이밍 예시</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            업종에 맞는 네이밍 패턴을 참고하여 아이디어를 얻어보세요.
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              { icon: ShoppingBag, category: "쇼핑몰", examples: ["shopmall", "stylehub", "trendmarket"] },
+              { icon: Coffee, category: "카페/식음", examples: ["brewspot", "cafenow", "eatflow"] },
+              { icon: Code, category: "IT/테크", examples: ["codelab", "devstack", "techbase"] },
+              { icon: GraduationCap, category: "교육", examples: ["learnhub", "edupro", "studyzone"] },
+              { icon: Heart, category: "건강/뷰티", examples: ["glowup", "fitzone", "wellnow"] },
+              { icon: Building2, category: "부동산", examples: ["homespot", "realtyhub", "livezone"] },
+            ].map((item) => (
+              <div key={item.category} className="rounded-lg border p-5">
+                <div className="flex items-center gap-2 mb-3">
+                  <item.icon className="h-4 w-4 text-primary" />
+                  <span className="font-semibold text-sm">{item.category}</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {item.examples.map((ex) => (
+                    <span key={ex} className="rounded bg-muted px-2 py-1 font-mono text-xs text-muted-foreground">
+                      {ex}.com
+                    </span>
+                  ))}
+                </div>
               </div>
             ))}
           </div>

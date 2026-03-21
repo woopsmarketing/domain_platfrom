@@ -6,7 +6,7 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "도메인체커",
     description: "도메인 DA, DR, TF, Wayback 히스토리를 무료로 분석하세요.",
     start_url: "/",
-    display: "standalone",
+    display: "browser",
     background_color: "#ffffff",
     theme_color: "#18181b",
     icons: [
