@@ -1,8 +1,17 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
-import { Trophy, Lock, ArrowDownWideNarrow, Clock, DollarSign } from "lucide-react";
+import {
+  Trophy,
+  ArrowDownWideNarrow,
+  Clock,
+  DollarSign,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 
 interface SoldDomain {
   id: string;
@@ -16,6 +25,8 @@ interface SoldDomain {
 
 type SortMode = "recent" | "price_desc" | "price_asc";
 
+const PER_PAGE = 50;
+
 function formatSoldDate(dateStr: string): string {
   try {
     const d = new Date(dateStr);
@@ -26,7 +37,7 @@ function formatSoldDate(dateStr: string): string {
 
     if (diffHours < 1) return "방금 전";
     if (diffHours < 24) return `${diffHours}시간 전`;
-    return d.toLocaleDateString("ko-KR", { month: "2-digit", day: "2-digit" });
+    return d.toLocaleDateString("ko-KR", { year: "numeric", month: "2-digit", day: "2-digit" });
   } catch {
     return "—";
   }
@@ -45,53 +56,41 @@ export function SoldAuctionsClient() {
   const [domains, setDomains] = useState<SoldDomain[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortMode, setSortMode] = useState<SortMode>("recent");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const resp = await fetch("/api/sold-domains");
-        const data = await resp.json();
-        setDomains(data.items ?? []);
-      } catch {
-        // ignore
-      } finally {
-        setLoading(false);
-      }
+  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
+
+  const fetchData = useCallback(async (p: number, sort: SortMode) => {
+    setLoading(true);
+    try {
+      const resp = await fetch(
+        `/api/sold-domains?page=${p}&per_page=${PER_PAGE}&sort=${sort}`
+      );
+      const data = await resp.json();
+      setDomains(data.items ?? []);
+      setTotal(data.total ?? 0);
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false);
     }
-    load();
   }, []);
 
-  const now = Date.now();
-  const oneDayMs = 24 * 60 * 60 * 1000;
+  useEffect(() => {
+    fetchData(page, sortMode);
+  }, [page, sortMode, fetchData]);
 
-  const { recent, locked } = useMemo(() => {
-    const r: SoldDomain[] = [];
-    const l: SoldDomain[] = [];
-    for (const d of domains) {
-      const soldTime = new Date(d.soldAt).getTime();
-      if (now - soldTime <= oneDayMs) {
-        r.push(d);
-      } else {
-        l.push(d);
-      }
-    }
-    return { recent: r, locked: l };
-  }, [domains, now]);
+  const handleSort = (mode: SortMode) => {
+    setSortMode(mode);
+    setPage(1); // 정렬 변경 시 1페이지로
+  };
 
-  const sorted = useMemo(() => {
-    const list = [...recent];
-    switch (sortMode) {
-      case "price_desc":
-        return list.sort((a, b) => b.soldPrice - a.soldPrice);
-      case "price_asc":
-        return list.sort((a, b) => a.soldPrice - b.soldPrice);
-      case "recent":
-      default:
-        return list.sort((a, b) => new Date(b.soldAt).getTime() - new Date(a.soldAt).getTime());
-    }
-  }, [recent, sortMode]);
-
-  const totalValue = recent.reduce((sum, d) => sum + d.soldPrice, 0);
+  const goToPage = (p: number) => {
+    const clamped = Math.max(1, Math.min(p, totalPages));
+    setPage(clamped);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const sortButtons: { mode: SortMode; label: string; icon: React.ReactNode }[] = [
     { mode: "recent", label: "최근순", icon: <Clock className="h-3.5 w-3.5" /> },
@@ -110,7 +109,7 @@ export function SoldAuctionsClient() {
           <h1 className="text-2xl font-bold sm:text-3xl">낙찰 이력</h1>
         </div>
         <p className="text-muted-foreground max-w-2xl">
-          최근 24시간 이내 낙찰된 도메인을 무료로 확인하세요.
+          경매에서 낙찰된 도메인의 거래 가격을 확인하세요.
         </p>
       </div>
 
@@ -119,19 +118,22 @@ export function SoldAuctionsClient() {
         <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
             <Trophy className="h-3.5 w-3.5" />
-            최근 24시간 낙찰
+            전체 낙찰 건수
           </div>
           <p className="text-2xl font-bold">
-            {recent.length}
+            {total.toLocaleString()}
             <span className="text-sm font-normal text-muted-foreground ml-1">건</span>
           </p>
         </div>
         <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
             <DollarSign className="h-3.5 w-3.5" />
-            총 낙찰액
+            현재 페이지
           </div>
-          <p className="text-2xl font-bold">{formatUSD(totalValue)}</p>
+          <p className="text-2xl font-bold">
+            {page}
+            <span className="text-sm font-normal text-muted-foreground ml-1">/ {totalPages}</span>
+          </p>
         </div>
       </div>
 
@@ -141,7 +143,7 @@ export function SoldAuctionsClient() {
         {sortButtons.map((btn) => (
           <button
             key={btn.mode}
-            onClick={() => setSortMode(btn.mode)}
+            onClick={() => handleSort(btn.mode)}
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-2.5 text-xs min-h-[44px] sm:py-1.5 sm:min-h-0 font-medium transition-colors ${
               sortMode === btn.mode
                 ? "bg-primary text-primary-foreground"
@@ -159,18 +161,19 @@ export function SoldAuctionsClient() {
         <div className="rounded-xl border border-border/60 p-16 text-center">
           <p className="text-muted-foreground">데이터를 불러오는 중...</p>
         </div>
-      ) : sorted.length > 0 ? (
+      ) : domains.length > 0 ? (
         <div className="overflow-x-auto rounded-xl border border-border/60">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border/60 bg-muted/40">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">도메인</th>
                 <th className="px-4 py-3 text-right font-medium text-muted-foreground">낙찰가</th>
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground">낙찰 시간</th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground hidden sm:table-cell">입찰수</th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">낙찰일</th>
               </tr>
             </thead>
             <tbody>
-              {sorted.map((d) => (
+              {domains.map((d) => (
                 <tr
                   key={d.id}
                   className="border-b border-border/40 last:border-0 transition-colors hover:bg-muted/30"
@@ -186,6 +189,9 @@ export function SoldAuctionsClient() {
                   <td className="px-4 py-3 text-right font-semibold tabular-nums">
                     {formatUSD(d.soldPrice)}
                   </td>
+                  <td className="px-4 py-3 text-right tabular-nums hidden sm:table-cell">
+                    {d.bidCount != null && d.bidCount > 0 ? `${d.bidCount}건` : "—"}
+                  </td>
                   <td className="px-4 py-3 text-right text-muted-foreground text-xs whitespace-nowrap">
                     {formatSoldDate(d.soldAt)}
                   </td>
@@ -197,29 +203,79 @@ export function SoldAuctionsClient() {
       ) : (
         <div className="rounded-xl border border-dashed border-border/60 p-16 text-center">
           <Trophy className="mx-auto h-8 w-8 text-muted-foreground/50 mb-3" />
-          <p className="text-muted-foreground">최근 24시간 이내 낙찰된 도메인이 없습니다.</p>
+          <p className="text-muted-foreground">낙찰된 도메인이 없습니다.</p>
         </div>
       )}
 
-      {/* Locked section */}
-      {locked.length > 0 && (
-        <div className="mt-8">
-          <div className="flex items-center gap-2 mb-4">
-            <Lock className="h-4 w-4 text-muted-foreground" />
-            <span className="text-sm font-medium text-muted-foreground">
-              이전 낙찰 이력 ({locked.length}건)
-            </span>
-          </div>
-          <div className="rounded-xl border border-border/60 bg-muted/20 p-8 text-center">
-            <Lock className="mx-auto h-10 w-10 text-muted-foreground/30 mb-3" />
-            <p className="font-medium text-muted-foreground">
-              24시간 이전 낙찰 이력은 프리미엄 기능입니다
-            </p>
-            <p className="text-sm text-muted-foreground/70 mt-1">
-              곧 구독 서비스로 제공될 예정입니다.
-            </p>
-          </div>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-6 flex items-center justify-center gap-1">
+          <button
+            onClick={() => goToPage(1)}
+            disabled={page === 1}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
+            aria-label="첫 페이지"
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => goToPage(page - 1)}
+            disabled={page === 1}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
+            aria-label="이전 페이지"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+
+          {/* 페이지 번호 */}
+          {(() => {
+            const pages: number[] = [];
+            const maxVisible = 5;
+            let start = Math.max(1, page - Math.floor(maxVisible / 2));
+            const end = Math.min(totalPages, start + maxVisible - 1);
+            start = Math.max(1, end - maxVisible + 1);
+
+            for (let i = start; i <= end; i++) pages.push(i);
+            return pages.map((p) => (
+              <button
+                key={p}
+                onClick={() => goToPage(p)}
+                className={`inline-flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium transition-colors ${
+                  p === page
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                {p}
+              </button>
+            ));
+          })()}
+
+          <button
+            onClick={() => goToPage(page + 1)}
+            disabled={page === totalPages}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
+            aria-label="다음 페이지"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => goToPage(totalPages)}
+            disabled={page === totalPages}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
+            aria-label="마지막 페이지"
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </button>
         </div>
+      )}
+
+      {/* 페이지 정보 */}
+      {total > 0 && (
+        <p className="mt-3 text-xs text-muted-foreground text-center">
+          전체 {total.toLocaleString()}건 중 {((page - 1) * PER_PAGE + 1).toLocaleString()}–
+          {Math.min(page * PER_PAGE, total).toLocaleString()}건 표시
+        </p>
       )}
     </div>
   );
