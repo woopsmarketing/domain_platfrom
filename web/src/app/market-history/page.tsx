@@ -14,6 +14,12 @@ export const metadata: Metadata = {
     "도메인 판매 이력",
     "도메인 거래 시세",
   ],
+  openGraph: {
+    title: "도메인 낙찰 이력 — 최근 경매 낙찰 데이터",
+    description: "경매에서 실제 낙찰된 도메인의 거래 가격과 입찰 수를 확인하세요.",
+    type: "website",
+    siteName: "도메인체커",
+  },
 };
 
 export default function MarketHistoryPage() {

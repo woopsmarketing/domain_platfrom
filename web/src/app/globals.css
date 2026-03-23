@@ -81,5 +81,28 @@
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-text-size-adjust: 100%;
+  }
+  /* iOS Safari input zoom 방지 — 16px 미만 input에서 자동 확대 발생 */
+  @media screen and (max-width: 767px) {
+    input[type="text"],
+    input[type="email"],
+    input[type="url"],
+    input[type="search"],
+    input[type="tel"],
+    input[type="number"],
+    input[type="password"],
+    select,
+    textarea {
+      font-size: 16px;
+    }
+  }
+  /* 터치 디바이스 탭 하이라이트 */
+  @media (pointer: coarse) {
+    button,
+    a,
+    [role="button"] {
+      -webkit-tap-highlight-color: transparent;
+    }
   }
 }

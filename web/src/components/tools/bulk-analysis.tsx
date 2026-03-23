@@ -74,49 +74,84 @@ export function BulkAnalysis() {
       </Button>
 
       {results.length > 0 && (
-        <div className="overflow-x-auto rounded-lg border">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b bg-muted/50">
-                <th className="px-4 py-3 text-left font-medium">도메인</th>
-                <th className="px-4 py-3 text-center font-medium">등급</th>
-                <th className="px-4 py-3 text-right font-medium">DA</th>
-                <th className="px-4 py-3 text-right font-medium">DR</th>
-                <th className="px-4 py-3 text-right font-medium">TF</th>
-                <th className="px-4 py-3 text-right font-medium">백링크</th>
-                <th className="px-4 py-3 text-right font-medium">트래픽</th>
-              </tr>
-            </thead>
-            <tbody>
-              {results.map((detail) => (
-                <tr key={detail.domain.name} className="border-b last:border-0">
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/domain/${detail.domain.name}`}
-                      className="text-primary underline-offset-4 hover:underline"
-                    >
-                      {detail.domain.name}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-center">{gradeCircle(detail)}</td>
-                  <td className="px-4 py-3 text-right">{detail.metrics?.mozDA ?? "-"}</td>
-                  <td className="px-4 py-3 text-right">{detail.metrics?.ahrefsDR ?? "-"}</td>
-                  <td className="px-4 py-3 text-right">{detail.metrics?.majesticTF ?? "-"}</td>
-                  <td className="px-4 py-3 text-right">
-                    {detail.metrics?.ahrefsBacklinks != null
-                      ? formatNumber(detail.metrics.ahrefsBacklinks)
-                      : "-"}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    {detail.metrics?.ahrefsTraffic != null
-                      ? formatNumber(detail.metrics.ahrefsTraffic)
-                      : "-"}
-                  </td>
+        <>
+          {/* 데스크탑 테이블 */}
+          <div className="hidden overflow-x-auto rounded-lg border sm:block">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/50">
+                  <th className="px-4 py-3 text-left font-medium">도메인</th>
+                  <th className="px-4 py-3 text-center font-medium">등급</th>
+                  <th className="px-4 py-3 text-right font-medium">DA</th>
+                  <th className="px-4 py-3 text-right font-medium">DR</th>
+                  <th className="px-4 py-3 text-right font-medium">TF</th>
+                  <th className="px-4 py-3 text-right font-medium">백링크</th>
+                  <th className="px-4 py-3 text-right font-medium">트래픽</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {results.map((detail) => (
+                  <tr key={detail.domain.name} className="border-b last:border-0">
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/domain/${detail.domain.name}`}
+                        className="text-primary underline-offset-4 hover:underline"
+                      >
+                        {detail.domain.name}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-center">{gradeCircle(detail)}</td>
+                    <td className="px-4 py-3 text-right">{detail.metrics?.mozDA ?? "-"}</td>
+                    <td className="px-4 py-3 text-right">{detail.metrics?.ahrefsDR ?? "-"}</td>
+                    <td className="px-4 py-3 text-right">{detail.metrics?.majesticTF ?? "-"}</td>
+                    <td className="px-4 py-3 text-right">
+                      {detail.metrics?.ahrefsBacklinks != null
+                        ? formatNumber(detail.metrics.ahrefsBacklinks)
+                        : "-"}
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      {detail.metrics?.ahrefsTraffic != null
+                        ? formatNumber(detail.metrics.ahrefsTraffic)
+                        : "-"}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* 모바일 카드 뷰 */}
+          <div className="space-y-3 sm:hidden">
+            {results.map((detail) => (
+              <Link
+                key={detail.domain.name}
+                href={`/domain/${detail.domain.name}`}
+                className="block rounded-xl border border-border/60 p-4 transition-colors hover:bg-muted/30"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-primary truncate mr-2">
+                    {detail.domain.name}
+                  </span>
+                  {gradeCircle(detail)}
+                </div>
+                <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <p className="text-xs text-muted-foreground">DA</p>
+                    <p className="text-sm font-semibold">{detail.metrics?.mozDA ?? "-"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">DR</p>
+                    <p className="text-sm font-semibold">{detail.metrics?.ahrefsDR ?? "-"}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">TF</p>
+                    <p className="text-sm font-semibold">{detail.metrics?.majesticTF ?? "-"}</p>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

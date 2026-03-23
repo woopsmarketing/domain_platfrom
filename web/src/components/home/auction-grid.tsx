@@ -111,7 +111,7 @@ function formatUSD(price: number): string {
 }
 
 export function AuctionGrid({ auctions }: { auctions: Auction[] }) {
-  const [sortMode, setSortMode] = useState<SortMode>("bids");
+  const [sortMode, setSortMode] = useState<SortMode>("time");
 
   // 종료된 경매를 즉시 제거하지 않음
   // API가 30초마다 갱신 → 진짜 종료된 건 다음 갱신에서 목록에서 사라짐
@@ -176,7 +176,7 @@ export function AuctionGrid({ auctions }: { auctions: Auction[] }) {
           <button
             key={btn.mode}
             onClick={() => setSortMode(btn.mode)}
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-2.5 text-xs min-h-[44px] sm:py-1.5 sm:min-h-0 font-medium transition-colors ${
               sortMode === btn.mode
                 ? "bg-primary text-primary-foreground"
                 : "bg-muted/60 text-muted-foreground hover:bg-muted"

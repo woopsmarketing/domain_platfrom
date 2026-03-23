@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/", "/auctions", "/market-history", "/tools", "/blog/"],
+        allow: ["/", "/auctions", "/market-history", "/tools", "/tools/domain-availability", "/tools/domain-generator", "/blog/"],
         disallow: [
           "/domain/",          // 도메인 분석 페이지 색인 차단
           "/api/",             // API 엔드포인트

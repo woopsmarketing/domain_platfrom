@@ -142,7 +142,7 @@ export function SoldAuctionsClient() {
           <button
             key={btn.mode}
             onClick={() => setSortMode(btn.mode)}
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-2.5 text-xs min-h-[44px] sm:py-1.5 sm:min-h-0 font-medium transition-colors ${
               sortMode === btn.mode
                 ? "bg-primary text-primary-foreground"
                 : "bg-muted/60 text-muted-foreground hover:bg-muted"

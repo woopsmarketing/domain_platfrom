@@ -221,7 +221,7 @@ export default async function HomePage() {
             <Badge variant="secondary" className="mb-4 rounded-full px-3 py-1 text-xs font-medium">
               온라인 비즈니스의 시작
             </Badge>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
               도메인은 단순한 주소가 아닙니다
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
@@ -275,7 +275,7 @@ export default async function HomePage() {
             <Badge variant="secondary" className="mb-4 rounded-full px-3 py-1 text-xs font-medium">
               도메인체커 핵심 기능
             </Badge>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
               도메인 분석, 이제 한 곳에서
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
@@ -323,17 +323,17 @@ export default async function HomePage() {
             ))}
           </div>
 
-          <div className="mt-14 grid grid-cols-3 divide-x divide-border/60 rounded-2xl border border-border/60 bg-card py-8">
+          <div className="mt-14 grid grid-cols-3 divide-x divide-border/60 rounded-2xl border border-border/60 bg-card py-6 sm:py-8">
             <div className="text-center">
-              <p className="text-3xl font-bold text-primary">3개</p>
+              <p className="text-2xl font-bold text-primary sm:text-3xl">3개</p>
               <p className="mt-1 text-sm text-muted-foreground">연동 SEO 툴</p>
             </div>
             <div className="text-center">
-              <p className="text-3xl font-bold text-primary">무료</p>
+              <p className="text-2xl font-bold text-primary sm:text-3xl">무료</p>
               <p className="mt-1 text-sm text-muted-foreground">완전 무료 서비스</p>
             </div>
             <div className="text-center">
-              <p className="text-3xl font-bold text-primary">즉시</p>
+              <p className="text-2xl font-bold text-primary sm:text-3xl">즉시</p>
               <p className="mt-1 text-sm text-muted-foreground">실시간 분석 결과</p>
             </div>
           </div>
@@ -349,7 +349,7 @@ export default async function HomePage() {
             <Badge variant="secondary" className="mb-4 rounded-full px-3 py-1 text-xs font-medium">
               간단한 사용법
             </Badge>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
               3단계로 도메인을 분석하세요
             </h2>
           </div>
@@ -399,7 +399,7 @@ export default async function HomePage() {
             <Badge variant="secondary" className="mb-4 rounded-full px-3 py-1 text-xs font-medium">
               누구를 위한 서비스인가요
             </Badge>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
               이런 분들이 사용하고 있습니다
             </h2>
           </div>
@@ -476,7 +476,7 @@ export default async function HomePage() {
               <Badge variant="secondary" className="mb-4 rounded-full px-3 py-1 text-xs font-medium">
                 도메인 투자 인사이트
               </Badge>
-              <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
                 시작이 반이다
                 <br />
                 <span className="text-primary">좋은 도메인이 사업의 절반</span>
@@ -527,7 +527,7 @@ export default async function HomePage() {
             <Badge variant="secondary" className="mb-4 rounded-full px-3 py-1 text-xs font-medium">
               자주 묻는 질문
             </Badge>
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">FAQ</h2>
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">FAQ</h2>
           </div>
 
           <div className="mt-12 space-y-4">

@@ -14,6 +14,12 @@ export const metadata: Metadata = {
     "도메인 경매 현황",
     "인기 경매 도메인",
   ],
+  openGraph: {
+    title: "실시간 경매 도메인 — 인기 경매 현황",
+    description: "현재 활발하게 입찰 경쟁이 진행 중인 도메인 경매 현황을 실시간으로 확인하세요.",
+    type: "website",
+    siteName: "도메인체커",
+  },
 };
 
 export default function AuctionsPage() {

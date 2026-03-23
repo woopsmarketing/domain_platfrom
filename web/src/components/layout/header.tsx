@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Search, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,7 @@ export function Header() {
   const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,21 +36,33 @@ export function Header() {
     }
   };
 
+  // 메뉴 외부 클릭 시 닫기
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [mobileMenuOpen]);
+
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center px-4 sm:px-6 lg:px-8">
+    <header ref={menuRef} className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl">
+      <div className="mx-auto flex h-14 max-w-7xl items-center px-4 sm:h-16 sm:px-6 lg:px-8">
         {/* Logo */}
-        <Link href="/" className="mr-6 flex items-center gap-2.5 lg:mr-8" aria-label="도메인체커 홈">
+        <Link href="/" className="mr-4 flex items-center gap-2 lg:mr-8" aria-label="도메인체커 홈">
           <svg width="28" height="28" viewBox="0 0 32 32" fill="none" className="shrink-0 text-primary">
             <circle cx="13" cy="13" r="10" stroke="currentColor" strokeWidth="2.5" />
             <line x1="20.5" y1="20.5" x2="29" y2="29" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
           </svg>
-          <span className="hidden text-lg font-semibold tracking-tight sm:inline">
+          <span className="text-base font-semibold tracking-tight sm:text-lg">
             도메인체커
           </span>
         </Link>
 
-        {/* Navigation */}
+        {/* Navigation — 데스크탑 */}
         <nav className="hidden items-center gap-1 md:flex">
           {navItems.map((item) => {
             const isActive =
@@ -74,10 +87,10 @@ export function Header() {
           })}
         </nav>
 
-        {/* Search */}
+        {/* Search — 데스크탑만 표시, 모바일은 히어로 검색으로 유도 */}
         <form
           onSubmit={handleSearch}
-          className="mx-4 flex flex-1 items-center justify-end"
+          className="mx-4 hidden flex-1 items-center justify-end md:flex"
         >
           <div className="relative w-full max-w-xs">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -91,6 +104,9 @@ export function Header() {
           </div>
         </form>
 
+        {/* 모바일 오른쪽 여백 채우기 */}
+        <div className="flex-1 md:hidden" />
+
         {/* Mobile menu toggle */}
         <Button
           variant="ghost"
@@ -98,6 +114,7 @@ export function Header() {
           className="ml-2 md:hidden"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           aria-label="메뉴"
+          aria-expanded={mobileMenuOpen}
         >
           {mobileMenuOpen ? (
             <X className="h-5 w-5" />
@@ -107,11 +124,19 @@ export function Header() {
         </Button>
       </div>
 
-      {/* Mobile menu */}
-      {mobileMenuOpen && (
-        <div className="border-t border-border/60 bg-background px-4 pb-4 pt-2 md:hidden">
-          <nav className="flex flex-col gap-1">
-            {navItems.map((item) => (
+      {/* Mobile menu — 슬라이드 애니메이션 */}
+      <div
+        className={`overflow-hidden border-t border-border/60 bg-background transition-all duration-200 ease-in-out md:hidden ${
+          mobileMenuOpen ? "max-h-80 opacity-100" : "max-h-0 border-t-0 opacity-0"
+        }`}
+      >
+        <nav className="flex flex-col gap-1 px-4 pb-4 pt-2">
+          {navItems.map((item) => {
+            const isActive =
+              item.href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(item.href);
+            return (
               <Link
                 key={item.href}
                 href={item.href}
@@ -119,16 +144,30 @@ export function Header() {
               >
                 <Button
                   variant="ghost"
-                  size="sm"
-                  className="w-full justify-start text-sm"
+                  className={`w-full justify-start text-sm ${
+                    isActive ? "bg-accent text-foreground" : ""
+                  }`}
                 >
                   {item.label}
                 </Button>
               </Link>
-            ))}
-          </nav>
-        </div>
-      )}
+            );
+          })}
+          {/* 모바일 검색 — 메뉴 내 */}
+          <form onSubmit={(e) => { handleSearch(e); setMobileMenuOpen(false); }} className="mt-2">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                type="text"
+                placeholder="도메인 검색..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="rounded-lg border-border/60 bg-muted/50 pl-9 placeholder:text-muted-foreground/70 focus:bg-background"
+              />
+            </div>
+          </form>
+        </nav>
+      </div>
     </header>
   );
 }

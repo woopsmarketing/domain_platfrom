@@ -1,10 +1,20 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0f1a" },
+  ],
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://domainchecker.co.kr"),
@@ -37,6 +47,15 @@ export const metadata: Metadata = {
   },
   alternates: {
     canonical: "https://domainchecker.co.kr",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "도메인체커",
+  },
+  formatDetection: {
+    telephone: false,
+    email: false,
   },
 };
 

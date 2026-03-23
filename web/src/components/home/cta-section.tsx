@@ -13,17 +13,17 @@ export function CtaSection() {
         </p>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link href="/tools">
-            <Badge variant="secondary" className="cursor-pointer rounded-full px-4 py-2 text-sm transition-colors hover:bg-primary hover:text-primary-foreground">
+            <Badge variant="secondary" className="cursor-pointer rounded-full px-5 py-2.5 text-sm min-h-[44px] inline-flex items-center transition-colors hover:bg-primary hover:text-primary-foreground">
               벌크 분석 도구
             </Badge>
           </Link>
           <Link href="/market-history">
-            <Badge variant="secondary" className="cursor-pointer rounded-full px-4 py-2 text-sm transition-colors hover:bg-primary hover:text-primary-foreground">
+            <Badge variant="secondary" className="cursor-pointer rounded-full px-5 py-2.5 text-sm min-h-[44px] inline-flex items-center transition-colors hover:bg-primary hover:text-primary-foreground">
               낙찰 이력 검색
             </Badge>
           </Link>
           <Link href="/blog">
-            <Badge variant="secondary" className="cursor-pointer rounded-full px-4 py-2 text-sm transition-colors hover:bg-primary hover:text-primary-foreground">
+            <Badge variant="secondary" className="cursor-pointer rounded-full px-5 py-2.5 text-sm min-h-[44px] inline-flex items-center transition-colors hover:bg-primary hover:text-primary-foreground">
               도메인 투자 가이드
             </Badge>
           </Link>
