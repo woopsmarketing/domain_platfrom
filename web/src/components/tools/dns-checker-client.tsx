@@ -66,7 +66,7 @@ export function DnsCheckerClient() {
     const fetches = types.map(async (type): Promise<DnsResult> => {
       try {
         const resp = await fetch(
-          `https://dns.google/resolve?name=${encodeURIComponent(d)}&type=${TYPE_MAP[type]}`
+          `/api/dns-lookup?name=${encodeURIComponent(d)}&type=${TYPE_MAP[type]}`
         );
         if (!resp.ok) return { type, records: [], error: "조회 실패" };
         const data = await resp.json();

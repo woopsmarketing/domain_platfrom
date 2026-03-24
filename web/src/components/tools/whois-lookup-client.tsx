@@ -60,7 +60,7 @@ export function WhoisLookupClient() {
     setData(null);
 
     try {
-      const resp = await fetch(`https://rdap.org/domain/${encodeURIComponent(d)}`);
+      const resp = await fetch(`/api/whois-lookup?domain=${encodeURIComponent(d)}`);
       if (!resp.ok) {
         setError("WHOIS 정보를 찾을 수 없습니다. 도메인 이름을 확인해주세요.");
         setLoading(false);

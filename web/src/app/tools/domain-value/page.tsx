@@ -155,26 +155,32 @@ export default function DomainValuePage() {
                   {
                     grade: "Premium",
                     color: "text-amber-500",
-                    price: "$10,000+",
-                    desc: "3~4자, .com, 높은 점수, 풍부한 백링크",
+                    price: "$50,000+",
+                    desc: "3자 이하, .com, DA 50+, 풍부한 백링크",
                   },
                   {
                     grade: "High",
                     color: "text-green-500",
-                    price: "$1,000~$10,000",
-                    desc: "5~7자, .com/.net, 좋은 점수, 키워드 포함",
+                    price: "$5,000~$50,000",
+                    desc: "4~6자, .com/.net/.kr, DA 30+, 키워드 포함",
                   },
                   {
                     grade: "Medium",
                     color: "text-blue-500",
-                    price: "$100~$1,000",
-                    desc: "8~12자, 보통 점수, 일부 백링크 보유",
+                    price: "$500~$5,000",
+                    desc: "7~10자, 보통 점수, 일부 백링크 보유",
                   },
                   {
-                    grade: "Low",
+                    grade: "Standard",
+                    color: "text-gray-500",
+                    price: "$50~$500",
+                    desc: "11~15자, 낮은 점수, 백링크 부족",
+                  },
+                  {
+                    grade: "Basic",
                     color: "text-muted-foreground",
-                    price: "$10~$100",
-                    desc: "13자+, 낮은 점수, 백링크 부족",
+                    price: "$10~$50",
+                    desc: "16자+, 매우 낮은 점수, 백링크 없음",
                   },
                 ].map((row) => (
                   <tr key={row.grade} className="hover:bg-muted/30">
