@@ -50,6 +50,16 @@ function formatSoldDate(dateStr: string): string {
   }
 }
 
+function isWithin24h(dateStr: string): boolean {
+  try {
+    const d = new Date(dateStr);
+    if (isNaN(d.getTime())) return false;
+    return Date.now() - d.getTime() < 24 * 60 * 60 * 1000;
+  } catch {
+    return false;
+  }
+}
+
 function formatUSD(price: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -179,15 +189,9 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
             <thead>
               <tr className="border-b border-border/60 bg-muted/40">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">도메인</th>
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground">
-                  <span className="inline-flex items-center gap-1">낙찰가 <Lock className="h-3 w-3" /></span>
-                </th>
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground hidden sm:table-cell">
-                  <span className="inline-flex items-center gap-1">입찰수 <Lock className="h-3 w-3" /></span>
-                </th>
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground">
-                  <span className="inline-flex items-center gap-1">낙찰일 <Lock className="h-3 w-3" /></span>
-                </th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">낙찰가</th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground hidden sm:table-cell">입찰수</th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">낙찰일</th>
               </tr>
             </thead>
             <tbody>
@@ -204,15 +208,23 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
                       {d.name}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <span className="font-semibold tabular-nums blur-sm select-none">{formatUSD(d.soldPrice)}</span>
-                  </td>
-                  <td className="px-4 py-3 text-right hidden sm:table-cell">
-                    <span className="tabular-nums blur-sm select-none">{d.bidCount != null && d.bidCount > 0 ? `${d.bidCount}건` : "—"}</span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <span className="text-muted-foreground text-xs whitespace-nowrap blur-sm select-none">{formatSoldDate(d.soldAt)}</span>
-                  </td>
+                  {(() => {
+                    const free = isWithin24h(d.soldAt);
+                    const blur = free ? "" : "blur-sm select-none";
+                    return (
+                      <>
+                        <td className="px-4 py-3 text-right">
+                          <span className={`font-semibold tabular-nums ${blur}`}>{formatUSD(d.soldPrice)}</span>
+                        </td>
+                        <td className="px-4 py-3 text-right hidden sm:table-cell">
+                          <span className={`tabular-nums ${blur}`}>{d.bidCount != null && d.bidCount > 0 ? `${d.bidCount}건` : "—"}</span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <span className={`text-muted-foreground text-xs whitespace-nowrap ${blur}`}>{formatSoldDate(d.soldAt)}</span>
+                        </td>
+                      </>
+                    );
+                  })()}
                 </tr>
               ))}
             </tbody>
@@ -230,9 +242,9 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
         <div className="mt-4 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-blue-500/5 p-4 flex items-center gap-3">
           <Lock className="h-5 w-5 shrink-0 text-primary" />
           <div>
-            <p className="text-sm font-semibold">낙찰가, 입찰수, 낙찰일은 Pro 전용 데이터입니다</p>
+            <p className="text-sm font-semibold">24시간 이전 낙찰 데이터는 Pro 전용입니다</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Pro 구독으로 모든 낙찰 데이터를 확인하고 도메인 투자에 활용하세요.
+              최근 24시간 데이터는 무료로 확인할 수 있습니다. Pro 구독으로 전체 이력의 낙찰가, 입찰수, 낙찰일을 확인하세요.
             </p>
           </div>
         </div>
