@@ -25,6 +25,11 @@ interface SoldDomain {
 
 type SortMode = "recent" | "price_desc" | "price_asc";
 
+interface SoldAuctionsProps {
+  initialItems: SoldDomain[];
+  initialTotal: number;
+}
+
 const PER_PAGE = 50;
 
 function formatSoldDate(dateStr: string): string {
@@ -52,12 +57,12 @@ function formatUSD(price: number): string {
   }).format(price);
 }
 
-export function SoldAuctionsClient() {
-  const [domains, setDomains] = useState<SoldDomain[]>([]);
-  const [loading, setLoading] = useState(true);
+export function SoldAuctionsClient({ initialItems, initialTotal }: SoldAuctionsProps) {
+  const [domains, setDomains] = useState<SoldDomain[]>(initialItems);
+  const [loading, setLoading] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("recent");
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
+  const [total, setTotal] = useState(initialTotal);
 
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
@@ -77,7 +82,9 @@ export function SoldAuctionsClient() {
     }
   }, []);
 
+  // 초기 상태(page=1, sort=recent)는 서버 데이터를 그대로 사용하고 fetch 스킵
   useEffect(() => {
+    if (page === 1 && sortMode === "recent") return;
     fetchData(page, sortMode);
   }, [page, sortMode, fetchData]);
 
@@ -109,7 +116,8 @@ export function SoldAuctionsClient() {
           <h1 className="text-2xl font-bold sm:text-3xl">낙찰 이력</h1>
         </div>
         <p className="text-muted-foreground max-w-2xl">
-          경매에서 낙찰된 도메인의 거래 가격을 확인하세요.
+          도메인이 실제로 얼마에 거래되는지 확인하세요. 경매 도메인과 만료 도메인의 실제 낙찰 가격, 입찰 수를 무료로 조회할 수 있습니다.
+          도메인 구매 전 시세를 파악하고 적정 가격을 판단하는 데 활용하세요.
         </p>
       </div>
 

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Sparkles, ArrowRight } from "lucide-react";
+import { Search, Sparkles, ArrowRight, Network, FileSearch, DollarSign } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BulkAnalysis } from "@/components/tools/bulk-analysis";
 import { DomainCompare } from "@/components/tools/domain-compare";
@@ -12,22 +12,40 @@ const TOOL_CARDS = [
     href: "/tools/domain-availability",
     icon: Search,
     title: "도메인 가용성 확인",
-    desc: "원하는 도메인 이름이 등록 가능한지 다양한 확장자를 한 번에 확인",
+    desc: "사용하고 싶은 도메인 이름이 등록 가능한지 한 번에 확인",
   },
   {
     href: "/tools/domain-generator",
     icon: Sparkles,
     title: "AI 도메인 이름 생성기",
-    desc: "키워드를 입력하면 최적의 도메인 이름을 추천",
+    desc: "키워드만 입력하면 사업에 맞는 도메인 이름을 추천",
+  },
+  {
+    href: "/tools/dns-checker",
+    icon: Network,
+    title: "DNS 조회",
+    desc: "A, CNAME, MX, TXT, NS 레코드를 즉시 조회하고 DNS 전파 상태 확인",
+  },
+  {
+    href: "/tools/whois-lookup",
+    icon: FileSearch,
+    title: "WHOIS 조회",
+    desc: "도메인 소유자, 등록일, 만료일, 등록기관을 즉시 조회",
+  },
+  {
+    href: "/tools/domain-value",
+    icon: DollarSign,
+    title: "도메인 가치 평가",
+    desc: "도메인 길이, 확장자, 문자 구성을 분석해 예상 시장 가치를 추정",
   },
 ];
 
 export default function ToolsPage() {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="text-3xl font-bold tracking-tight">분석 도구</h1>
+      <h1 className="text-3xl font-bold tracking-tight">무료 도메인 도구 모음</h1>
       <p className="mt-2 text-muted-foreground">
-        도메인 벌크 분석, 비교, TLD별 통계를 확인하세요.
+        도메인 비교, 벌크 분석, TLD별 통계를 한 곳에서 확인하세요. 도메인 구매 전 여러 도메인을 한번에 비교하고 분석할 수 있습니다.
       </p>
 
       {/* New tool cards */}

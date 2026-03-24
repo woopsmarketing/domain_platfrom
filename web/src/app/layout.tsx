@@ -19,19 +19,16 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://domainchecker.co.kr"),
   title: {
-    default: "도메인체커 — 무료 도메인 지수 체크 | DA/DR/TF 분석",
+    default: "도메인체커 — 무료 도메인 조회 · 점수 확인 · 도메인 분석 도구",
     template: "%s | 도메인체커",
   },
   description:
-    "무료 도메인 DA 체크, DR 확인, Trust Flow 분석. 도메인명만 입력하면 SEO 지수, Whois, 거래 이력을 즉시 확인하세요.",
+    "도메인 이름만 입력하면 도메인 점수, 등급, 소유자 정보, 거래 이력을 즉시 확인할 수 있는 무료 분석 도구입니다. 도메인 고르기 전에 꼭 확인하세요.",
   keywords: [
-    "도메인 DA 체크",
-    "도메인 품질 검사",
-    "무료 도메인 분석",
-    "Domain Authority",
-    "도메인 가치 평가",
-    "Whois 조회",
-    "도메인 거래 이력",
+    "도메인 조회", "도메인 점수 확인", "도메인 분석", "도메인 검색", "도메인 등급 확인",
+    "도메인 평판 조회", "도메인 정보 확인", "무료 도메인 분석 도구", "도메인 점수 조회",
+    "도메인 권한 확인", "도메인 신뢰도 확인", "도메인 품질 확인", "도메인 seo 점수 확인",
+    "백링크 확인", "도메인 스팸 점수", "도메인 가치 분석", "도메인 종합 분석",
   ],
   robots: {
     index: true,
@@ -86,7 +83,7 @@ export default function RootLayout({
                   name: "도메인체커",
                   url: "https://domainchecker.co.kr",
                   logo: "https://domainchecker.co.kr/icon.svg",
-                  description: "무료 도메인 DA/DR/TF 분석 도구",
+                  description: "무료 도메인 분석 도구 — 도메인 점수, 소유자 정보, 거래 이력 조회",
                 },
                 {
                   "@type": "WebSite",

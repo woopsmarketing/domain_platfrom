@@ -46,6 +46,9 @@ export function Footer() {
                 <Link href="/tools/domain-generator" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
                   도메인 이름 생성기
                 </Link>
+                <Link href="/tools/whois-lookup" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                  WHOIS 조회
+                </Link>
               </nav>
             </div>
             <div className="flex flex-col gap-2.5">

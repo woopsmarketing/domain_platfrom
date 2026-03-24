@@ -1,6 +1,6 @@
 # RUNBOOK.md
 
-> 마지막 업데이트: 2026-03-21 (경매 시스템 전환 반영)
+> 마지막 업데이트: 2026-03-22
 
 ---
 
@@ -17,7 +17,8 @@ NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
 RAPIDAPI_KEY=                    # ✅ 구독 완료
-WHOIS_API_KEY=                   # 선택 — 없으면 Whois 섹션 null 반환
+WHOIS_API_KEY=                   # 선택 — 없으면 Whois 섹션 null 반환 (⚠️ 값 확인 필요)
+OPENAI_API_KEY=                  # 선택 — 없으면 domain-generator가 로컬 단어조합 fallback으로 동작
 # DATABASE_URL                   # 코드 미사용 — 제거 권장
 # REDIS_URL / REDIS_TOKEN        # 코드 미사용 — 제거 권장
 ```
@@ -38,6 +39,8 @@ cd web && pnpm install && pnpm dev
 | `/market-history` | 낙찰 이력 목록 |
 | `/auctions` | 실시간 경매 전용 페이지 (Namecheap GraphQL) |
 | `/tools` | 벌크 분석 / 도메인 비교 / TLD 통계 |
+| `/tools/domain-availability` | 도메인 가용성 확인 (RDAP 병렬 조회) |
+| `/tools/domain-generator` | AI 도메인 이름 생성기 (OpenAI fallback 로컬 단어조합) |
 | `/blog` | 블로그 목록 |
 | `/blog/what-is-da` | SEO 콘텐츠 1편 |
 | `/blog/how-to-choose-domain` | SEO 콘텐츠 2편 |
@@ -50,19 +53,11 @@ cd web && pnpm install && pnpm dev
 Supabase SQL Editor에서 `web/supabase/migration.sql` 실행.
 6개 테이블: `domains`, `domain_metrics`, `sales_history`, `wayback_summary`, `active_auctions`, `sold_auctions`
 
-> ⚠️ **P0**: `sold_auctions` DDL이 migration.sql에 아직 없음. 아래 SQL을 Supabase SQL Editor에서 별도 실행해야 함.
+> ⚠️ **P0**: `sold_auctions` UNIQUE 제약이 아직 DB에 미적용. 중복 낙찰 방지를 위해 아래 SQL을 Supabase SQL Editor에서 실행해야 함.
 > ```sql
-> -- sold_auctions: 낙찰 확정 도메인 저장
-> CREATE TABLE IF NOT EXISTS sold_auctions (
->   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
->   domain text NOT NULL,
->   sold_at timestamptz NOT NULL DEFAULT now(),
->   price_usd numeric,
->   platform text,
->   created_at timestamptz NOT NULL DEFAULT now()
-> );
+> ALTER TABLE sold_auctions
+>   ADD CONSTRAINT sold_auctions_domain_platform_key UNIQUE (domain, platform);
 > ```
-> 실행 후 migration.sql 파일에도 추가할 것.
 
 ---
 

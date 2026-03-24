@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase";
 
-export const dynamic = "force-dynamic";
-
 /**
  * GET /api/sold-domains?page=1&per_page=50&sort=recent
  *
@@ -53,12 +51,14 @@ export async function GET(request: NextRequest) {
       bidCount: row.bid_count,
     }));
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       items,
       total: count ?? 0,
       page,
       perPage,
     });
+
+    return response;
   } catch (err) {
     console.error("sold-domains error:", err);
     return NextResponse.json({ items: [], total: 0, page: 1, perPage: 50 });

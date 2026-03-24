@@ -4,14 +4,14 @@ import { Globe, Gavel, Sparkles, BookOpen, ChevronDown, ArrowRight, CircleCheck,
 import { DomainAvailabilityClient } from "@/components/tools/domain-availability-client";
 
 export const metadata: Metadata = {
-  title: "도메인 등록 가능 여부 확인 — 무료 도메인 검색",
+  title: "도메인 이름 검색 — 등록 가능한 도메인 찾기",
   description:
-    "원하는 도메인 이름이 등록 가능한지 즉시 확인하세요. .com, .net, .io, .ai 등 다양한 확장자를 한 번에 검색합니다.",
+    "사용하고 싶은 도메인 이름이 등록 가능한지 바로 확인하세요. .com, .net, .io, .ai 등 다양한 확장자를 한 번에 검색. 도메인 구매 전 필수 확인 도구.",
   keywords: [
-    "도메인 등록 확인",
-    "도메인 검색",
-    "도메인 가용성",
-    "도메인 구매 가능 확인",
+    "도메인 이름 검색", "도메인 등록 확인", "도메인 구매 가능 확인", "도메인 이름 찾기",
+    "도메인 등록 여부", "빈 도메인 찾기", "도메인 사용 가능 확인", "도메인 중복 확인",
+    "도메인 가능 여부 확인", "브랜드 도메인 찾기", "짧은 도메인 찾기",
+    "com net org 차이", "도메인 확장자 추천", "사업용 도메인 추천", "도메인 추천",
   ],
 };
 
@@ -22,7 +22,7 @@ const FAQ_ITEMS = [
   },
   {
     q: "도메인이 이미 등록되어 있으면 어떻게 하나요?",
-    a: "이미 등록된 도메인의 경우, 분석 페이지에서 해당 도메인의 SEO 지수와 만료일 등을 확인할 수 있습니다. 만료가 가까운 도메인이라면 경매를 통해 취득할 수도 있습니다.",
+    a: "이미 등록된 도메인의 경우, 분석 페이지에서 해당 도메인의 점수와 만료일 등을 확인할 수 있습니다. 만료가 가까운 도메인이라면 경매를 통해 취득할 수도 있습니다.",
   },
   {
     q: ".com과 .net 중 어떤 것을 선택해야 하나요?",
@@ -55,7 +55,7 @@ const RELATED_LINKS = [
   {
     href: "/",
     label: "도메인 분석",
-    desc: "도메인 SEO 지수를 무료로 분석",
+    desc: "도메인 점수와 이력을 무료로 분석",
     icon: Globe,
   },
   {
@@ -72,8 +72,8 @@ const RELATED_LINKS = [
   },
   {
     href: "/blog/what-is-da",
-    label: "DA란?",
-    desc: "도메인 권위 지수 이해하기",
+    label: "도메인 점수란?",
+    desc: "도메인 점수의 의미 이해하기",
     icon: BookOpen,
   },
 ];
@@ -90,14 +90,13 @@ export default function DomainAvailabilityPage() {
         {/* Hero */}
         <section className="text-center">
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            도메인 등록 가능 여부{" "}
+            원하는 도메인 이름,{" "}
             <span className="bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
-              즉시 확인
+              바로 검색
             </span>
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">
-            원하는 도메인 이름을 입력하고, .com부터 .ai까지 다양한 확장자의
-            등록 가능 여부를 한 번에 확인하세요.
+            사용하고 싶은 도메인 이름을 입력하고, .com부터 .ai까지 한 번에 등록 가능 여부를 확인하세요. 도메인 구매 전 꼭 거쳐야 할 첫 단계입니다.
           </p>
         </section>
 

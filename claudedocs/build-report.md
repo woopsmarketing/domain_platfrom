@@ -1,6 +1,6 @@
 # Build Report
 
-생성일: 2026-03-20
+생성 일시: 2026-03-24
 
 ## 요약
 
@@ -8,45 +8,25 @@
 |------|------|------|
 | TypeScript | PASS | 오류 0개 |
 | Next.js Build | PASS | 경고 1개 (edge runtime 정적 생성 비활성화) |
-| ESLint | WARN | 이슈 1개 (오류 1개, 경고 0개) |
+| ESLint | WARN | 오류 1개, 경고 5개 |
 
-## 최종 판정: 배포 가능 (ESLint 이슈 개선 권장)
+## 최종 판정: 배포 가능
 
-빌드 자체는 성공했으나, ESLint에서 React 훅 관련 오류 1개가 감지되었습니다. 런타임 동작에는 지장이 없지만 성능 저하로 이어질 수 있어 개선을 권장합니다.
+> 빌드 자체는 성공. ESLint 오류(react-hooks/set-state-in-effect)는 런타임 버그가 아닌 성능 경고로 배포는 가능하나 개선 권장.
 
 ---
 
-## 빌드 출력 (Next.js)
+## 빌드 결과 상세
 
-```
-▲ Next.js 16.1.6 (Turbopack)
-✓ Compiled successfully in 10.6s
-✓ TypeScript 검사 완료
-✓ 정적 페이지 14개 생성 완료
+### Next.js 빌드 라우트 현황 (29개 라우트)
 
-Route (app)
-  ƒ /                           Dynamic
-  ○ /_not-found                 Static
-  ƒ /api/domain/[name]          Dynamic
-  ƒ /api/domains                Dynamic
-  ƒ /api/submissions/public     Dynamic
-  ƒ /api/tld-stats              Dynamic
-  ○ /blog                       Static
-  ○ /blog/domain-auction-guide  Static
-  ○ /blog/how-to-choose-domain  Static
-  ○ /blog/what-is-da            Static
-  ƒ /domain/[name]              Dynamic
-  ƒ /domain/[name]/opengraph-image Dynamic
-  ○ /icon.svg                   Static
-  ○ /manifest.webmanifest       Static
-  ƒ /market-history             Dynamic
-  ƒ /opengraph-image            Dynamic
-  ○ /robots.txt                 Static
-  ○ /sitemap.xml                Static
-  ○ /tools                      Static
-```
+| 타입 | 라우트 수 |
+|------|----------|
+| Static (○) | 18개 |
+| Dynamic (ƒ) | 11개 |
 
-빌드 경고: `Using edge runtime on a page currently disables static generation for that page`
+**빌드 경고**: `Using edge runtime on a page currently disables static generation for that page`
+- 해당 라우트: `/api/active-auctions` (edge runtime 사용)
 
 ---
 
@@ -54,72 +34,51 @@ Route (app)
 
 | 파일 | 라인 | 오류 | 심각도 |
 |------|------|------|--------|
-| `src/components/domain/domain-quick-summary.tsx` | 47 | `react-hooks/set-state-in-effect` — useEffect 내부에서 setState를 동기 호출 | ERROR |
-
----
-
-## 이슈 상세 분석
-
-**파일**: `/mnt/d/Documents/domain_platform/web/src/components/domain/domain-quick-summary.tsx`
-
-**문제 코드** (45~49번 라인):
-```ts
-useEffect(() => {
-  let cancelled = false;
-  setLoading(true);   // ← Effect 내 동기 setState 호출
-  setError(null);     // ← Effect 내 동기 setState 호출
-  setData(null);      // ← Effect 내 동기 setState 호출
-```
-
-**원인**: `useEffect` 본체에서 `setState`를 직접(동기) 호출하면 Effect 실행 → 렌더 → Effect 재실행의 연쇄 렌더링이 발생할 수 있습니다. ESLint `react-hooks/set-state-in-effect` 규칙이 이를 차단합니다.
+| `src/components/domain/domain-quick-summary.tsx` | 47 | `react-hooks/set-state-in-effect` — useEffect 내 동기 setState 호출 | ERROR |
+| `src/app/api/active-auctions/route.ts` | 149 | `'request' is defined but never used` | WARN |
+| `src/app/layout.tsx` | 67 | GTM 인라인 스크립트 대신 `GoogleTagManager` 컴포넌트 사용 권장 | WARN |
+| `src/components/domain/domain-table.tsx` | 4 | `'Badge'` 미사용 import | WARN |
+| `src/components/domain/domain-table.tsx` | 23 | `'statusVariant'` 할당 후 미사용 | WARN |
+| `src/components/domain/domain-table.tsx` | 29 | `'statusLabel'` 할당 후 미사용 | WARN |
 
 ---
 
 ## 수정 권장 사항
 
-### 방법 1: 초기값 활용 (권장)
+### 1. [ERROR] domain-quick-summary.tsx — useEffect 내 동기 setState
 
-`useState` 초기값을 적절히 설정하고, Effect에서는 async 결과가 돌아왔을 때만 setState를 호출합니다.
+**파일**: `src/components/domain/domain-quick-summary.tsx` (라인 47-49)
 
-```ts
-// 변경 전
-const [loading, setLoading] = useState(true);
-const [error, setError] = useState<string | null>(null);
-const [data, setData] = useState<DomainDetail | null>(null);
+**원인**: `useEffect` body에서 `setLoading(true)`, `setError(null)`, `setData(null)`을 동기적으로 호출하면 렌더링 cascade가 발생할 수 있음.
 
-useEffect(() => {
-  let cancelled = false;
-  setLoading(true);   // 제거
-  setError(null);     // 제거
-  setData(null);      // 제거
-  ...
-```
+**수정 방향**:
+- `setLoading(true)`를 초기 state 선언(`useState(true)`)으로 이동
+- 또는 세 setState를 `useReducer`로 묶어 단일 dispatch로 처리
+- fetch 시작 시 상태 초기화는 아래처럼 분리 가능:
+  ```ts
+  // 방법 1: 초기값을 true로 선언
+  const [loading, setLoading] = useState(true);
+  // useEffect 내 setLoading(true) 제거 후, dependency 변경 시 자연스럽게 처리
 
-```ts
-// 변경 후: domain prop이 바뀔 때 초기화를 useMemo/파생 상태로 처리
-// 또는 useReducer로 상태 전환을 한 번에 묶기
-const [state, dispatch] = useReducer(reducer, { loading: true, error: null, data: null });
+  // 방법 2: useReducer 사용으로 단일 dispatch
+  dispatch({ type: 'FETCH_START' }); // loading:true, error:null, data:null 동시 처리
+  ```
 
-useEffect(() => {
-  let cancelled = false;
-  dispatch({ type: "FETCH_START" });  // 단일 dispatch로 묶음
-  ...
-```
+### 2. [WARN] active-auctions/route.ts — 미사용 파라미터
 
-### 방법 2: ESLint 규칙 비활성화 (임시 대응, 비권장)
+**파일**: `src/app/api/active-auctions/route.ts` (라인 149)
 
-```ts
-// eslint-disable-next-line react-hooks/set-state-in-effect
-setLoading(true);
-```
+**수정 방향**: `request` 파라미터를 사용하지 않는다면 `_request`로 이름 변경하거나 파라미터 제거.
 
-실제 동작 문제가 없다면 임시로 비활성화할 수 있지만, 성능 최적화 관점에서 방법 1을 권장합니다.
+### 3. [WARN] layout.tsx — GTM 컴포넌트 사용 권장
 
----
+**파일**: `src/app/layout.tsx` (라인 67)
 
-## 빌드 환경 정보
+**수정 방향**: `@next/third-parties/google`의 `GoogleTagManager` 컴포넌트로 교체하면 성능 최적화 및 lint 경고 해소. 단, 기능상 문제는 없음.
 
-- Next.js: 16.1.6 (Turbopack)
-- TypeScript: ^5
-- Node.js: v20.20.1
-- 패키지 매니저: pnpm
+### 4. [WARN] domain-table.tsx — 미사용 변수/import 정리
+
+**파일**: `src/components/domain/domain-table.tsx` (라인 4, 23, 29)
+
+**수정 방향**: `Badge` import, `statusVariant`, `statusLabel` 변수 제거 또는 실제 사용 추가.
+

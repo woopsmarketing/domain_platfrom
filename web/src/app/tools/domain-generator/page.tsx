@@ -4,14 +4,15 @@ import { Globe, Gavel, Search, BookOpen, ChevronDown, ArrowRight, CircleCheck, S
 import { DomainGeneratorClient } from "@/components/tools/domain-generator-client";
 
 export const metadata: Metadata = {
-  title: "AI 도메인 이름 생성기 — 키워드로 도메인 추천",
+  title: "도메인 이름 짓기 — AI가 추천하는 브랜드 도메인",
   description:
-    "키워드를 입력하면 AI가 최적의 도메인 이름을 추천합니다. SEO, 브랜드, 유사성 스타일 중 선택하여 맞춤형 도메인을 찾아보세요.",
+    "키워드만 입력하면 AI가 사업에 맞는 도메인 이름을 추천합니다. 도메인 이름 짓기가 어려우셨다면 지금 바로 시도해보세요. 등록 가능 여부까지 자동 확인.",
   keywords: [
-    "도메인 이름 추천",
-    "도메인 생성기",
-    "도메인 아이디어",
-    "AI 도메인 추천",
+    "도메인 이름 짓기", "도메인 이름 추천", "도메인 이름 만들기", "브랜드 도메인 추천",
+    "AI 도메인 생성", "도메인 아이디어", "사업 도메인 추천", "도메인 네이밍",
+    "쇼핑몰 도메인 추천", "블로그 도메인 추천", "스타트업 도메인 추천",
+    "영문 도메인 추천", "브랜드명 도메인 찾기", "회사명 도메인 추천",
+    "도메인 네이밍 아이디어",
   ],
 };
 
@@ -55,7 +56,7 @@ const RELATED_LINKS = [
   {
     href: "/",
     label: "도메인 분석",
-    desc: "도메인 SEO 지수를 무료로 분석",
+    desc: "도메인 점수와 이력을 무료로 분석",
     icon: Globe,
   },
   {
@@ -72,8 +73,8 @@ const RELATED_LINKS = [
   },
   {
     href: "/blog/what-is-da",
-    label: "DA란?",
-    desc: "도메인 권위 지수 이해하기",
+    label: "도메인 점수란?",
+    desc: "도메인 점수의 의미 이해하기",
     icon: BookOpen,
   },
 ];
@@ -90,14 +91,13 @@ export default function DomainGeneratorPage() {
         {/* Hero */}
         <section className="text-center">
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            AI 도메인 이름{" "}
+            도메인 이름, AI가{" "}
             <span className="bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
-              생성기
+              지어드립니다
             </span>
           </h1>
           <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">
-            키워드를 입력하면 최적의 도메인 이름을 추천합니다.
-            SEO, 브랜드, 유사성 스타일 중 선택하여 맞춤형 도메인을 찾아보세요.
+            키워드만 입력하면 사업에 딱 맞는 도메인 이름을 추천합니다. 도메인 이름 짓기가 어려우셨다면 지금 바로 시도해보세요.
           </p>
         </section>
 

@@ -28,35 +28,33 @@ import { ActiveAuctionsSection } from "@/components/home/active-auctions-section
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "도메인체커 — 무료 도메인 지수 체크 | DA/DR/TF 분석",
+  title: "도메인체커 — 무료 도메인 조회 · 점수 확인 · 도메인 분석 도구",
   description:
-    "무료 도메인 DA 체크, DR 확인, Trust Flow 분석. 도메인명만 입력하면 SEO 지수, Whois, 거래 이력을 즉시 확인. 도메인 투자자를 위한 무료 분석 도구.",
+    "도메인 이름만 입력하면 도메인 점수, 등급, 소유자 정보, 과거 이력을 한눈에 확인. 도메인 구매 전 반드시 확인해야 할 무료 분석 도구.",
   keywords: [
-    "무료 도메인 DA 체크",
-    "도메인 품질 검사",
-    "도메인 지수 확인",
-    "Domain Authority 체크",
-    "DR 확인",
-    "도메인 SEO 분석",
-    "도메인 거래 이력",
-    "Whois 조회",
-    "도메인 가치 평가",
-    "만료 도메인 분석",
+    "도메인 조회", "도메인 점수 확인", "도메인 점수 조회", "도메인 분석", "도메인 검색",
+    "도메인 등급", "도메인 평판 확인", "도메인 소유자 확인", "도메인 거래 이력",
+    "도메인 가치 확인", "만료 도메인 찾기", "도메인 권한 확인", "도메인 신뢰도 확인",
+    "백링크 확인", "도메인 스팸 점수", "도메인 seo 분석", "도메인 품질 확인",
+    "도메인 종합 분석", "도메인 경쟁력 분석", "도메인 점수 무료 조회",
   ],
   openGraph: {
-    title: "도메인체커 — 무료 도메인 지수 체크",
-    description: "도메인명만 입력하면 DA, DR, TF, Whois, 거래 이력을 즉시 무료 분석",
+    title: "도메인체커 — 도메인 점수 확인 | 무료 도메인 분석 도구",
+    description: "도메인 이름만 입력하면 점수, 등급, 소유자, 거래 이력을 즉시 무료 분석",
     type: "website",
     siteName: "도메인체커",
   },
 };
 
 const faqItems = [
-  { q: "도메인체커는 정말 무료인가요?", a: "네, 완전 무료입니다. 회원가입 없이 도메인명만 입력하면 Moz DA, Ahrefs DR, Majestic TF, Wayback 히스토리를 즉시 확인할 수 있습니다." },
-  { q: "DA(Domain Authority)는 왜 중요한가요?", a: "DA는 Moz가 개발한 검색엔진 순위 예측 점수(1~100)입니다. DA가 높은 도메인은 같은 품질의 콘텐츠를 올려도 검색 결과 상위에 노출될 확률이 높습니다. 새 사업을 시작할 때 DA가 높은 만료 도메인을 활용하면 SEO 시간을 크게 단축할 수 있습니다." },
-  { q: "DR과 DA는 어떻게 다른가요?", a: "DA(Domain Authority)는 Moz 제공, DR(Domain Rating)은 Ahrefs 제공입니다. 둘 다 백링크 기반이지만 계산 알고리즘이 다릅니다. 도메인체커에서는 두 지표를 한 번에 비교할 수 있어 더 정확한 판단이 가능합니다." },
-  { q: "도메인의 Wayback 히스토리는 왜 확인해야 하나요?", a: "과거에 스팸 사이트나 불법 콘텐츠가 호스팅되었던 도메인은 검색엔진에서 페널티를 받았을 수 있습니다. Wayback 이력으로 도메인의 과거를 확인하면 이런 리스크를 사전에 차단할 수 있습니다." },
-  { q: "분석 결과는 얼마나 정확한가요?", a: "도메인체커는 Moz, Ahrefs, Majestic의 공식 데이터를 기반으로 분석 결과를 제공합니다. 공식 사이트와 소폭의 차이가 있을 수 있으나, 도메인 비교와 투자 판단에는 충분한 참고 자료입니다. 데이터는 7일마다 자동 갱신됩니다." },
+  { q: "도메인체커는 정말 무료인가요?", a: "네, 완전 무료입니다. 회원가입 없이 도메인 이름만 입력하면 도메인 점수, 신뢰도, 백링크 수, 과거 이력을 즉시 확인할 수 있습니다." },
+  { q: "도메인 점수는 무엇인가요?", a: "도메인 점수는 해당 도메인이 검색엔진에서 얼마나 높은 순위에 오를 수 있는지를 1~100점으로 나타낸 지표입니다. 점수가 높을수록 같은 콘텐츠를 올려도 검색 상위에 노출될 가능성이 높습니다." },
+  { q: "도메인을 구매하기 전에 왜 분석해야 하나요?", a: "겉보기에 괜찮은 도메인도 과거에 스팸 사이트로 사용되었거나 검색엔진 페널티를 받은 이력이 있을 수 있습니다. 구매 전에 도메인 점수, 과거 이력, 소유자 정보를 확인하면 리스크를 피할 수 있습니다." },
+  { q: "도메인 이력은 어떻게 확인하나요?", a: "도메인체커에서 도메인을 검색하면 과거 웹사이트 스냅샷을 통해 어떤 콘텐츠가 있었는지 확인할 수 있습니다. 이를 통해 해당 도메인의 과거 용도와 신뢰도를 판단할 수 있습니다." },
+  { q: "분석 결과는 얼마나 정확한가요?", a: "도메인체커는 글로벌 SEO 데이터베이스를 기반으로 분석합니다. 도메인 비교와 구매 판단에 충분한 참고 자료이며, 데이터는 7일마다 자동 갱신됩니다." },
+  { q: "도메인 백링크는 왜 중요한가요?", a: "백링크는 다른 웹사이트에서 내 도메인으로 연결된 링크입니다. 백링크가 많고 품질이 좋을수록 검색엔진이 해당 도메인을 신뢰합니다. 도메인체커에서 백링크 수와 참조 도메인 수를 무료로 확인할 수 있습니다." },
+  { q: "도메인 스팸 점수는 무엇인가요?", a: "스팸 점수는 해당 도메인이 스팸 사이트로 분류될 위험도를 나타냅니다. 중고 도메인이나 만료 도메인을 구매할 때 스팸 점수가 높으면 검색엔진 페널티를 받을 수 있으므로 반드시 확인해야 합니다." },
+  { q: "만료 도메인이나 경매 도메인은 어떻게 고르나요?", a: "경매 도메인이나 만료 도메인을 고를 때는 도메인 점수, 백링크 품질, 스팸 점수, 과거 이력을 반드시 확인하세요. 도메인체커에서 이 모든 정보를 무료로 분석할 수 있고, 낙찰 이력 페이지에서 실제 거래 시세도 확인할 수 있습니다." },
 ];
 
 export default async function HomePage() {
@@ -222,11 +220,10 @@ export default async function HomePage() {
               온라인 비즈니스의 시작
             </Badge>
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
-              도메인은 단순한 주소가 아닙니다
+              도메인, 왜 신중하게 골라야 할까요?
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-              모든 온라인 사업의 첫 시작이자 SEO의 첫 발걸음. 좋은 도메인 하나가
-              검색 순위, 브랜드 신뢰도, 사업 가치를 결정합니다.
+              도메인은 사업의 첫인상이자, 검색 순위를 결정하는 핵심 요소입니다. 좋은 도메인 하나가 브랜드 신뢰도와 매출을 좌우합니다.
             </p>
           </div>
 
@@ -235,10 +232,9 @@ export default async function HomePage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10">
                 <Search className="h-6 w-6 text-blue-500" />
               </div>
-              <h3 className="mt-5 text-lg font-semibold">검색엔진 최적화</h3>
+              <h3 className="mt-5 text-lg font-semibold">검색 노출에 직접 영향</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                구글은 도메인의 나이, 백링크 프로필, DA 점수를 신뢰 지표로 활용합니다.
-                높은 DA를 가진 도메인은 같은 콘텐츠로도 검색 상위에 노출됩니다.
+                검색엔진은 도메인의 나이, 평판, 백링크 수를 신뢰 지표로 봅니다. 점수가 높은 도메인은 같은 글을 올려도 더 빨리 상위에 노출됩니다.
               </p>
             </div>
             <div className="relative rounded-2xl border border-border/60 bg-card p-8 transition-shadow hover:shadow-lg hover:shadow-primary/5">
@@ -256,10 +252,9 @@ export default async function HomePage() {
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10">
                 <TrendingUp className="h-6 w-6 text-emerald-500" />
               </div>
-              <h3 className="mt-5 text-lg font-semibold">자산 가치</h3>
+              <h3 className="mt-5 text-lg font-semibold">디지털 자산 가치</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                프리미엄 도메인은 해마다 가치가 오릅니다. 높은 SEO 지수를 가진
-                도메인은 수천~수만 달러에 거래되며, 그 자체가 디지털 부동산입니다.
+                좋은 도메인은 해마다 가치가 올라갑니다. 점수 높은 도메인은 수천~수만 달러에 거래되며, 그 자체가 디지털 부동산입니다.
               </p>
             </div>
           </div>
@@ -279,8 +274,7 @@ export default async function HomePage() {
               도메인 분석, 이제 한 곳에서
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-              Moz, Ahrefs, Majestic 세 곳의 SEO 데이터를 각각 구독하면 월 $300 이상.
-              도메인체커는 이 모든 핵심 지표를 <strong className="text-foreground">완전 무료</strong>로 제공합니다.
+              도메인 점수, 신뢰도, 백링크 수를 각각 확인하려면 여러 유료 도구가 필요합니다. 도메인체커는 이 모든 핵심 지표를 <strong className="text-foreground">완전 무료</strong>로 제공합니다.
             </p>
           </div>
 
@@ -288,26 +282,26 @@ export default async function HomePage() {
             {[
               {
                 icon: BarChart3,
-                title: "3대 SEO 지수",
-                description: "Moz DA/PA, Ahrefs DR/백링크, Majestic TF/CF를 한 화면에서 비교 분석",
+                title: "도메인 종합 점수",
+                description: "검색 순위 점수, 신뢰도, 백링크 수를 한 화면에서 확인하고 비교",
                 color: "text-blue-500 bg-blue-500/10",
               },
               {
                 icon: Clock,
-                title: "7일 자동 캐시",
-                description: "한 번 분석한 도메인은 7일간 즉시 결과 반환. API 낭비 없이 빠르게",
+                title: "7일 자동 갱신",
+                description: "한 번 분석한 도메인은 7일간 즉시 결과 반환. 빠르고 효율적",
                 color: "text-amber-500 bg-amber-500/10",
               },
               {
                 icon: History,
-                title: "Wayback 히스토리",
-                description: "인터넷 아카이브 스냅샷으로 도메인의 과거 콘텐츠와 이력 추적",
+                title: "과거 이력 조회",
+                description: "도메인이 과거에 어떤 사이트였는지 스냅샷으로 확인. 위험한 도메인을 사전에 걸러냄",
                 color: "text-emerald-500 bg-emerald-500/10",
               },
               {
                 icon: Trophy,
-                title: "경매 낙찰 DB",
-                description: "GoDaddy/Namecheap 경매 낙찰가를 수집하여 도메인 시세 파악",
+                title: "경매 낙찰 데이터",
+                description: "실제 경매에서 낙찰된 도메인의 거래 가격을 수집하여 시세 파악",
                 color: "text-violet-500 bg-violet-500/10",
               },
             ].map((feature) => (
@@ -325,8 +319,8 @@ export default async function HomePage() {
 
           <div className="mt-14 grid grid-cols-3 divide-x divide-border/60 rounded-2xl border border-border/60 bg-card py-6 sm:py-8">
             <div className="text-center">
-              <p className="text-2xl font-bold text-primary sm:text-3xl">3개</p>
-              <p className="mt-1 text-sm text-muted-foreground">연동 SEO 툴</p>
+              <p className="text-2xl font-bold text-primary sm:text-3xl">6가지</p>
+              <p className="mt-1 text-sm text-muted-foreground">핵심 분석 지표</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-primary sm:text-3xl">무료</p>
@@ -366,13 +360,13 @@ export default async function HomePage() {
                 step: "02",
                 icon: Zap,
                 title: "즉시 분석",
-                description: "Moz, Ahrefs, Majestic API와 Wayback Machine에서 데이터를 실시간으로 수집합니다.",
+                description: "글로벌 SEO 데이터베이스와 웹 아카이브에서 데이터를 실시간으로 수집합니다.",
               },
               {
                 step: "03",
                 icon: CheckCircle2,
                 title: "결과 확인",
-                description: "DA, DR, TF, 백링크, 스팸 점수, Wayback 이력까지 한 화면에서 확인하세요.",
+                description: "도메인 점수, 등급, 백링크 수, 신뢰도, 과거 이력까지 한 화면에서 확인하세요.",
               },
             ].map((item) => (
               <div key={item.step} className="relative text-center">
@@ -410,9 +404,9 @@ export default async function HomePage() {
                 icon: Target,
                 title: "도메인 투자자",
                 points: [
-                  "만료 도메인의 SEO 가치를 빠르게 판단",
-                  "경매 전 DA/DR/TF 사전 분석으로 입찰 전략 수립",
-                  "낙찰 이력 DB로 적정 매입가 파악",
+                  "만료 도메인의 품질을 빠르게 판단",
+                  "경매 전 도메인 점수와 이력 사전 분석",
+                  "낙찰 이력으로 적정 매입가 파악",
                 ],
               },
               {
@@ -428,8 +422,8 @@ export default async function HomePage() {
                 icon: Search,
                 title: "SEO / 마케팅 담당자",
                 points: [
-                  "백링크 구축 대상 도메인의 신뢰도 확인",
-                  "Moz DA + Ahrefs DR + Majestic TF 교차 검증",
+                  "백링크 대상 도메인의 신뢰도 확인",
+                  "여러 점수 지표를 한 번에 교차 검증",
                   "스팸 점수 체크로 페널티 리스크 회피",
                 ],
               },
@@ -438,8 +432,8 @@ export default async function HomePage() {
                 title: "블로거 / 콘텐츠 크리에이터",
                 points: [
                   "새 블로그 도메인 선정 시 품질 비교",
-                  "게스트 포스팅 대상 사이트의 DA 확인",
-                  "자신의 도메인 SEO 성장 추이 모니터링",
+                  "게스트 포스팅 대상 사이트의 점수 확인",
+                  "자신의 도메인 성장 추이 모니터링",
                 ],
               },
             ].map((persona) => (
@@ -482,33 +476,29 @@ export default async function HomePage() {
                 <span className="text-primary">좋은 도메인이 사업의 절반</span>
               </h2>
               <p className="mt-4 text-muted-foreground leading-relaxed">
-                온라인 사업에서 도메인은 가장 먼저 결정하는 것이자, 가장 오래 유지되는 자산입니다.
-                높은 DA를 가진 도메인 위에 콘텐츠를 쌓으면 검색 노출이 빨라지고,
-                기억하기 쉬운 도메인은 직접 유입 트래픽을 만듭니다.
+                온라인 사업에서 도메인은 가장 먼저 결정하는 것이자, 가장 오래 유지되는 자산입니다. 점수 높은 도메인 위에 콘텐츠를 쌓으면 검색 노출이 빨라지고, 기억하기 쉬운 도메인은 직접 유입 트래픽을 만듭니다.
               </p>
               <p className="mt-4 text-muted-foreground leading-relaxed">
-                도메인체커를 통해 구매 전 반드시 DA, DR, TF, 스팸 점수, Wayback 이력을
-                확인하세요. 데이터 기반 의사결정이 실패 확률을 줄여줍니다.
+                도메인체커를 통해 구매 전 반드시 도메인 점수, 신뢰도, 스팸 점수, 과거 이력을 확인하세요. 데이터 기반 판단이 실패 확률을 줄여줍니다.
               </p>
               <div className="mt-8">
                 <Link
                   href="/blog/what-is-da"
                   className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
                 >
-                  DA(Domain Authority)란 무엇인가? <ArrowRight className="h-4 w-4" />
+                  도메인 점수란 무엇인가? <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
             </div>
             <div className="space-y-4">
               {[
-                { metric: "DA (Domain Authority)", source: "Moz", desc: "도메인의 검색엔진 권위도. 1~100점으로 사이트의 순위 예측력을 측정" },
-                { metric: "DR (Domain Rating)", source: "Ahrefs", desc: "백링크 프로필 강도 기반 점수. 양질의 백링크가 많을수록 높아짐" },
-                { metric: "TF (Trust Flow)", source: "Majestic", desc: "링크의 품질 기반 신뢰도. 스팸이 아닌 신뢰할 수 있는 사이트에서 오는 링크 측정" },
+                { metric: "검색 순위 점수", desc: "도메인의 검색엔진 권위도. 1~100점으로 사이트의 순위 예측력을 측정" },
+                { metric: "백링크 등급", desc: "다른 사이트에서 받은 링크의 강도. 양질의 백링크가 많을수록 등급이 높아짐" },
+                { metric: "신뢰도 점수", desc: "링크의 품질 기반 신뢰도. 스팸이 아닌 신뢰할 수 있는 사이트에서 오는 링크를 측정" },
               ].map((item) => (
                 <div key={item.metric} className="rounded-xl border border-border/60 bg-card p-5 transition-shadow hover:shadow-md">
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold">{item.metric}</h3>
-                    <Badge variant="outline" className="text-xs">{item.source}</Badge>
                   </div>
                   <p className="mt-2 text-sm text-muted-foreground">{item.desc}</p>
                 </div>

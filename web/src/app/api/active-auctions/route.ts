@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createServiceClient } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -96,7 +97,7 @@ async function detectAndSaveSold(currentItems: AuctionItem[]) {
       }
     }
 
-    // 3. 낙찰된 도메인 sold_auctions에 저장
+    // 3. 낙찰된 도메인 sold_auctions에 저장 (중복 방지: domain+platform 기준 upsert)
     if (soldItems.length > 0) {
       const rows = soldItems.map((item) => ({
         domain: item.domain,
@@ -107,7 +108,12 @@ async function detectAndSaveSold(currentItems: AuctionItem[]) {
         platform: "namecheap",
       }));
 
-      await client.from("sold_auctions").insert(rows);
+      await client
+        .from("sold_auctions")
+        .upsert(rows, { onConflict: "domain,platform", ignoreDuplicates: true });
+
+      // 낙찰 데이터가 추가됐으므로 낙찰 이력 페이지 캐시 갱신
+      revalidatePath("/market-history");
     }
 
     // 4. active_auctions를 현재 데이터로 갱신 (전체 교체)
@@ -187,8 +193,8 @@ export async function GET(request: NextRequest) {
     // bid_count 내림차순 정렬
     results.sort((a, b) => b.bid_count - a.bid_count);
 
-    // 서버 사이드 낙찰 감지 (비동기 — 응답 지연 없음)
-    detectAndSaveSold(results).catch(() => {});
+    // 서버 사이드 낙찰 감지 (await — 스냅샷 교체 완료 후 응답)
+    await detectAndSaveSold(results);
 
     return NextResponse.json({
       items: results,
