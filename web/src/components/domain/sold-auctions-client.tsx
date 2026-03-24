@@ -137,17 +137,12 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
             <span className="text-sm font-normal text-muted-foreground ml-1">건</span>
           </p>
         </div>
-        <div className="relative rounded-xl border border-border/60 bg-muted/30 p-4 overflow-hidden">
+        <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
             <Trophy className="h-3.5 w-3.5" />
             전체 낙찰 건수
           </div>
-          {/* 잠금 오버레이 */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm z-10">
-            <Lock className="h-4 w-4 text-muted-foreground mb-1" />
-            <span className="text-xs font-medium text-muted-foreground">Pro 전용</span>
-          </div>
-          <p className="text-2xl font-bold blur-sm select-none">
+          <p className="text-2xl font-bold">
             {total.toLocaleString()}
             <span className="text-sm font-normal text-muted-foreground ml-1">건</span>
           </p>
@@ -184,9 +179,15 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
             <thead>
               <tr className="border-b border-border/60 bg-muted/40">
                 <th className="px-4 py-3 text-left font-medium text-muted-foreground">도메인</th>
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground">낙찰가</th>
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground hidden sm:table-cell">입찰수</th>
-                <th className="px-4 py-3 text-right font-medium text-muted-foreground">낙찰일</th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">
+                  <span className="inline-flex items-center gap-1">낙찰가 <Lock className="h-3 w-3" /></span>
+                </th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground hidden sm:table-cell">
+                  <span className="inline-flex items-center gap-1">입찰수 <Lock className="h-3 w-3" /></span>
+                </th>
+                <th className="px-4 py-3 text-right font-medium text-muted-foreground">
+                  <span className="inline-flex items-center gap-1">낙찰일 <Lock className="h-3 w-3" /></span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -203,14 +204,14 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
                       {d.name}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-right font-semibold tabular-nums">
-                    {formatUSD(d.soldPrice)}
+                  <td className="px-4 py-3 text-right">
+                    <span className="font-semibold tabular-nums blur-sm select-none">{formatUSD(d.soldPrice)}</span>
                   </td>
-                  <td className="px-4 py-3 text-right tabular-nums hidden sm:table-cell">
-                    {d.bidCount != null && d.bidCount > 0 ? `${d.bidCount}건` : "—"}
+                  <td className="px-4 py-3 text-right hidden sm:table-cell">
+                    <span className="tabular-nums blur-sm select-none">{d.bidCount != null && d.bidCount > 0 ? `${d.bidCount}건` : "—"}</span>
                   </td>
-                  <td className="px-4 py-3 text-right text-muted-foreground text-xs whitespace-nowrap">
-                    {formatSoldDate(d.soldAt)}
+                  <td className="px-4 py-3 text-right">
+                    <span className="text-muted-foreground text-xs whitespace-nowrap blur-sm select-none">{formatSoldDate(d.soldAt)}</span>
                   </td>
                 </tr>
               ))}
@@ -221,6 +222,19 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
         <div className="rounded-xl border border-dashed border-border/60 p-16 text-center">
           <Trophy className="mx-auto h-8 w-8 text-muted-foreground/50 mb-3" />
           <p className="text-muted-foreground">낙찰된 도메인이 없습니다.</p>
+        </div>
+      )}
+
+      {/* Pro 안내 */}
+      {domains.length > 0 && (
+        <div className="mt-4 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-blue-500/5 p-4 flex items-center gap-3">
+          <Lock className="h-5 w-5 shrink-0 text-primary" />
+          <div>
+            <p className="text-sm font-semibold">낙찰가, 입찰수, 낙찰일은 Pro 전용 데이터입니다</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Pro 구독으로 모든 낙찰 데이터를 확인하고 도메인 투자에 활용하세요.
+            </p>
+          </div>
         </div>
       )}
 
