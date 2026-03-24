@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import {
   Trophy,
@@ -73,8 +73,6 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
   const [total, setTotal] = useState(initialTotal);
   const [hasMore, setHasMore] = useState(initialItems.length < initialTotal);
   const pageRef = useRef(1);
-  const sentinelRef = useRef<HTMLDivElement>(null);
-
   const loadMore = useCallback(async (sort: SortMode) => {
     const nextPage = pageRef.current + 1;
     setLoading(true);
@@ -112,24 +110,6 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
       setLoading(false);
     }
   }, []);
-
-  // IntersectionObserver — 스크롤 끝 감지
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loading) {
-          loadMore(sortMode);
-        }
-      },
-      { rootMargin: "200px" }
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [hasMore, loading, sortMode, loadMore]);
 
   const handleSort = (mode: SortMode) => {
     if (mode === sortMode) return;
@@ -254,20 +234,30 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
         </div>
       ) : null}
 
-      {/* 무한 스크롤 감지 영역 + 로딩 표시 */}
-      <div ref={sentinelRef} className="mt-4 flex justify-center py-4">
-        {loading && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            불러오는 중...
-          </div>
-        )}
-        {!hasMore && domains.length > 0 && (
-          <p className="text-xs text-muted-foreground">
-            전체 {total.toLocaleString()}건을 모두 불러왔습니다.
-          </p>
-        )}
-      </div>
+      {/* 더 보기 버튼 */}
+      {hasMore && domains.length > 0 && (
+        <div className="mt-4 flex justify-center">
+          <button
+            onClick={() => loadMore(sortMode)}
+            disabled={loading}
+            className="inline-flex items-center gap-2 rounded-lg border border-border/60 px-6 py-3 text-sm font-medium transition-colors hover:bg-muted disabled:opacity-50"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                불러오는 중...
+              </>
+            ) : (
+              <>더 보기 ({domains.length.toLocaleString()} / {total.toLocaleString()})</>
+            )}
+          </button>
+        </div>
+      )}
+      {!hasMore && domains.length > 0 && (
+        <p className="mt-4 text-xs text-muted-foreground text-center">
+          전체 {total.toLocaleString()}건을 모두 불러왔습니다.
+        </p>
+      )}
 
       {/* Pro 안내 */}
       {domains.length > 0 && (
