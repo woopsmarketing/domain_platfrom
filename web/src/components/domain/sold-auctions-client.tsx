@@ -7,11 +7,8 @@ import {
   ArrowDownWideNarrow,
   Clock,
   DollarSign,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
   Lock,
+  Loader2,
 } from "lucide-react";
 
 interface SoldDomain {
@@ -73,21 +70,24 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
   const [domains, setDomains] = useState<SoldDomain[]>(initialItems);
   const [loading, setLoading] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("recent");
-  const [page, setPage] = useState(1);
   const [total, setTotal] = useState(initialTotal);
-  const isInitialData = useRef(true); // 서버 초기 데이터를 아직 사용 중인지 추적
+  const [hasMore, setHasMore] = useState(initialItems.length < initialTotal);
+  const pageRef = useRef(1);
+  const sentinelRef = useRef<HTMLDivElement>(null);
 
-  const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
-
-  const fetchData = useCallback(async (p: number, sort: SortMode) => {
+  const loadMore = useCallback(async (sort: SortMode) => {
+    const nextPage = pageRef.current + 1;
     setLoading(true);
     try {
       const resp = await fetch(
-        `/api/sold-domains?page=${p}&per_page=${PER_PAGE}&sort=${sort}`
+        `/api/sold-domains?page=${nextPage}&per_page=${PER_PAGE}&sort=${sort}`
       );
       const data = await resp.json();
-      setDomains(data.items ?? []);
+      const newItems: SoldDomain[] = data.items ?? [];
+      setDomains((prev) => [...prev, ...newItems]);
       setTotal(data.total ?? 0);
+      pageRef.current = nextPage;
+      if (newItems.length < PER_PAGE) setHasMore(false);
     } catch {
       // ignore
     } finally {
@@ -95,22 +95,47 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
     }
   }, []);
 
+  const fetchFresh = useCallback(async (sort: SortMode) => {
+    setLoading(true);
+    pageRef.current = 1;
+    try {
+      const resp = await fetch(
+        `/api/sold-domains?page=1&per_page=${PER_PAGE}&sort=${sort}`
+      );
+      const data = await resp.json();
+      setDomains(data.items ?? []);
+      setTotal(data.total ?? 0);
+      setHasMore((data.items ?? []).length < (data.total ?? 0));
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // IntersectionObserver — 스크롤 끝 감지
   useEffect(() => {
-    // 첫 로드 시(page=1, sort=recent) 서버 데이터가 아직 유효하면 스킵
-    if (page === 1 && sortMode === "recent" && isInitialData.current) return;
-    fetchData(page, sortMode);
-  }, [page, sortMode, fetchData]);
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loading) {
+          loadMore(sortMode);
+        }
+      },
+      { rootMargin: "200px" }
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, loading, sortMode, loadMore]);
 
   const handleSort = (mode: SortMode) => {
-    isInitialData.current = false; // 정렬 변경 시 초기 데이터 무효화
+    if (mode === sortMode) return;
     setSortMode(mode);
-    setPage(1);
-  };
-
-  const goToPage = (p: number) => {
-    const clamped = Math.max(1, Math.min(p, totalPages));
-    setPage(clamped);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    setHasMore(true);
+    fetchFresh(mode);
   };
 
   const sortButtons: { mode: SortMode; label: string; icon: React.ReactNode }[] = [
@@ -179,11 +204,7 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
       </div>
 
       {/* Table */}
-      {loading ? (
-        <div className="rounded-xl border border-border/60 p-16 text-center">
-          <p className="text-muted-foreground">데이터를 불러오는 중...</p>
-        </div>
-      ) : domains.length > 0 ? (
+      {domains.length > 0 ? (
         <div className="overflow-x-auto rounded-xl border border-border/60">
           <table className="w-full text-sm">
             <thead>
@@ -195,51 +216,62 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
               </tr>
             </thead>
             <tbody>
-              {domains.map((d) => (
-                <tr
-                  key={d.id}
-                  className="border-b border-border/40 last:border-0 transition-colors hover:bg-muted/30"
-                >
-                  <td className="px-4 py-3">
-                    <Link
-                      href={`/domain/${d.name}`}
-                      className="font-medium text-foreground hover:text-green-600 transition-colors"
-                    >
-                      {d.name}
-                    </Link>
-                  </td>
-                  {(() => {
-                    const free = isWithin24h(d.soldAt);
-                    const blur = free ? "" : "blur-sm select-none";
-                    return (
-                      <>
-                        <td className="px-4 py-3 text-right">
-                          <span className={`font-semibold tabular-nums ${blur}`}>{formatUSD(d.soldPrice)}</span>
-                        </td>
-                        <td className="px-4 py-3 text-right hidden sm:table-cell">
-                          <span className={`tabular-nums ${blur}`}>{d.bidCount != null && d.bidCount > 0 ? `${d.bidCount}건` : "—"}</span>
-                        </td>
-                        <td className="px-4 py-3 text-right">
-                          <span className={`text-muted-foreground text-xs whitespace-nowrap ${blur}`}>{formatSoldDate(d.soldAt)}</span>
-                        </td>
-                      </>
-                    );
-                  })()}
-                </tr>
-              ))}
+              {domains.map((d) => {
+                const free = isWithin24h(d.soldAt);
+                const blur = free ? "" : "blur-sm select-none";
+                return (
+                  <tr
+                    key={d.id}
+                    className="border-b border-border/40 last:border-0 transition-colors hover:bg-muted/30"
+                  >
+                    <td className="px-4 py-3">
+                      <Link
+                        href={`/domain/${d.name}`}
+                        className="font-medium text-foreground hover:text-green-600 transition-colors"
+                      >
+                        {d.name}
+                      </Link>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span className={`font-semibold tabular-nums ${blur}`}>{formatUSD(d.soldPrice)}</span>
+                    </td>
+                    <td className="px-4 py-3 text-right hidden sm:table-cell">
+                      <span className={`tabular-nums ${blur}`}>{d.bidCount != null && d.bidCount > 0 ? `${d.bidCount}건` : "—"}</span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span className={`text-muted-foreground text-xs whitespace-nowrap ${blur}`}>{formatSoldDate(d.soldAt)}</span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
-      ) : (
+      ) : !loading ? (
         <div className="rounded-xl border border-dashed border-border/60 p-16 text-center">
           <Trophy className="mx-auto h-8 w-8 text-muted-foreground/50 mb-3" />
           <p className="text-muted-foreground">낙찰된 도메인이 없습니다.</p>
         </div>
-      )}
+      ) : null}
+
+      {/* 무한 스크롤 감지 영역 + 로딩 표시 */}
+      <div ref={sentinelRef} className="mt-4 flex justify-center py-4">
+        {loading && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            불러오는 중...
+          </div>
+        )}
+        {!hasMore && domains.length > 0 && (
+          <p className="text-xs text-muted-foreground">
+            전체 {total.toLocaleString()}건을 모두 불러왔습니다.
+          </p>
+        )}
+      </div>
 
       {/* Pro 안내 */}
       {domains.length > 0 && (
-        <div className="mt-4 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-blue-500/5 p-4 flex items-center gap-3">
+        <div className="mt-2 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-blue-500/5 p-4 flex items-center gap-3">
           <Lock className="h-5 w-5 shrink-0 text-primary" />
           <div>
             <p className="text-sm font-semibold">24시간 이전 낙찰 데이터는 Pro 전용입니다</p>
@@ -248,77 +280,6 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
             </p>
           </div>
         </div>
-      )}
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="mt-6 flex items-center justify-center gap-1">
-          <button
-            onClick={() => goToPage(1)}
-            disabled={page === 1}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
-            aria-label="첫 페이지"
-          >
-            <ChevronsLeft className="h-4 w-4" />
-          </button>
-          <button
-            onClick={() => goToPage(page - 1)}
-            disabled={page === 1}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
-            aria-label="이전 페이지"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-
-          {/* 페이지 번호 */}
-          {(() => {
-            const pages: number[] = [];
-            const maxVisible = 5;
-            let start = Math.max(1, page - Math.floor(maxVisible / 2));
-            const end = Math.min(totalPages, start + maxVisible - 1);
-            start = Math.max(1, end - maxVisible + 1);
-
-            for (let i = start; i <= end; i++) pages.push(i);
-            return pages.map((p) => (
-              <button
-                key={p}
-                onClick={() => goToPage(p)}
-                className={`inline-flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium transition-colors ${
-                  p === page
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted"
-                }`}
-              >
-                {p}
-              </button>
-            ));
-          })()}
-
-          <button
-            onClick={() => goToPage(page + 1)}
-            disabled={page === totalPages}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
-            aria-label="다음 페이지"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
-          <button
-            onClick={() => goToPage(totalPages)}
-            disabled={page === totalPages}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
-            aria-label="마지막 페이지"
-          >
-            <ChevronsRight className="h-4 w-4" />
-          </button>
-        </div>
-      )}
-
-      {/* 페이지 정보 */}
-      {total > 0 && (
-        <p className="mt-3 text-xs text-muted-foreground text-center">
-          전체 {total.toLocaleString()}건 중 {((page - 1) * PER_PAGE + 1).toLocaleString()}–
-          {Math.min(page * PER_PAGE, total).toLocaleString()}건 표시
-        </p>
       )}
     </div>
   );
