@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import {
   Trophy,
@@ -11,6 +11,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Lock,
 } from "lucide-react";
 
 interface SoldDomain {
@@ -28,6 +29,7 @@ type SortMode = "recent" | "price_desc" | "price_asc";
 interface SoldAuctionsProps {
   initialItems: SoldDomain[];
   initialTotal: number;
+  recent24hCount: number;
 }
 
 const PER_PAGE = 50;
@@ -57,12 +59,13 @@ function formatUSD(price: number): string {
   }).format(price);
 }
 
-export function SoldAuctionsClient({ initialItems, initialTotal }: SoldAuctionsProps) {
+export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount }: SoldAuctionsProps) {
   const [domains, setDomains] = useState<SoldDomain[]>(initialItems);
   const [loading, setLoading] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("recent");
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(initialTotal);
+  const isInitialData = useRef(true); // 서버 초기 데이터를 아직 사용 중인지 추적
 
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
 
@@ -82,15 +85,16 @@ export function SoldAuctionsClient({ initialItems, initialTotal }: SoldAuctionsP
     }
   }, []);
 
-  // 초기 상태(page=1, sort=recent)는 서버 데이터를 그대로 사용하고 fetch 스킵
   useEffect(() => {
-    if (page === 1 && sortMode === "recent") return;
+    // 첫 로드 시(page=1, sort=recent) 서버 데이터가 아직 유효하면 스킵
+    if (page === 1 && sortMode === "recent" && isInitialData.current) return;
     fetchData(page, sortMode);
   }, [page, sortMode, fetchData]);
 
   const handleSort = (mode: SortMode) => {
+    isInitialData.current = false; // 정렬 변경 시 초기 데이터 무효화
     setSortMode(mode);
-    setPage(1); // 정렬 변경 시 1페이지로
+    setPage(1);
   };
 
   const goToPage = (p: number) => {
@@ -113,7 +117,7 @@ export function SoldAuctionsClient({ initialItems, initialTotal }: SoldAuctionsP
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-500/10">
             <Trophy className="h-5 w-5 text-green-500" />
           </div>
-          <h1 className="text-2xl font-bold sm:text-3xl">낙찰 이력</h1>
+          <h1 className="text-2xl font-bold sm:text-3xl">도메인 거래 시세</h1>
         </div>
         <p className="text-muted-foreground max-w-2xl">
           도메인이 실제로 얼마에 거래되는지 확인하세요. 경매 도메인과 만료 도메인의 실제 낙찰 가격, 입찰 수를 무료로 조회할 수 있습니다.
@@ -125,22 +129,27 @@ export function SoldAuctionsClient({ initialItems, initialTotal }: SoldAuctionsP
       <div className="mb-8 grid grid-cols-2 gap-4">
         <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-            <Trophy className="h-3.5 w-3.5" />
-            전체 낙찰 건수
+            <Clock className="h-3.5 w-3.5" />
+            최근 24시간 낙찰
           </div>
           <p className="text-2xl font-bold">
-            {total.toLocaleString()}
+            {recent24hCount.toLocaleString()}
             <span className="text-sm font-normal text-muted-foreground ml-1">건</span>
           </p>
         </div>
-        <div className="rounded-xl border border-border/60 bg-muted/30 p-4">
+        <div className="relative rounded-xl border border-border/60 bg-muted/30 p-4 overflow-hidden">
           <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-            <DollarSign className="h-3.5 w-3.5" />
-            현재 페이지
+            <Trophy className="h-3.5 w-3.5" />
+            전체 낙찰 건수
           </div>
-          <p className="text-2xl font-bold">
-            {page}
-            <span className="text-sm font-normal text-muted-foreground ml-1">/ {totalPages}</span>
+          {/* 잠금 오버레이 */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm z-10">
+            <Lock className="h-4 w-4 text-muted-foreground mb-1" />
+            <span className="text-xs font-medium text-muted-foreground">Pro 전용</span>
+          </div>
+          <p className="text-2xl font-bold blur-sm select-none">
+            {total.toLocaleString()}
+            <span className="text-sm font-normal text-muted-foreground ml-1">건</span>
           </p>
         </div>
       </div>

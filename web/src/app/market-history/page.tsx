@@ -28,11 +28,19 @@ const PER_PAGE = 50;
 export default async function MarketHistoryPage() {
   const client = createServiceClient();
 
+  // 전체 데이터 (1페이지) + 전체 건수
   const { data, count } = await client
     .from("sold_auctions")
     .select("id, domain, tld, price_usd, bid_count, sold_at, platform", { count: "exact" })
     .order("sold_at", { ascending: false })
     .range(0, PER_PAGE - 1);
+
+  // 최근 24시간 낙찰 건수
+  const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { count: recent24hCount } = await client
+    .from("sold_auctions")
+    .select("id", { count: "exact", head: true })
+    .gte("sold_at", oneDayAgo);
 
   const initialItems = (data ?? []).map((row) => ({
     id: row.id,
@@ -48,6 +56,7 @@ export default async function MarketHistoryPage() {
     <SoldAuctionsClient
       initialItems={initialItems}
       initialTotal={count ?? 0}
+      recent24hCount={recent24hCount ?? 0}
     />
   );
 }
