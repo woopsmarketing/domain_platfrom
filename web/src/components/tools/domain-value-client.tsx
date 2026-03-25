@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Search, Loader2, TrendingUp, ArrowRight, Sparkles, BarChart3, Globe, Link2, DollarSign } from "lucide-react";
+import { cleanDomain } from "@/lib/clean-domain";
 
 interface ValueResult {
   domain: string;
@@ -28,12 +29,6 @@ interface AdvancedResult {
   totalScore: number;
   factors: { label: string; score: number; max: number; note: string }[];
   aiSummary: string;
-}
-
-function cleanDomain(input: string): string {
-  let d = input.trim().toLowerCase();
-  d = d.replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/^www\./, "");
-  return d;
 }
 
 const TLD_SCORES: Record<string, number> = {

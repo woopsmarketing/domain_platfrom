@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatNumber } from "@/lib/utils";
 import { calculateDomainGrade, calculateDomainAge, GRADE_BG_MAP } from "@/lib/domain-utils";
+import { cleanDomain } from "@/lib/clean-domain";
 import type { DomainDetail } from "@/types/domain";
 
 export function DomainCompare() {
@@ -33,7 +34,7 @@ export function DomainCompare() {
 
   const compare = useCallback(async () => {
     const valid = domains
-      .map((d) => d.trim().toLowerCase())
+      .map((d) => cleanDomain(d))
       .filter((d) => d.length > 0 && d.includes("."));
 
     if (valid.length < 2) return;

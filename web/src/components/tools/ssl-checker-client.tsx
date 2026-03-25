@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { Search, Loader2, Shield, Calendar, Lock, Globe, Fingerprint } from "lucide-react";
+import { cleanDomain } from "@/lib/clean-domain";
 
 interface SslData {
   subject: string;
@@ -12,12 +13,6 @@ interface SslData {
   fingerprint: string;
   subjectAltNames: string[];
   protocol: string;
-}
-
-function cleanDomain(input: string): string {
-  let d = input.trim().toLowerCase();
-  d = d.replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/^www\./, "");
-  return d;
 }
 
 function formatDate(dateStr: string): string {

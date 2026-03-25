@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { Search, Loader2, Copy, CheckCircle2 } from "lucide-react";
+import { cleanDomain } from "@/lib/clean-domain";
 
 const RECORD_TYPES = ["A", "AAAA", "CNAME", "MX", "TXT", "NS", "SOA"] as const;
 type RecordType = (typeof RECORD_TYPES)[number];
@@ -32,12 +33,6 @@ const TYPE_COLORS: Record<RecordType, string> = {
   NS: "bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400",
   SOA: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
 };
-
-function cleanDomain(input: string): string {
-  let d = input.trim().toLowerCase();
-  d = d.replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/^www\./, "");
-  return d;
-}
 
 export function DnsCheckerClient() {
   const [domain, setDomain] = useState("");

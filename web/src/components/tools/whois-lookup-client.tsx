@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { Search, Loader2, Calendar, User, Building2, Server, Shield } from "lucide-react";
+import { cleanDomain } from "@/lib/clean-domain";
 
 interface WhoisData {
   domainName: string;
@@ -13,12 +14,6 @@ interface WhoisData {
   status: string[];
   registrant?: string;
   dnssec?: string;
-}
-
-function cleanDomain(input: string): string {
-  let d = input.trim().toLowerCase();
-  d = d.replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/^www\./, "");
-  return d;
 }
 
 function formatDate(dateStr?: string): string {

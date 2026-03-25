@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { Search, Loader2, Calendar, Clock, AlertTriangle, CheckCircle2, Gavel, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { cleanDomain } from "@/lib/clean-domain";
 
 interface ExpiryData {
   domainName: string;
@@ -15,11 +16,6 @@ interface ExpiryData {
   status: "safe" | "warning" | "danger" | "expired" | "unknown";
 }
 
-function cleanDomain(input: string): string {
-  let d = input.trim().toLowerCase();
-  d = d.replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/^www\./, "");
-  return d;
-}
 
 function formatDate(dateStr: string | null): string {
   if (!dateStr) return "—";

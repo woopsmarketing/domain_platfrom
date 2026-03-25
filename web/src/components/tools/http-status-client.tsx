@@ -2,18 +2,13 @@
 
 import { useState, useCallback } from "react";
 import { Search, Loader2, ArrowRight, CheckCircle2, AlertTriangle, XCircle } from "lucide-react";
+import { cleanDomain } from "@/lib/clean-domain";
 
 interface ChainEntry {
   url: string;
   status: number;
   statusText: string;
   location?: string;
-}
-
-function cleanDomain(input: string): string {
-  let d = input.trim().toLowerCase();
-  d = d.replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/^www\./, "");
-  return d;
 }
 
 function statusColor(code: number): string {

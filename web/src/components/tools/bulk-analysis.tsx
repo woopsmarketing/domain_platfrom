@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { formatNumber } from "@/lib/utils";
 import { calculateDomainGrade, GRADE_BG_MAP } from "@/lib/domain-utils";
+import { cleanDomain } from "@/lib/clean-domain";
 import type { DomainDetail } from "@/types/domain";
 
 export function BulkAnalysis() {
@@ -15,7 +15,7 @@ export function BulkAnalysis() {
   const analyze = useCallback(async () => {
     const domains = input
       .split("\n")
-      .map((d) => d.trim().toLowerCase())
+      .map((d) => cleanDomain(d))
       .filter((d) => d.length > 0 && d.includes("."));
 
     if (domains.length === 0) return;
