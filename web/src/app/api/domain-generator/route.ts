@@ -92,11 +92,9 @@ function generateFallbackNames(keyword: string, tlds: string[]): CategorizedName
 }
 
 // ---------- OpenAI ----------
-let _lastOpenAIError = "";
-
 async function generateWithOpenAI(keyword: string, tlds: string[]): Promise<CategorizedNames | null> {
   const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) { _lastOpenAIError = "no_api_key"; return null; }
+  if (!apiKey) return null;
 
   const isKorean = /[가-힣]/.test(keyword);
   const langNote = isKorean
@@ -142,7 +140,7 @@ Return ONLY: {"seo":["name1",...],"brand":["name1",...],"similar":["name1",...]}
 
     if (!res.ok) {
       const errText = await res.text().catch(() => "");
-      _lastOpenAIError = `http_${res.status}: ${errText.slice(0, 200)}`;
+      console.error("OpenAI error:", res.status, errText.slice(0, 200));
       return null;
     }
 
@@ -152,13 +150,13 @@ Return ONLY: {"seo":["name1",...],"brand":["name1",...],"similar":["name1",...]}
     const reasoning = data.usage?.completion_tokens_details?.reasoning_tokens ?? 0;
 
     if (!content) {
-      _lastOpenAIError = `empty_content(finish=${finishReason},reasoning=${reasoning},total=${data.usage?.completion_tokens ?? 0})`;
+      console.error("OpenAI empty content:", finishReason, reasoning);
       return null;
     }
 
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      _lastOpenAIError = `no_json: ${content.slice(0, 100)}`;
+      console.error("OpenAI no JSON in response");
       return null;
     }
 
@@ -172,7 +170,7 @@ Return ONLY: {"seo":["name1",...],"brand":["name1",...],"similar":["name1",...]}
       similar: clean(parsed.similar).slice(0, 6),
     };
   } catch (err) {
-    _lastOpenAIError = `exception: ${String(err).slice(0, 200)}`;
+    console.error("OpenAI exception:", err);
     return null;
   }
 }
@@ -231,11 +229,8 @@ export async function POST(request: NextRequest) {
   }
 
   // OpenAI → fallback
-  let aiSource = "openai";
-  let aiError = "";
   let categorized = await generateWithOpenAI(keyword, tlds);
   if (!categorized) {
-    aiSource = "fallback";
     categorized = generateFallbackNames(keyword, tlds);
   } else {
     // OpenAI는 이름만 반환하므로 TLD 붙이기
@@ -269,7 +264,5 @@ export async function POST(request: NextRequest) {
     seo: toResult(categorized.seo),
     brand: toResult(categorized.brand),
     similar: toResult(categorized.similar),
-    _source: aiSource,
-    _error: aiSource === "fallback" ? _lastOpenAIError : undefined,
   });
 }
