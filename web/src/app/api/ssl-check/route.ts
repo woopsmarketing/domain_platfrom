@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
       { host: clean, port: 443, servername: clean, rejectUnauthorized: false, timeout: 5000 },
       () => {
         const cert = socket.getPeerCertificate();
+        const protocol = socket.getProtocol() ?? "TLS";
         socket.destroy();
 
         if (!cert || !cert.subject) {
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
           serialNumber: cert.serialNumber,
           fingerprint: cert.fingerprint256,
           subjectAltNames: (cert.subjectaltname ?? "").split(", ").map((s: string) => s.replace("DNS:", "")),
-          protocol: socket.getProtocol(),
+          protocol,
         }));
       }
     );
