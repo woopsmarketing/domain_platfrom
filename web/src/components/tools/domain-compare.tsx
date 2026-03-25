@@ -93,27 +93,56 @@ export function DomainCompare() {
 
     const waybacks = results.map((r) => r.wayback);
 
-    const rows: MetricRow[] = [
-      { label: "DA", values: metrics.map((m) => m?.mozDA ?? "-"), winner: findWinner(metrics.map((m) => m?.mozDA)) },
-      { label: "PA", values: metrics.map((m) => m?.mozPA ?? "-"), winner: findWinner(metrics.map((m) => m?.mozPA)) },
-      { label: "DR", values: metrics.map((m) => m?.ahrefsDR ?? "-"), winner: findWinner(metrics.map((m) => m?.ahrefsDR)) },
-      { label: "TF", values: metrics.map((m) => m?.majesticTF ?? "-"), winner: findWinner(metrics.map((m) => m?.majesticTF)) },
-      { label: "CF", values: metrics.map((m) => m?.majesticCF ?? "-"), winner: findWinner(metrics.map((m) => m?.majesticCF)) },
-      { label: "백링크", values: metrics.map((m) => m?.ahrefsBacklinks != null ? formatNumber(m.ahrefsBacklinks) : "-"), winner: findWinner(metrics.map((m) => m?.ahrefsBacklinks)) },
-      { label: "참조 도메인", values: metrics.map((m) => m?.ahrefsRefDomains != null ? formatNumber(m.ahrefsRefDomains) : "-"), winner: findWinner(metrics.map((m) => m?.ahrefsRefDomains)) },
-      { label: "월간 트래픽", values: metrics.map((m) => m?.ahrefsTraffic != null ? formatNumber(m.ahrefsTraffic) : "-"), winner: findWinner(metrics.map((m) => m?.ahrefsTraffic)) },
-      { label: "트래픽 가치", values: metrics.map((m) => m?.ahrefsTrafficValue != null ? `$${formatNumber(m.ahrefsTrafficValue)}` : "-"), winner: findWinner(metrics.map((m) => m?.ahrefsTrafficValue)) },
-      { label: "키워드", values: metrics.map((m) => m?.ahrefsOrganicKeywords != null ? formatNumber(m.ahrefsOrganicKeywords) : "-"), winner: findWinner(metrics.map((m) => m?.ahrefsOrganicKeywords)) },
-      { label: "스팸 점수", values: metrics.map((m) => m?.mozSpam != null ? `${m.mozSpam}%` : "-"), winner: findWinner(metrics.map((m) => m?.mozSpam), true) },
+    type Section = { title: string; color: string; rows: MetricRow[] };
+
+    const sections: Section[] = [
       {
-        label: "도메인 연령",
-        values: whois.map((w) => { const age = calculateDomainAge(w?.createdDate); return age?.label ?? "-"; }),
-        winner: findWinner(whois.map((w) => { const age = calculateDomainAge(w?.createdDate); return age?.totalDays ?? null; })),
+        title: "Moz",
+        color: "text-blue-600",
+        rows: [
+          { label: "DA (Domain Authority)", values: metrics.map((m) => m?.mozDA ?? "-"), winner: findWinner(metrics.map((m) => m?.mozDA)) },
+          { label: "PA (Page Authority)", values: metrics.map((m) => m?.mozPA ?? "-"), winner: findWinner(metrics.map((m) => m?.mozPA)) },
+          { label: "Links", values: metrics.map((m) => m?.mozLinks != null ? formatNumber(m.mozLinks) : "-"), winner: findWinner(metrics.map((m) => m?.mozLinks)) },
+          { label: "Spam Score", values: metrics.map((m) => m?.mozSpam != null ? `${m.mozSpam}%` : "-"), winner: findWinner(metrics.map((m) => m?.mozSpam), true) },
+        ],
       },
-      { label: "Wayback 스냅샷", values: waybacks.map((w) => w?.totalSnapshots != null ? formatNumber(w.totalSnapshots) : "-"), winner: findWinner(waybacks.map((w) => w?.totalSnapshots)) },
+      {
+        title: "Ahrefs",
+        color: "text-orange-600",
+        rows: [
+          { label: "DR (Domain Rating)", values: metrics.map((m) => m?.ahrefsDR ?? "-"), winner: findWinner(metrics.map((m) => m?.ahrefsDR)) },
+          { label: "백링크", values: metrics.map((m) => m?.ahrefsBacklinks != null ? formatNumber(m.ahrefsBacklinks) : "-"), winner: findWinner(metrics.map((m) => m?.ahrefsBacklinks)) },
+          { label: "참조 도메인", values: metrics.map((m) => m?.ahrefsRefDomains != null ? formatNumber(m.ahrefsRefDomains) : "-"), winner: findWinner(metrics.map((m) => m?.ahrefsRefDomains)) },
+          { label: "월간 트래픽", values: metrics.map((m) => m?.ahrefsTraffic != null ? formatNumber(m.ahrefsTraffic) : "-"), winner: findWinner(metrics.map((m) => m?.ahrefsTraffic)) },
+          { label: "트래픽 가치", values: metrics.map((m) => m?.ahrefsTrafficValue != null ? `$${formatNumber(m.ahrefsTrafficValue)}` : "-"), winner: findWinner(metrics.map((m) => m?.ahrefsTrafficValue)) },
+          { label: "키워드", values: metrics.map((m) => m?.ahrefsOrganicKeywords != null ? formatNumber(m.ahrefsOrganicKeywords) : "-"), winner: findWinner(metrics.map((m) => m?.ahrefsOrganicKeywords)) },
+        ],
+      },
+      {
+        title: "Majestic",
+        color: "text-purple-600",
+        rows: [
+          { label: "TF (Trust Flow)", values: metrics.map((m) => m?.majesticTF ?? "-"), winner: findWinner(metrics.map((m) => m?.majesticTF)) },
+          { label: "CF (Citation Flow)", values: metrics.map((m) => m?.majesticCF ?? "-"), winner: findWinner(metrics.map((m) => m?.majesticCF)) },
+          { label: "Links", values: metrics.map((m) => m?.majesticLinks != null ? formatNumber(m.majesticLinks) : "-"), winner: findWinner(metrics.map((m) => m?.majesticLinks)) },
+          { label: "참조 도메인", values: metrics.map((m) => m?.majesticRefDomains != null ? formatNumber(m.majesticRefDomains) : "-"), winner: findWinner(metrics.map((m) => m?.majesticRefDomains)) },
+        ],
+      },
+      {
+        title: "기타",
+        color: "text-green-600",
+        rows: [
+          {
+            label: "도메인 연령",
+            values: whois.map((w) => { const age = calculateDomainAge(w?.createdDate); return age?.label ?? "-"; }),
+            winner: findWinner(whois.map((w) => { const age = calculateDomainAge(w?.createdDate); return age?.totalDays ?? null; })),
+          },
+          { label: "Wayback 스냅샷", values: waybacks.map((w) => w?.totalSnapshots != null ? formatNumber(w.totalSnapshots) : "-"), winner: findWinner(waybacks.map((w) => w?.totalSnapshots)) },
+        ],
+      },
     ];
 
-    return rows;
+    return sections;
   };
 
   return (
@@ -182,7 +211,7 @@ export function DomainCompare() {
             })}
           </div>
 
-          {/* Comparison table */}
+          {/* Comparison table — 소스별 섹션 */}
           <div className="overflow-x-auto rounded-lg border">
             <table className="w-full text-sm">
               <thead>
@@ -196,23 +225,32 @@ export function DomainCompare() {
                 </tr>
               </thead>
               <tbody>
-                {buildRows().map((row) => (
-                  <tr key={row.label} className="border-b last:border-0">
-                    <td className="px-4 py-3 font-medium">{row.label}</td>
-                    {row.values.map((val, i) => (
-                      <td
-                        key={i}
-                        className={`px-4 py-3 text-right ${
-                          i === row.winner ? "font-semibold text-green-600" : ""
-                        }`}
-                      >
-                        <span className="inline-flex items-center gap-1">
-                          {val}
-                          {i === row.winner && <span title="Winner">🏆</span>}
-                        </span>
+                {buildRows().map((section) => (
+                  <>
+                    <tr key={section.title} className="bg-muted/30">
+                      <td colSpan={results.length + 1} className={`px-4 py-2 text-xs font-semibold ${section.color}`}>
+                        {section.title}
                       </td>
+                    </tr>
+                    {section.rows.map((row) => (
+                      <tr key={row.label} className="border-b last:border-0">
+                        <td className="px-4 py-2.5 text-sm">{row.label}</td>
+                        {row.values.map((val, i) => (
+                          <td
+                            key={i}
+                            className={`px-4 py-2.5 text-right tabular-nums ${
+                              i === row.winner ? "font-semibold text-green-600" : ""
+                            }`}
+                          >
+                            <span className="inline-flex items-center gap-1">
+                              {val}
+                              {i === row.winner && <span title="Winner">🏆</span>}
+                            </span>
+                          </td>
+                        ))}
+                      </tr>
                     ))}
-                  </tr>
+                  </>
                 ))}
               </tbody>
             </table>
