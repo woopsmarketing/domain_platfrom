@@ -91,7 +91,8 @@ CREATE TABLE IF NOT EXISTS sold_auctions (
   bid_count     INTEGER,
   sold_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
   platform      TEXT NOT NULL DEFAULT 'namecheap',
-  created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT sold_auctions_domain_platform_key UNIQUE (domain, platform)
 );
 
 CREATE INDEX IF NOT EXISTS idx_sold_auctions_domain  ON sold_auctions(domain);

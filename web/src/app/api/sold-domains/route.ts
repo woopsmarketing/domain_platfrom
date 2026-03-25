@@ -41,24 +41,28 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ items: [], total: 0, page, perPage });
     }
 
-    const items = (data ?? []).map((row) => ({
-      id: row.id,
-      name: row.domain,
-      tld: row.tld,
-      source: row.platform,
-      soldAt: row.sold_at,
-      soldPrice: row.price_usd,
-      bidCount: row.bid_count,
-    }));
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-    const response = NextResponse.json({
+    const items = (data ?? []).map((row) => {
+      const isRecent = row.sold_at >= oneDayAgo;
+      return {
+        id: row.id,
+        name: row.domain,
+        tld: row.tld,
+        source: row.platform,
+        soldAt: row.sold_at,
+        // 24시간 이전 데이터는 서버에서 마스킹 (Pro 전용)
+        soldPrice: isRecent ? row.price_usd : 0,
+        bidCount: isRecent ? row.bid_count : null,
+      };
+    });
+
+    return NextResponse.json({
       items,
       total: count ?? 0,
       page,
       perPage,
     });
-
-    return response;
   } catch (err) {
     console.error("sold-domains error:", err);
     return NextResponse.json({ items: [], total: 0, page: 1, perPage: 50 });

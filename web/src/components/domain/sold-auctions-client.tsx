@@ -198,7 +198,6 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
             <tbody>
               {domains.map((d) => {
                 const free = isWithin24h(d.soldAt);
-                const blur = free ? "" : "blur-sm select-none";
                 return (
                   <tr
                     key={d.id}
@@ -213,13 +212,25 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
                       </Link>
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <span className={`font-semibold tabular-nums ${blur}`}>{formatUSD(d.soldPrice)}</span>
+                      {free ? (
+                        <span className="font-semibold tabular-nums">{formatUSD(d.soldPrice)}</span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Lock className="h-3 w-3" />Pro</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-right hidden sm:table-cell">
-                      <span className={`tabular-nums ${blur}`}>{d.bidCount != null && d.bidCount > 0 ? `${d.bidCount}건` : "—"}</span>
+                      {free ? (
+                        <span className="tabular-nums">{d.bidCount != null && d.bidCount > 0 ? `${d.bidCount}건` : "—"}</span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Lock className="h-3 w-3" />Pro</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <span className={`text-muted-foreground text-xs whitespace-nowrap ${blur}`}>{formatSoldDate(d.soldAt)}</span>
+                      {free ? (
+                        <span className="text-muted-foreground text-xs whitespace-nowrap">{formatSoldDate(d.soldAt)}</span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Lock className="h-3 w-3" />Pro</span>
+                      )}
                     </td>
                   </tr>
                 );

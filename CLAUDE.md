@@ -80,10 +80,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```
 /                         → 검색창 히어로 + 인기 경매 섹션 + SaaS 랜딩 8섹션 + FAQ JSON-LD
-/domain/[name]            → 도메인 상세 분석 (SEO 지수/Whois/거래이력/Wayback 4섹션)
-/market-history           → 낙찰 이력 목록 (GoDaddy, Namecheap 크롤링 데이터)
+/domain/[name]            → 도메인 상세 분석 (SEO 지수/Whois/거래이력/Wayback 4섹션, noindex)
+/market-history           → 낙찰 이력 목록 (On-Demand ISR, 더 보기 버튼, 24h blur 잠금)
 /auctions                 → 실시간 경매 전용 페이지 (Namecheap GraphQL 직접 호출)
-/tools                    → 벌크 분석 / 도메인 비교 / TLD 통계 탭 통합
+/tools                    → 벌크 분석 / 도메인 비교 / TLD 통계 탭 통합 (도구 카드 5개)
+/tools/domain-availability → 도메인 가용성 확인 (RDAP 병렬 조회)
+/tools/domain-generator   → AI 도메인 이름 생성기 (OpenAI fallback 로컬 단어조합)
+/tools/dns-checker        → DNS 레코드 조회 (Google DNS over HTTPS, 7종 레코드)
+/tools/whois-lookup       → Whois 조회 (RDAP 기반, 외부 API 키 불필요)
+/tools/domain-value       → 도메인 가치 평가 (기본 스코어링 + RapidAPI 고도화)
 /blog                     → 블로그 목록
 /blog/what-is-da          → SEO 콘텐츠 1편
 /blog/how-to-choose-domain → SEO 콘텐츠 2편
@@ -127,8 +132,14 @@ GET http://web.archive.org/cdx/search/cdx?url={domain}&output=json&limit=10
 ```
 DB에 없으면 호출 → wayback_summary에 저장
 
-### 3. Whois — WhoisXML API
-실시간 호출 (경량, 캐시 불필요)
+### 3. DNS 조회 — Google DNS over HTTPS (무료)
+```
+GET https://dns.google/resolve?name={domain}&type={recordType}
+```
+서버 사이드 프록시 `/api/dns-lookup` — A, AAAA, MX, NS, TXT, CNAME, SOA 7종
+
+### 4. Whois — RDAP (무료, 외부 API 키 불필요)
+`/api/whois-lookup` 서버 사이드 RDAP 프록시. WHOIS_API_KEY 불필요.
 
 ---
 
@@ -140,7 +151,7 @@ domain_metrics    -- SEO 지수, 7일 캐시 (updated_at 기준)
 sales_history     -- 낙찰 이력 (sold_at, price_usd, platform)
 wayback_summary   -- Wayback 스냅샷 요약
 active_auctions   -- 이전 경매 스냅샷 저장 (서버 사이드 diff 비교용)
-sold_auctions     -- 낙찰 확정 도메인 저장 (⚠️ migration.sql에 DDL 추가 필요)
+sold_auctions     -- 낙찰 확정 도메인 저장 (UNIQUE(domain, platform) 제약 DB 적용 완료)
 ```
 
 **검색 시 자동 생성**: DB에 없는 도메인을 검색하면 `domains` 테이블에 자동 생성 (status=active, source=other)
@@ -188,8 +199,11 @@ python3 -m crawler.run      # 크롤러
 NEXT_PUBLIC_SUPABASE_URL=       # Supabase > Settings > API > URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY=  # Supabase > Settings > API > anon key
 SUPABASE_SERVICE_ROLE_KEY=      # Supabase > Settings > API > service_role key
-RAPIDAPI_KEY=                   # rapidapi.com → domain-metrics-check
-WHOIS_API_KEY=                  # whoisxmlapi.com (선택)
+RAPIDAPI_KEY=                   # rapidapi.com → domain-metrics-check + domain-value 고도화
+WHOIS_API_KEY=                  # 미사용 — /api/whois-lookup은 RDAP 직접 사용
+OPENAI_API_KEY=                 # openai.com — domain-generator (미설정 시 로컬 단어조합 fallback)
+# DATABASE_URL                  # 잔류 키 — 코드 미사용, 정리 권장
+# REDIS_URL                     # 잔류 키 — 코드 미사용, 정리 권장
 ```
 
 ---

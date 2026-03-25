@@ -1,6 +1,6 @@
 # RUNBOOK.md
 
-> 마지막 업데이트: 2026-03-22
+> 마지막 업데이트: 2026-03-25
 
 ---
 
@@ -16,11 +16,11 @@
 NEXT_PUBLIC_SUPABASE_URL=https://xxxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 SUPABASE_SERVICE_ROLE_KEY=eyJ...
-RAPIDAPI_KEY=                    # ✅ 구독 완료
-WHOIS_API_KEY=                   # 선택 — 없으면 Whois 섹션 null 반환 (⚠️ 값 확인 필요)
+RAPIDAPI_KEY=                    # ✅ 구독 완료 — SEO 지수 조회 + domain-value 고도화
 OPENAI_API_KEY=                  # 선택 — 없으면 domain-generator가 로컬 단어조합 fallback으로 동작
-# DATABASE_URL                   # 코드 미사용 — 제거 권장
-# REDIS_URL / REDIS_TOKEN        # 코드 미사용 — 제거 권장
+# WHOIS_API_KEY                  # 미사용 — /api/whois-lookup은 RDAP 직접 사용, 불필요
+# DATABASE_URL                   # 잔류 키 — 코드 미사용, 제거 권장
+# REDIS_URL / REDIS_TOKEN        # 잔류 키 — 코드 미사용, 제거 권장
 ```
 
 ---
@@ -41,6 +41,9 @@ cd web && pnpm install && pnpm dev
 | `/tools` | 벌크 분석 / 도메인 비교 / TLD 통계 |
 | `/tools/domain-availability` | 도메인 가용성 확인 (RDAP 병렬 조회) |
 | `/tools/domain-generator` | AI 도메인 이름 생성기 (OpenAI fallback 로컬 단어조합) |
+| `/tools/dns-checker` | DNS 레코드 조회 (Google DNS over HTTPS, 7종 레코드 타입) |
+| `/tools/whois-lookup` | Whois 조회 (RDAP 기반, 외부 API 키 불필요) |
+| `/tools/domain-value` | 도메인 가치 평가 (기본 스코어링 + RapidAPI 고도화) |
 | `/blog` | 블로그 목록 |
 | `/blog/what-is-da` | SEO 콘텐츠 1편 |
 | `/blog/how-to-choose-domain` | SEO 콘텐츠 2편 |
@@ -53,7 +56,8 @@ cd web && pnpm install && pnpm dev
 Supabase SQL Editor에서 `web/supabase/migration.sql` 실행.
 6개 테이블: `domains`, `domain_metrics`, `sales_history`, `wayback_summary`, `active_auctions`, `sold_auctions`
 
-> ⚠️ **P0**: `sold_auctions` UNIQUE 제약이 아직 DB에 미적용. 중복 낙찰 방지를 위해 아래 SQL을 Supabase SQL Editor에서 실행해야 함.
+> **sold_auctions UNIQUE 제약**: Supabase MCP를 통해 DB에 직접 적용 완료.
+> `migration.sql`에는 아직 미반영 상태이므로, 새 환경에서 migration.sql만으로 세팅 시 아래 SQL을 추가로 실행해야 함.
 > ```sql
 > ALTER TABLE sold_auctions
 >   ADD CONSTRAINT sold_auctions_domain_platform_key UNIQUE (domain, platform);
