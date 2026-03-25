@@ -16,6 +16,16 @@ const KO_TO_EN: Record<string, string[]> = {
   "교육": ["edu", "learn", "study"], "금융": ["finance", "money", "pay"],
   "부동산": ["realty", "home", "house"], "게임": ["game", "play", "fun"],
   "디자인": ["design", "pixel", "craft"], "마케팅": ["market", "growth", "boost"],
+  "도메인": ["domain", "site", "web"], "분석": ["analyze", "scan", "check"],
+  "검색": ["search", "find", "seek"], "확인": ["check", "verify", "scan"],
+  "가격": ["price", "cost", "value"], "비교": ["compare", "versus", "match"],
+  "추천": ["pick", "suggest", "top"], "무료": ["free", "gratis", "open"],
+  "온라인": ["online", "web", "net"], "서비스": ["service", "serve", "hub"],
+  "플랫폼": ["platform", "base", "hub"], "스타트업": ["startup", "launch", "begin"],
+  "블로그": ["blog", "post", "write"], "뉴스": ["news", "press", "feed"],
+  "사진": ["photo", "snap", "lens"], "영상": ["video", "film", "media"],
+  "음악": ["music", "beat", "tune"], "반려동물": ["pet", "paw", "buddy"],
+  "자동차": ["auto", "car", "drive"], "호스팅": ["host", "cloud", "server"],
 };
 
 function koreanToEnglish(keyword: string): string[] {
@@ -84,7 +94,7 @@ async function generateWithOpenAI(keyword: string, tlds: string[]): Promise<Cate
 
   const isKorean = /[가-힣]/.test(keyword);
   const langNote = isKorean
-    ? `The keyword "${keyword}" is Korean. Generate English domain names that relate to the meaning or sound.`
+    ? `IMPORTANT: The keyword "${keyword}" is in Korean. First understand its meaning, then generate ENGLISH domain names that capture the concept, meaning, or feeling of this Korean word. Do NOT transliterate Korean to English — translate the MEANING. For example: "도메인분석" means "domain analysis", "커피숍" means "coffee shop".`
     : "";
 
   const prompt = `You are a creative domain naming expert. Generate domain name ideas related to "${keyword}".
@@ -125,16 +135,25 @@ Return ONLY: {"seo":["name1",...],"brand":["name1",...],"similar":["name1",...]}
       }),
     });
 
-    if (!res.ok) return null;
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "");
+      console.error("OpenAI API error:", res.status, errText);
+      return null;
+    }
 
     const data = await res.json();
     const content = data.choices?.[0]?.message?.content?.trim() ?? "";
+    console.log("OpenAI response:", content.slice(0, 300));
+
     const jsonMatch = content.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return null;
+    if (!jsonMatch) {
+      console.error("OpenAI response has no JSON:", content.slice(0, 200));
+      return null;
+    }
 
     const parsed = JSON.parse(jsonMatch[0]) as { seo?: string[]; brand?: string[]; similar?: string[] };
     const clean = (arr: string[] | undefined) =>
-      (arr ?? []).filter((n) => typeof n === "string" && /^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(n) && n.length >= 3 && n.length <= 15);
+      (arr ?? []).filter((n) => typeof n === "string" && /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(n) && n.length >= 3 && n.length <= 15);
 
     return {
       seo: clean(parsed.seo).slice(0, 7),
