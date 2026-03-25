@@ -128,7 +128,7 @@ Return ONLY: {"seo":["name1",...],"brand":["name1",...],"similar":["name1",...]}
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: "gpt-5-nano",
+        model: "gpt-5-nano-2025-08-07",
         messages: [{ role: "user", content: prompt }],
         temperature: 1.2,
         max_tokens: 800,
