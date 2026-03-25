@@ -219,8 +219,10 @@ export async function POST(request: NextRequest) {
   }
 
   // OpenAI → fallback
+  let aiSource = "openai";
   let categorized = await generateWithOpenAI(keyword, tlds);
   if (!categorized) {
+    aiSource = "fallback";
     categorized = generateFallbackNames(keyword, tlds);
   } else {
     // OpenAI는 이름만 반환하므로 TLD 붙이기
@@ -254,5 +256,6 @@ export async function POST(request: NextRequest) {
     seo: toResult(categorized.seo),
     brand: toResult(categorized.brand),
     similar: toResult(categorized.similar),
+    _source: aiSource,
   });
 }
