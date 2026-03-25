@@ -16,15 +16,14 @@ async function checkDomain(
   tld: string
 ): Promise<AvailabilityResult> {
   const fullDomain = `${name}.${tld}`;
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
+  // 1차: RDAP 시도
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
     const res = await fetch(`${RDAP_BASE}/${fullDomain}`, {
       signal: controller.signal,
-      headers: {
-        Accept: "application/rdap+json",
-      },
+      headers: { Accept: "application/rdap+json" },
     });
     clearTimeout(timer);
 
@@ -34,11 +33,32 @@ async function checkDomain(
     if (res.status === 200) {
       return { tld, domain: fullDomain, available: false };
     }
-    return { tld, domain: fullDomain, available: null };
   } catch {
-    clearTimeout(timer);
-    return { tld, domain: fullDomain, available: null };
+    // RDAP 실패 — DNS fallback
   }
+
+  // 2차: DNS 조회 fallback (A 레코드 없으면 미등록 가능성)
+  try {
+    const dnsResp = await fetch(
+      `https://dns.google/resolve?name=${encodeURIComponent(fullDomain)}&type=A`,
+      { signal: AbortSignal.timeout(3000) }
+    );
+    if (dnsResp.ok) {
+      const dnsData = await dnsResp.json();
+      // NXDOMAIN (Status 3) = 도메인 존재하지 않음 = 등록 가능
+      if (dnsData.Status === 3) {
+        return { tld, domain: fullDomain, available: true };
+      }
+      // 정상 응답 = 도메인 존재 = 등록됨
+      if (dnsData.Status === 0 && dnsData.Answer?.length > 0) {
+        return { tld, domain: fullDomain, available: false };
+      }
+    }
+  } catch {
+    // DNS도 실패
+  }
+
+  return { tld, domain: fullDomain, available: null };
 }
 
 const ALLOWED_TLDS = new Set([

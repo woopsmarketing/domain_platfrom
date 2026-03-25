@@ -175,16 +175,64 @@ function buildAdvanced(basicScore: number, domain: string, metrics: Record<strin
   else if (totalScore >= 40) { grade = "Medium"; estimatedValue = "$500 ~ $5,000"; }
   else if (totalScore >= 25) { grade = "Standard"; estimatedValue = "$50 ~ $500"; }
 
-  // AI 분석 요약 생성
-  const parts: string[] = [];
-  if (da > 0) parts.push(`DA ${da}로 ${da >= 30 ? "높은" : "보통의"} 검색 권위도를 보유하고 있습니다`);
-  if (refDomains > 0) parts.push(`${refDomains.toLocaleString()}개 참조 도메인에서 ${backlinks.toLocaleString()}개의 백링크를 받고 있습니다`);
-  if (trafficValue > 0) parts.push(`월 예상 트래픽 가치는 $${trafficValue.toLocaleString()}입니다`);
-  if (organicKeywords > 0) parts.push(`${organicKeywords.toLocaleString()}개의 키워드로 검색 노출되고 있습니다`);
-  if (spamScore > 5) parts.push(`스팸 점수가 ${spamScore}점으로 주의가 필요합니다`);
-  if (parts.length === 0) parts.push("SEO 데이터가 충분하지 않아 도메인 이름 특성 기반으로 평가했습니다");
+  // AI 분석 요약 생성 — 기본 평가 + 고도화 평가 통합 의견
+  const nameParts = domain.split(".");
+  const nameOnly = nameParts[0];
+  const tld = nameParts.slice(1).join(".");
+  const nameLen = nameOnly.length;
 
-  const aiSummary = `이 도메인(${domain})의 분석 결과: ${parts.join(". ")}. 종합적으로 ${grade} 등급, 예상 시장 가치는 ${estimatedValue}입니다.`;
+  const sections: string[] = [];
+
+  // 1. 도메인 이름 특성 평가
+  const nameTraits: string[] = [];
+  if (nameLen <= 5) nameTraits.push(`${nameLen}자로 매우 짧아 기억하기 쉽고 브랜드 가치가 높습니다`);
+  else if (nameLen <= 10) nameTraits.push(`${nameLen}자로 적당한 길이이며 일반적인 브랜드명으로 활용 가능합니다`);
+  else nameTraits.push(`${nameLen}자로 다소 긴 편이어서 기억하기 어려울 수 있습니다`);
+
+  if (/^[a-z]+$/.test(nameOnly)) nameTraits.push("영문자만으로 구성되어 깔끔합니다");
+  if (nameOnly.includes("-")) nameTraits.push("하이픈이 포함되어 있어 SEO와 브랜딩에 다소 불리합니다");
+
+  sections.push(`[이름 특성] "${domain}"은(는) ${nameTraits.join(". ")}. .${tld} 확장자는 ${tld === "com" ? "가장 범용적이고 신뢰도가 높은" : tld === "kr" || tld === "co.kr" ? "한국 시장에 적합한" : "해당 업계에서 통용되는"} 확장자입니다.`);
+
+  // 2. SEO 지표 평가
+  const seoTraits: string[] = [];
+  if (da > 0 || dr > 0) {
+    if (da >= 40) seoTraits.push(`DA ${da}점으로 검색엔진에서 높은 권위도를 인정받고 있습니다. 이 도메인 위에 콘텐츠를 올리면 빠르게 상위 노출될 가능성이 높습니다`);
+    else if (da >= 15) seoTraits.push(`DA ${da}점으로 보통 수준의 검색 권위도를 가지고 있습니다. 꾸준한 콘텐츠 발행으로 성장 가능성이 있습니다`);
+    else seoTraits.push(`DA ${da}점으로 검색 권위도가 낮은 편입니다. SEO 관점에서 콘텐츠와 백링크 구축이 필요합니다`);
+  }
+  if (refDomains > 0 && backlinks > 0) {
+    if (refDomains >= 100) seoTraits.push(`${refDomains.toLocaleString()}개 참조 도메인에서 ${backlinks.toLocaleString()}개의 백링크를 받고 있어 링크 프로필이 풍부합니다`);
+    else seoTraits.push(`참조 도메인 ${refDomains.toLocaleString()}개, 백링크 ${backlinks.toLocaleString()}개로 링크 프로필이 아직 초기 단계입니다`);
+  }
+  if (traffic > 0 || trafficValue > 0) {
+    seoTraits.push(`월 예상 트래픽 가치 $${trafficValue.toLocaleString()}, 월 방문자 약 ${traffic.toLocaleString()}명으로 ${trafficValue >= 1000 ? "상당한 트래픽 가치를 보유하고 있습니다" : "트래픽이 아직 적은 편입니다"}`);
+  }
+  if (organicKeywords > 0) {
+    seoTraits.push(`${organicKeywords.toLocaleString()}개 키워드로 검색 노출되고 있습니다`);
+  }
+  if (seoTraits.length === 0) {
+    seoTraits.push("현재 SEO 데이터(DA, 백링크, 트래픽)가 수집되지 않은 신규 도메인이거나 활성화되지 않은 도메인입니다. SEO 면에서는 처음부터 성장이 필요합니다");
+  }
+  sections.push(`[SEO 분석] ${seoTraits.join(". ")}.`);
+
+  // 3. 스팸/위험도
+  if (spamScore > 0) {
+    if (spamScore >= 30) sections.push(`[주의] 스팸 점수가 ${spamScore}점으로 높습니다. 과거에 스팸 사이트로 사용되었을 가능성이 있으며, 검색엔진 페널티 리스크가 있습니다. 구매 전 반드시 과거 이력을 확인하세요.`);
+    else if (spamScore >= 10) sections.push(`[참고] 스팸 점수가 ${spamScore}점입니다. 크게 우려할 수준은 아니지만 과거 이력 확인을 권장합니다.`);
+    else sections.push(`[안전] 스팸 점수 ${spamScore}점으로 깨끗한 상태입니다.`);
+  }
+
+  // 4. 종합 의견
+  if (grade === "Premium" || grade === "High") {
+    sections.push(`[종합] 이 도메인은 이름 품질과 SEO 지표 모두 우수하여 ${estimatedValue} 수준의 시장 가치가 예상됩니다. 브랜드 구축이나 도메인 투자 목적 모두에 적합합니다.`);
+  } else if (grade === "Medium") {
+    sections.push(`[종합] 이 도메인은 ${estimatedValue} 수준으로, 잠재력은 있지만 SEO 자산 축적이 필요합니다. 콘텐츠와 백링크를 꾸준히 구축하면 가치 상승을 기대할 수 있습니다.`);
+  } else {
+    sections.push(`[종합] 현재 ${estimatedValue} 수준의 가치로 평가됩니다. ${da === 0 && refDomains === 0 ? "신규 도메인으로 브랜드명이 적합하다면 투자 가치가 있지만, 단기 수익보다는 장기적 관점에서 접근해야 합니다." : "SEO 자산이 부족하여 즉각적인 투자 가치는 제한적입니다."}`);
+  }
+
+  const aiSummary = sections.join("\n\n");
 
   return {
     da, dr, backlinks, refDomains, traffic, trafficValue, organicKeywords, spamScore,

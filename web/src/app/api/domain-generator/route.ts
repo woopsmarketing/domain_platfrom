@@ -159,14 +159,24 @@ Keyword: "${keyword}"
 ${langNote}
 Style: ${styleGuides[style] ?? styleGuides.seo}
 
-Requirements:
-- Lowercase, letters and numbers only (no hyphens, no dots)
-- 4 to 15 characters long
-- Creative, diverse, and practical names
-- Each name should be different (not just prefix/suffix variations)
-- Mix different naming patterns: compounds, blends, abbreviations, invented words
+CRITICAL RULES:
+- Lowercase only, letters and numbers only (no hyphens, no dots, no TLD)
+- Length: 4 to 12 characters
+- EVERY name MUST be completely different from each other
+- DO NOT just add prefix/suffix to the keyword repeatedly
+- At least 5 names should NOT contain the original keyword at all
+- Use diverse naming techniques:
+  * Portmanteau/blends (e.g., "Pinterest" = pin + interest)
+  * Invented words (e.g., "Kodak", "Xerox")
+  * Metaphors (e.g., "Amazon" for vastness)
+  * Phonetic play (e.g., "Lyft" for lift)
+  * Abbreviations (e.g., "Imgur" for image)
+  * Foreign words (e.g., Latin, Japanese, etc.)
+  * Emotional words related to the concept
+- Make names that sound good when spoken aloud
+- Think about what successful startups would name their product
 
-Return ONLY a valid JSON array of 20 strings. Example: ["brewspot","kafely","cupzone"]`;
+Return ONLY a valid JSON array of 20 strings. No explanation.`;
 
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
