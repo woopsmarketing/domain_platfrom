@@ -90,57 +90,26 @@ export function DomainCompare() {
     const metrics = results.map((r) => r.metrics);
     const whois = results.map((r) => r.whois);
 
+    const waybacks = results.map((r) => r.wayback);
+
     const rows: MetricRow[] = [
-      {
-        label: "DA",
-        values: metrics.map((m) => m?.mozDA ?? "-"),
-        winner: findWinner(metrics.map((m) => m?.mozDA)),
-      },
-      {
-        label: "DR",
-        values: metrics.map((m) => m?.ahrefsDR ?? "-"),
-        winner: findWinner(metrics.map((m) => m?.ahrefsDR)),
-      },
-      {
-        label: "TF",
-        values: metrics.map((m) => m?.majesticTF ?? "-"),
-        winner: findWinner(metrics.map((m) => m?.majesticTF)),
-      },
-      {
-        label: "월간 트래픽",
-        values: metrics.map((m) =>
-          m?.ahrefsTraffic != null ? formatNumber(m.ahrefsTraffic) : "-"
-        ),
-        winner: findWinner(metrics.map((m) => m?.ahrefsTraffic)),
-      },
-      {
-        label: "백링크",
-        values: metrics.map((m) =>
-          m?.ahrefsBacklinks != null ? formatNumber(m.ahrefsBacklinks) : "-"
-        ),
-        winner: findWinner(metrics.map((m) => m?.ahrefsBacklinks)),
-      },
+      { label: "DA", values: metrics.map((m) => m?.mozDA ?? "-"), winner: findWinner(metrics.map((m) => m?.mozDA)) },
+      { label: "PA", values: metrics.map((m) => m?.mozPA ?? "-"), winner: findWinner(metrics.map((m) => m?.mozPA)) },
+      { label: "DR", values: metrics.map((m) => m?.ahrefsDR ?? "-"), winner: findWinner(metrics.map((m) => m?.ahrefsDR)) },
+      { label: "TF", values: metrics.map((m) => m?.majesticTF ?? "-"), winner: findWinner(metrics.map((m) => m?.majesticTF)) },
+      { label: "CF", values: metrics.map((m) => m?.majesticCF ?? "-"), winner: findWinner(metrics.map((m) => m?.majesticCF)) },
+      { label: "백링크", values: metrics.map((m) => m?.ahrefsBacklinks != null ? formatNumber(m.ahrefsBacklinks) : "-"), winner: findWinner(metrics.map((m) => m?.ahrefsBacklinks)) },
+      { label: "참조 도메인", values: metrics.map((m) => m?.ahrefsRefDomains != null ? formatNumber(m.ahrefsRefDomains) : "-"), winner: findWinner(metrics.map((m) => m?.ahrefsRefDomains)) },
+      { label: "월간 트래픽", values: metrics.map((m) => m?.ahrefsTraffic != null ? formatNumber(m.ahrefsTraffic) : "-"), winner: findWinner(metrics.map((m) => m?.ahrefsTraffic)) },
+      { label: "트래픽 가치", values: metrics.map((m) => m?.ahrefsTrafficValue != null ? `$${formatNumber(m.ahrefsTrafficValue)}` : "-"), winner: findWinner(metrics.map((m) => m?.ahrefsTrafficValue)) },
+      { label: "키워드", values: metrics.map((m) => m?.ahrefsOrganicKeywords != null ? formatNumber(m.ahrefsOrganicKeywords) : "-"), winner: findWinner(metrics.map((m) => m?.ahrefsOrganicKeywords)) },
+      { label: "스팸 점수", values: metrics.map((m) => m?.mozSpam != null ? `${m.mozSpam}%` : "-"), winner: findWinner(metrics.map((m) => m?.mozSpam), true) },
       {
         label: "도메인 연령",
-        values: whois.map((w) => {
-          const age = calculateDomainAge(w?.createdDate);
-          return age?.label ?? "-";
-        }),
-        winner: findWinner(
-          whois.map((w) => {
-            const age = calculateDomainAge(w?.createdDate);
-            return age?.totalDays ?? null;
-          })
-        ),
+        values: whois.map((w) => { const age = calculateDomainAge(w?.createdDate); return age?.label ?? "-"; }),
+        winner: findWinner(whois.map((w) => { const age = calculateDomainAge(w?.createdDate); return age?.totalDays ?? null; })),
       },
-      {
-        label: "스팸 점수",
-        values: metrics.map((m) => (m?.mozSpam != null ? `${m.mozSpam}%` : "-")),
-        winner: findWinner(
-          metrics.map((m) => m?.mozSpam),
-          true
-        ),
-      },
+      { label: "Wayback 스냅샷", values: waybacks.map((w) => w?.totalSnapshots != null ? formatNumber(w.totalSnapshots) : "-"), winner: findWinner(waybacks.map((w) => w?.totalSnapshots)) },
     ];
 
     return rows;

@@ -80,76 +80,88 @@ export function BulkAnalysis() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b bg-muted/50">
-                  <th className="px-4 py-3 text-left font-medium">도메인</th>
-                  <th className="px-4 py-3 text-center font-medium">등급</th>
-                  <th className="px-4 py-3 text-right font-medium">DA</th>
-                  <th className="px-4 py-3 text-right font-medium">DR</th>
-                  <th className="px-4 py-3 text-right font-medium">TF</th>
-                  <th className="px-4 py-3 text-right font-medium">백링크</th>
-                  <th className="px-4 py-3 text-right font-medium">트래픽</th>
+                  <th className="sticky left-0 bg-muted/50 px-4 py-3 text-left font-medium">도메인</th>
+                  <th className="px-3 py-3 text-center font-medium">등급</th>
+                  <th className="px-3 py-3 text-right font-medium">DA</th>
+                  <th className="px-3 py-3 text-right font-medium">PA</th>
+                  <th className="px-3 py-3 text-right font-medium">DR</th>
+                  <th className="px-3 py-3 text-right font-medium">TF</th>
+                  <th className="px-3 py-3 text-right font-medium">CF</th>
+                  <th className="px-3 py-3 text-right font-medium">백링크</th>
+                  <th className="px-3 py-3 text-right font-medium">참조도메인</th>
+                  <th className="px-3 py-3 text-right font-medium">트래픽</th>
+                  <th className="px-3 py-3 text-right font-medium">키워드</th>
+                  <th className="px-3 py-3 text-right font-medium">스팸</th>
+                  <th className="px-3 py-3 text-right font-medium">Wayback</th>
                 </tr>
               </thead>
               <tbody>
-                {results.map((detail) => (
-                  <tr key={detail.domain.name} className="border-b last:border-0">
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/domain/${detail.domain.name}`}
-                        className="text-primary underline-offset-4 hover:underline"
-                      >
-                        {detail.domain.name}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-center">{gradeCircle(detail)}</td>
-                    <td className="px-4 py-3 text-right">{detail.metrics?.mozDA ?? "-"}</td>
-                    <td className="px-4 py-3 text-right">{detail.metrics?.ahrefsDR ?? "-"}</td>
-                    <td className="px-4 py-3 text-right">{detail.metrics?.majesticTF ?? "-"}</td>
-                    <td className="px-4 py-3 text-right">
-                      {detail.metrics?.ahrefsBacklinks != null
-                        ? formatNumber(detail.metrics.ahrefsBacklinks)
-                        : "-"}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {detail.metrics?.ahrefsTraffic != null
-                        ? formatNumber(detail.metrics.ahrefsTraffic)
-                        : "-"}
-                    </td>
-                  </tr>
-                ))}
+                {results.map((detail) => {
+                  const m = detail.metrics;
+                  const wb = detail.wayback;
+                  return (
+                    <tr key={detail.domain.name} className="border-b last:border-0 hover:bg-muted/20">
+                      <td className="sticky left-0 bg-card px-4 py-3">
+                        <a
+                          href={`/domain/${detail.domain.name}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary underline-offset-4 hover:underline"
+                        >
+                          {detail.domain.name}
+                        </a>
+                      </td>
+                      <td className="px-3 py-3 text-center">{gradeCircle(detail)}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{m?.mozDA ?? "-"}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{m?.mozPA ?? "-"}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{m?.ahrefsDR ?? "-"}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{m?.majesticTF ?? "-"}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{m?.majesticCF ?? "-"}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{m?.ahrefsBacklinks != null ? formatNumber(m.ahrefsBacklinks) : "-"}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{m?.ahrefsRefDomains != null ? formatNumber(m.ahrefsRefDomains) : "-"}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{m?.ahrefsTraffic != null ? formatNumber(m.ahrefsTraffic) : "-"}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{m?.ahrefsOrganicKeywords != null ? formatNumber(m.ahrefsOrganicKeywords) : "-"}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{m?.mozSpam != null ? `${m.mozSpam}%` : "-"}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{wb?.totalSnapshots != null ? formatNumber(wb.totalSnapshots) : "-"}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
 
           {/* 모바일 카드 뷰 */}
           <div className="space-y-3 sm:hidden">
-            {results.map((detail) => (
-              <Link
-                key={detail.domain.name}
-                href={`/domain/${detail.domain.name}`}
-                className="block rounded-xl border border-border/60 p-4 transition-colors hover:bg-muted/30"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-primary truncate mr-2">
-                    {detail.domain.name}
-                  </span>
-                  {gradeCircle(detail)}
-                </div>
-                <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-                  <div>
-                    <p className="text-xs text-muted-foreground">DA</p>
-                    <p className="text-sm font-semibold">{detail.metrics?.mozDA ?? "-"}</p>
+            {results.map((detail) => {
+              const m = detail.metrics;
+              return (
+                <a
+                  key={detail.domain.name}
+                  href={`/domain/${detail.domain.name}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block rounded-xl border border-border/60 p-4 transition-colors hover:bg-muted/30"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-primary truncate mr-2">
+                      {detail.domain.name}
+                    </span>
+                    {gradeCircle(detail)}
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">DR</p>
-                    <p className="text-sm font-semibold">{detail.metrics?.ahrefsDR ?? "-"}</p>
+                  <div className="mt-3 grid grid-cols-4 gap-2 text-center">
+                    <div><p className="text-xs text-muted-foreground">DA</p><p className="text-sm font-semibold">{m?.mozDA ?? "-"}</p></div>
+                    <div><p className="text-xs text-muted-foreground">DR</p><p className="text-sm font-semibold">{m?.ahrefsDR ?? "-"}</p></div>
+                    <div><p className="text-xs text-muted-foreground">TF</p><p className="text-sm font-semibold">{m?.majesticTF ?? "-"}</p></div>
+                    <div><p className="text-xs text-muted-foreground">CF</p><p className="text-sm font-semibold">{m?.majesticCF ?? "-"}</p></div>
                   </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">TF</p>
-                    <p className="text-sm font-semibold">{detail.metrics?.majesticTF ?? "-"}</p>
+                  <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+                    <div><p className="text-xs text-muted-foreground">백링크</p><p className="text-xs font-semibold">{m?.ahrefsBacklinks != null ? formatNumber(m.ahrefsBacklinks) : "-"}</p></div>
+                    <div><p className="text-xs text-muted-foreground">트래픽</p><p className="text-xs font-semibold">{m?.ahrefsTraffic != null ? formatNumber(m.ahrefsTraffic) : "-"}</p></div>
+                    <div><p className="text-xs text-muted-foreground">스팸</p><p className="text-xs font-semibold">{m?.mozSpam != null ? `${m.mozSpam}%` : "-"}</p></div>
                   </div>
-                </div>
-              </Link>
-            ))}
+                </a>
+              );
+            })}
           </div>
         </>
       )}
