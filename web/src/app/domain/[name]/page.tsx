@@ -11,7 +11,7 @@ import { incrementSearchCount } from "@/lib/db/analytics";
 import { fetchDomainMetrics } from "@/lib/external/rapidapi";
 import { fetchWayback } from "@/lib/external/wayback";
 import { saveWaybackToDb } from "@/lib/db/wayback";
-import { MetricBlock } from "@/components/domain/detail-helpers";
+import { SeoMetricsCards } from "@/components/domain/seo-metrics-cards";
 import type { DomainDetail } from "@/types/domain";
 import { isStale } from "@/lib/cache";
 
@@ -135,60 +135,9 @@ export default async function DomainDetailPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* SEO Metrics — 3 Cards */}
+      {/* SEO Metrics — 3 Cards (Pro 전용 지표 잠금 적용) */}
       {data.metrics ? (
-        <div className="mb-6 grid gap-4 sm:grid-cols-3">
-          {/* Moz */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold tracking-wide text-muted-foreground">Moz</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <MetricBlock items={[
-                { label: "DA", value: data.metrics.mozDA },
-                { label: "PA", value: data.metrics.mozPA },
-                { label: "Links", value: data.metrics.mozLinks },
-                { label: "Spam Score", value: data.metrics.mozSpam },
-              ]} />
-            </CardContent>
-          </Card>
-
-          {/* Majestic */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold tracking-wide text-muted-foreground">Majestic</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <MetricBlock items={[
-                { label: "Trust Flow", value: data.metrics.majesticTF },
-                { label: "Citation Flow", value: data.metrics.majesticCF },
-                { label: "Links", value: data.metrics.majesticLinks },
-                { label: "Ref Domains", value: data.metrics.majesticRefDomains },
-              ]} />
-              {data.metrics.majesticTTF0Name && (
-                <div className="mt-2 rounded bg-muted px-2 py-1 text-xs text-muted-foreground">
-                  주제: <span className="font-medium text-foreground">{data.metrics.majesticTTF0Name}</span>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Ahrefs */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-semibold tracking-wide text-muted-foreground">Ahrefs</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <MetricBlock items={[
-                { label: "DR", value: data.metrics.ahrefsDR },
-                { label: "Backlinks", value: data.metrics.ahrefsBacklinks },
-                { label: "Ref Domains", value: data.metrics.ahrefsRefDomains },
-                { label: "Traffic", value: data.metrics.ahrefsTraffic },
-                { label: "Keywords", value: data.metrics.ahrefsOrganicKeywords },
-              ]} />
-            </CardContent>
-          </Card>
-        </div>
+        <SeoMetricsCards metrics={data.metrics} />
       ) : (
         <Card className="mb-6">
           <CardContent className="py-6">
