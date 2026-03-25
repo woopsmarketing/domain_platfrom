@@ -88,13 +88,30 @@ async function detectAndSaveSold(currentItems: AuctionItem[]) {
       prevMap.set(row.domain, row);
     }
 
-    // 2. 현재 목록에 없는 도메인 = 낙찰
+    // 2. 현재 목록에 없는 도메인 중 경매 종료 시간이 지난 것만 = 낙찰
+    //    (경매 종료 시간이 아직 남은 도메인은 API 페이지네이션 누락일 수 있으므로 제외)
     const currentDomains = new Set(currentItems.map((i) => i.domain));
     const soldItems = [];
-    for (const [domain, data] of prevMap) {
-      if (!currentDomains.has(domain)) {
-        soldItems.push(data);
-      }
+
+    // 이전 스냅샷의 end_time_raw를 가져와서 종료 시간 확인
+    const { data: prevWithTime } = await client
+      .from("active_auctions")
+      .select("domain, tld, current_price, bid_count, end_time_raw");
+
+    for (const row of prevWithTime ?? []) {
+      if (currentDomains.has(row.domain)) continue; // 여전히 경매 중
+
+      // 경매 종료 시간 확인 — 종료 시간이 지난 경우에만 낙찰로 처리
+      const endTime = new Date(row.end_time_raw ?? "").getTime();
+      if (isNaN(endTime)) continue; // 종료 시간 파싱 실패 → 건너뜀
+      if (endTime > Date.now()) continue; // 아직 종료 안 됨 → 건너뜀 (API 누락일 수 있음)
+
+      soldItems.push({
+        domain: row.domain,
+        tld: row.tld,
+        current_price: row.current_price,
+        bid_count: row.bid_count,
+      });
     }
 
     // 3. 낙찰된 도메인 sold_auctions에 저장 (중복 방지: domain+platform 기준 upsert)
