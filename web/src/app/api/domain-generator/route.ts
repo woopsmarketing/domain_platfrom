@@ -87,33 +87,41 @@ async function generateWithOpenAI(keyword: string, tlds: string[]): Promise<Cate
     ? `The keyword "${keyword}" is Korean. Generate English domain names that relate to the meaning or sound.`
     : "";
 
-  const prompt = `Generate domain name ideas for the keyword "${keyword}".
+  const prompt = `You are a creative domain naming expert. Generate domain name ideas related to "${keyword}".
 ${langNote}
 
-Generate exactly 20 names in 3 categories:
-- "seo" (7 names): Keywords included, descriptive, SEO-friendly. e.g., coffeehub, bestcoffee, mycoffee
-- "brand" (7 names): Short (4-8 chars), catchy, invented/creative words. Think Spotify, Canva, Zapier. Must NOT contain the original keyword.
-- "similar" (6 names): Inspired by successful brands, trendy compound words. e.g., coffeeflow, brewstack, roastwave
+Return exactly 20 names in 3 categories as JSON:
 
-CRITICAL RULES:
-- Lowercase only, letters and numbers only (NO hyphens, NO dots, NO TLD extensions)
-- 4 to 12 characters long
-- EVERY name must be completely unique and different
-- Brand names MUST NOT contain the original keyword at all
-- Use diverse techniques: portmanteau, invented words, metaphors, phonetic play, abbreviations
-- Names must sound good when spoken aloud
+"seo" (7 names): Include the keyword or a synonym. Descriptive and search-friendly.
+  Example for "coffee": best-coffee, my-cafe, coffee-hub, get-brew, daily-coffee, top-roast, fresh-bean
 
-Return ONLY valid JSON: {"seo":["name1",...],"brand":["name1",...],"similar":["name1",...]}`;
+"brand" (7 names): COMPLETELY NEW invented words. DO NOT include "${keyword}" or any part of it.
+  Create short (3-7 char) catchy made-up words that FEEL related to the concept but use different words entirely.
+  Example for "coffee": brewly, sipzr, kafex, muggo, roastio, javva, cupiq
+  Example for "domaincheck": verfyx, sitepulse, webiq, dnslook, urlvox, netprobe, checkora
+
+"similar" (6 names): Combine the concept with trendy words. Can use abbreviations or creative splits.
+  Example for "coffee": brew-stack, cafe-dash, roast-flow, bean-wave, cup-spark, mocha-lab
+  Example for "domaincheck": site-scan, web-audit, dns-pulse, url-check, net-verify, domain-spy
+
+RULES:
+- Lowercase only, letters, numbers, and hyphens allowed (NO dots, NO TLD)
+- 3 to 14 characters
+- Brand names MUST NOT contain "${keyword}" or any substring of it
+- Each name must be unique and different from all others
+- Hyphens are OK and encouraged for readability (e.g., "do-check", "web-scan")
+
+Return ONLY: {"seo":["name1",...],"brand":["name1",...],"similar":["name1",...]}`;
 
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-4.1-nano",
         messages: [{ role: "user", content: prompt }],
-        temperature: 1.0,
-        max_tokens: 600,
+        temperature: 1.2,
+        max_tokens: 800,
       }),
     });
 
@@ -126,7 +134,7 @@ Return ONLY valid JSON: {"seo":["name1",...],"brand":["name1",...],"similar":["n
 
     const parsed = JSON.parse(jsonMatch[0]) as { seo?: string[]; brand?: string[]; similar?: string[] };
     const clean = (arr: string[] | undefined) =>
-      (arr ?? []).filter((n) => typeof n === "string" && /^[a-z0-9]+$/.test(n) && n.length >= 3 && n.length <= 15);
+      (arr ?? []).filter((n) => typeof n === "string" && /^[a-z0-9][a-z0-9-]*[a-z0-9]$/.test(n) && n.length >= 3 && n.length <= 15);
 
     return {
       seo: clean(parsed.seo).slice(0, 7),
