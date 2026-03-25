@@ -7,39 +7,67 @@ const RDAP_TIMEOUT_MS = 3000;
 
 const ALLOWED_TLDS = new Set(["com", "net", "org", "io", "ai", "co", "dev", "app"]);
 
-// ---------- 한국어 → 영어 키워드 매핑 ----------
-const KO_TO_EN: Record<string, string[]> = {
-  "커피": ["coffee", "cafe", "brew"], "쇼핑": ["shop", "store", "mall"],
-  "여행": ["travel", "trip", "tour"], "뷰티": ["beauty", "glow", "bloom"],
-  "테크": ["tech", "code", "dev"], "건강": ["health", "fit", "wellness"],
-  "음식": ["food", "eat", "yum"], "패션": ["fashion", "style", "vogue"],
-  "교육": ["edu", "learn", "study"], "금융": ["finance", "money", "pay"],
-  "부동산": ["realty", "home", "house"], "게임": ["game", "play", "fun"],
-  "디자인": ["design", "pixel", "craft"], "마케팅": ["market", "growth", "boost"],
-  "도메인": ["domain", "site", "web"], "분석": ["analyze", "scan", "check"],
-  "검색": ["search", "find", "seek"], "확인": ["check", "verify", "scan"],
-  "가격": ["price", "cost", "value"], "비교": ["compare", "versus", "match"],
-  "추천": ["pick", "suggest", "top"], "무료": ["free", "gratis", "open"],
-  "온라인": ["online", "web", "net"], "서비스": ["service", "serve", "hub"],
-  "플랫폼": ["platform", "base", "hub"], "스타트업": ["startup", "launch", "begin"],
-  "블로그": ["blog", "post", "write"], "뉴스": ["news", "press", "feed"],
-  "사진": ["photo", "snap", "lens"], "영상": ["video", "film", "media"],
-  "음악": ["music", "beat", "tune"], "반려동물": ["pet", "paw", "buddy"],
-  "자동차": ["auto", "car", "drive"], "호스팅": ["host", "cloud", "server"],
+// ---------- 한국어 → 영어 키워드 매핑 (단어 단위) ----------
+const KO_WORD: Record<string, string> = {
+  "커피": "coffee", "카페": "cafe", "쇼핑": "shop", "매장": "store", "몰": "mall",
+  "여행": "travel", "투어": "tour", "뷰티": "beauty", "미용": "beauty",
+  "테크": "tech", "기술": "tech", "건강": "health", "헬스": "fitness",
+  "음식": "food", "맛집": "foodie", "패션": "fashion", "스타일": "style",
+  "교육": "edu", "학습": "learn", "금융": "finance", "돈": "money",
+  "부동산": "realty", "집": "home", "게임": "game", "놀이": "play",
+  "디자인": "design", "마케팅": "market", "광고": "advert",
+  "도메인": "domain", "사이트": "site", "웹": "web",
+  "분석": "analyze", "검색": "search", "확인": "check", "조회": "lookup",
+  "가격": "price", "비교": "compare", "추천": "pick", "무료": "free",
+  "온라인": "online", "서비스": "service", "플랫폼": "platform",
+  "스타트업": "startup", "블로그": "blog", "뉴스": "news",
+  "사진": "photo", "영상": "video", "음악": "music",
+  "반려동물": "pet", "강아지": "puppy", "고양이": "cat",
+  "자동차": "car", "차": "car", "중고": "used", "새": "new",
+  "호스팅": "host", "클라우드": "cloud", "서버": "server",
+  "스포츠": "sport", "중계": "live", "방송": "cast", "라이브": "live",
+  "의료": "medical", "병원": "clinic", "약": "pharma",
+  "법률": "legal", "변호사": "lawyer", "회계": "account",
+  "요리": "cook", "레시피": "recipe", "배달": "delivery",
+  "택시": "taxi", "운송": "transport", "물류": "logistics",
+  "보험": "insure", "투자": "invest", "주식": "stock", "코인": "crypto",
+  "인테리어": "interior", "가구": "furniture", "리모델링": "remodel",
+  "결혼": "wedding", "웨딩": "wedding", "파티": "party",
+  "꽃": "flower", "선물": "gift", "케이크": "cake",
+  "영어": "english", "수학": "math", "과외": "tutor",
+  "취업": "career", "이력서": "resume", "채용": "hiring",
+  "렌탈": "rental", "대여": "rental", "구독": "subscribe",
+  "예약": "booking", "호텔": "hotel", "숙소": "stay",
+  "피트니스": "fitness", "요가": "yoga", "필라테스": "pilates", "다이어트": "diet",
+  "네일": "nail", "헤어": "hair", "메이크업": "makeup",
+  "세차": "carwash", "정비": "repair", "수리": "fix",
+  "청소": "clean", "이사": "moving", "세탁": "laundry",
 };
 
 function koreanToEnglish(keyword: string): string[] {
-  const lower = keyword.trim().toLowerCase();
-  if (KO_TO_EN[lower]) return KO_TO_EN[lower];
-  for (const [ko, enList] of Object.entries(KO_TO_EN)) {
-    if (lower.includes(ko)) return enList;
+  const lower = keyword.trim();
+
+  // 정확한 매칭
+  if (KO_WORD[lower]) return [KO_WORD[lower]];
+
+  // 부분 매칭 — 여러 단어 조합 수집
+  const found: string[] = [];
+  for (const [ko, en] of Object.entries(KO_WORD)) {
+    if (lower.includes(ko)) {
+      if (!found.includes(en)) found.push(en);
+    }
   }
-  if (/[가-힣]/.test(keyword)) {
-    // 한국어 키워드 — 매핑에 없으면 일반적인 영어 키워드로 대체
-    return ["web", "site", "app", "hub", "go"];
-  }
+  if (found.length > 0) return found;
+
+  // 영어 부분 추출 (한영 혼합 입력)
+  const englishPart = lower.replace(/[가-힣\s]/g, "").toLowerCase();
+  if (englishPart.length >= 2) return [englishPart];
+
+  // 최종 fallback — 한국어인데 매핑이 없으면 빈 배열 (OpenAI에 위임)
+  if (/[가-힣]/.test(keyword)) return [];
+
   const cleaned = lower.replace(/[^a-z0-9]/g, "");
-  return cleaned ? [cleaned] : ["web", "site", "app"];
+  return cleaned ? [cleaned] : [];
 }
 
 // ---------- Fallback 단어 조합 ----------
@@ -55,7 +83,18 @@ interface CategorizedNames {
 }
 
 function generateFallbackNames(keyword: string, tlds: string[]): CategorizedNames {
-  const englishWords = koreanToEnglish(keyword);
+  let englishWords = koreanToEnglish(keyword);
+
+  // 영어 단어가 없으면 fallback 불가 → 빈 결과 반환
+  if (englishWords.length === 0) {
+    return { seo: [], brand: [], similar: [] };
+  }
+
+  // 여러 단어가 있으면 조합도 추가 (예: ["used","car"] → "usedcar")
+  if (englishWords.length >= 2) {
+    englishWords = [...englishWords, englishWords.join("")];
+  }
+
   const seoNames: Set<string> = new Set();
   const brandNames: Set<string> = new Set();
   const similarNames: Set<string> = new Set();
