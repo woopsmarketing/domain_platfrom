@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Lock } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
@@ -21,7 +22,16 @@ export function BulkAnalysis() {
 
     if (domains.length === 0) return;
 
-    const unique = [...new Set(domains)].slice(0, 10);
+    const unique = [...new Set(domains)].slice(0, 5);
+
+    // 1일 1회 제한 (localStorage)
+    const today = new Date().toISOString().slice(0, 10);
+    const lastUsed = localStorage.getItem("bulk_last_used");
+    if (lastUsed === today) {
+      alert("무료 회원은 벌크 분석을 1일 1회만 사용할 수 있습니다. Pro 업그레이드로 무제한 사용하세요.");
+      return;
+    }
+
     setLoading(true);
     setResults([]);
 
@@ -41,6 +51,7 @@ export function BulkAnalysis() {
         .map((r) => r.value);
 
       setResults(fulfilled);
+      localStorage.setItem("bulk_last_used", today);
     } finally {
       setLoading(false);
     }
@@ -61,7 +72,7 @@ export function BulkAnalysis() {
     <div className="space-y-6">
       <textarea
         className="h-40 w-full rounded-lg border border-input bg-transparent px-4 py-3 text-base placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-        placeholder={"도메인을 한 줄에 하나씩 입력하세요 (최대 10개)\nexample.com\ntest.io"}
+        placeholder={"도메인을 한 줄에 하나씩 입력하세요 (무료: 최대 5개, 1일 1회)\nexample.com\ntest.io"}
         value={input}
         onChange={(e) => setInput(e.target.value)}
       />
@@ -156,7 +167,7 @@ export function BulkAnalysis() {
             })}
           </div>
           {/* Pro 안내 */}
-          <div className="mt-4 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-blue-500/5 p-4">
+          <Link href="/pricing" className="mt-4 block rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-blue-500/5 p-4 transition-colors hover:border-primary/40">
             <div className="flex items-start gap-3">
               <Lock className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
               <div>
@@ -167,7 +178,7 @@ export function BulkAnalysis() {
                 </p>
               </div>
             </div>
-          </div>
+          </Link>
         </>
       )}
     </div>

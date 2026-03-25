@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -217,7 +218,7 @@ export function DomainCompare() {
           </div>
 
           {/* Pro 안내 */}
-          <div className="mt-4 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-blue-500/5 p-4">
+          <Link href="/pricing" className="mt-4 block rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-blue-500/5 p-4 transition-colors hover:border-primary/40">
             <div className="flex items-start gap-3">
               <Lock className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
               <div>
@@ -228,7 +229,7 @@ export function DomainCompare() {
                 </p>
               </div>
             </div>
-          </div>
+          </Link>
         </>
       )}
     </div>
