@@ -1,13 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Sparkles, ArrowRight, Network, FileSearch, DollarSign, Calendar, Shield, Activity } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BulkAnalysis } from "@/components/tools/bulk-analysis";
-import { DomainCompare } from "@/components/tools/domain-compare";
-import { TldStats } from "@/components/tools/tld-stats";
+import {
+  Search, Sparkles, ArrowRight, Network, FileSearch, DollarSign,
+  Calendar, Shield, Activity, BarChart3, GitCompare, Star,
+} from "lucide-react";
 
-const TOOL_CARDS = [
+interface ToolCard {
+  href: string;
+  icon: React.ElementType;
+  title: string;
+  desc: string;
+  popular?: boolean;
+}
+
+const TOOL_CARDS: ToolCard[] = [
+  {
+    href: "/tools/bulk-analysis",
+    icon: BarChart3,
+    title: "벌크 분석",
+    desc: "여러 도메인을 한번에 입력하면 검색 점수, 백링크를 일괄 분석",
+    popular: true,
+  },
+  {
+    href: "/tools/domain-compare",
+    icon: GitCompare,
+    title: "도메인 비교",
+    desc: "2~3개 도메인을 나란히 비교하여 어떤 도메인이 더 좋은지 판단",
+    popular: true,
+  },
   {
     href: "/tools/domain-availability",
     icon: Search,
@@ -18,37 +39,38 @@ const TOOL_CARDS = [
     href: "/tools/domain-generator",
     icon: Sparkles,
     title: "AI 도메인 이름 생성기",
-    desc: "키워드만 입력하면 사업에 맞는 도메인 이름을 추천",
-  },
-  {
-    href: "/tools/dns-checker",
-    icon: Network,
-    title: "DNS 조회",
-    desc: "A, CNAME, MX, TXT, NS 레코드를 즉시 조회하고 DNS 전파 상태 확인",
-  },
-  {
-    href: "/tools/whois-lookup",
-    icon: FileSearch,
-    title: "WHOIS 조회",
-    desc: "도메인 소유자, 등록일, 만료일, 등록기관을 즉시 조회",
+    desc: "키워드만 입력하면 AI가 사업에 맞는 도메인 이름을 추천",
+    popular: true,
   },
   {
     href: "/tools/domain-value",
     icon: DollarSign,
     title: "도메인 가치 평가",
-    desc: "도메인 길이, 확장자, 문자 구성을 분석해 예상 시장 가치를 추정",
+    desc: "도메인의 예상 시장 가치를 기본 + SEO 데이터 기반으로 평가",
+  },
+  {
+    href: "/tools/dns-checker",
+    icon: Network,
+    title: "DNS 조회",
+    desc: "A, CNAME, MX, TXT, NS 레코드를 즉시 조회",
+  },
+  {
+    href: "/tools/whois-lookup",
+    icon: FileSearch,
+    title: "WHOIS 조회",
+    desc: "도메인 소유자, 등록일, 만료일, 등록기관 조회",
   },
   {
     href: "/tools/domain-expiry",
     icon: Calendar,
     title: "도메인 만료일 확인",
-    desc: "도메인 만료 예정일과 나이를 확인하고, 만료 시 경매 기회를 포착",
+    desc: "만료 예정일과 도메인 나이를 확인, 만료 시 경매 기회 포착",
   },
   {
     href: "/tools/ssl-checker",
     icon: Shield,
     title: "SSL 인증서 확인",
-    desc: "도메인 SSL 인증서 유효 기간, 발급 기관, 보안 상태 점검",
+    desc: "SSL 인증서 유효 기간, 발급 기관, 보안 상태 점검",
   },
   {
     href: "/tools/http-status",
@@ -63,17 +85,21 @@ export default function ToolsPage() {
     <div className="mx-auto max-w-7xl px-4 py-8">
       <h1 className="text-3xl font-bold tracking-tight">무료 도메인 도구 모음</h1>
       <p className="mt-2 text-muted-foreground">
-        도메인 비교, 벌크 분석, TLD별 통계를 한 곳에서 확인하세요. 도메인 구매 전 여러 도메인을 한번에 비교하고 분석할 수 있습니다.
+        도메인 분석, 비교, 검색, 생성까지. 도메인에 관한 모든 도구를 무료로 사용하세요.
       </p>
 
-      {/* New tool cards */}
-      <div className="mt-6 grid gap-4 sm:grid-cols-2">
+      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {TOOL_CARDS.map((card) => (
           <Link
             key={card.href}
             href={card.href}
-            className="group flex items-start gap-4 rounded-xl border p-5 transition-colors hover:border-primary/40 hover:bg-muted/30"
+            className="group relative flex items-start gap-4 rounded-xl border p-5 transition-colors hover:border-primary/40 hover:bg-muted/30"
           >
+            {card.popular && (
+              <div className="absolute -top-2 -left-2 flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 text-white shadow-sm">
+                <Star className="h-3.5 w-3.5 fill-current" />
+              </div>
+            )}
             <card.icon className="mt-0.5 h-6 w-6 shrink-0 text-primary" />
             <div className="flex-1">
               <p className="font-semibold group-hover:text-primary">
@@ -85,32 +111,6 @@ export default function ToolsPage() {
           </Link>
         ))}
       </div>
-
-      <Tabs defaultValue="bulk" className="mt-8">
-        <TabsList className="h-12 w-full justify-start gap-1">
-          <TabsTrigger value="bulk" className="h-10 px-6 text-base">
-            벌크 분석
-          </TabsTrigger>
-          <TabsTrigger value="compare" className="h-10 px-6 text-base">
-            도메인 비교
-          </TabsTrigger>
-          <TabsTrigger value="tld" className="h-10 px-6 text-base">
-            TLD 통계
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="bulk" className="mt-6">
-          <BulkAnalysis />
-        </TabsContent>
-
-        <TabsContent value="compare" className="mt-6">
-          <DomainCompare />
-        </TabsContent>
-
-        <TabsContent value="tld" className="mt-6">
-          <TldStats />
-        </TabsContent>
-      </Tabs>
     </div>
   );
 }
