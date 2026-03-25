@@ -124,6 +124,7 @@ export function BulkAnalysis() {
           <div className="space-y-3 sm:hidden">
             {results.map((detail) => {
               const m = detail.metrics;
+              const wb = detail.wayback;
               return (
                 <a
                   key={detail.domain.name}
