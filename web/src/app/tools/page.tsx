@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Search, Sparkles, ArrowRight, Network, FileSearch, DollarSign } from "lucide-react";
+import { Search, Sparkles, ArrowRight, Network, FileSearch, DollarSign, Calendar, Shield, Activity } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BulkAnalysis } from "@/components/tools/bulk-analysis";
 import { DomainCompare } from "@/components/tools/domain-compare";
@@ -37,6 +37,24 @@ const TOOL_CARDS = [
     icon: DollarSign,
     title: "도메인 가치 평가",
     desc: "도메인 길이, 확장자, 문자 구성을 분석해 예상 시장 가치를 추정",
+  },
+  {
+    href: "/tools/domain-expiry",
+    icon: Calendar,
+    title: "도메인 만료일 확인",
+    desc: "도메인 만료 예정일과 나이를 확인하고, 만료 시 경매 기회를 포착",
+  },
+  {
+    href: "/tools/ssl-checker",
+    icon: Shield,
+    title: "SSL 인증서 확인",
+    desc: "도메인 SSL 인증서 유효 기간, 발급 기관, 보안 상태 점검",
+  },
+  {
+    href: "/tools/http-status",
+    icon: Activity,
+    title: "HTTP 상태 확인",
+    desc: "사이트 접속 상태와 리다이렉트 경로를 추적",
   },
 ];
 
