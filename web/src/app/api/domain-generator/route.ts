@@ -92,9 +92,11 @@ function generateFallbackNames(keyword: string, tlds: string[]): CategorizedName
 }
 
 // ---------- OpenAI ----------
+let _lastOpenAIError = "";
+
 async function generateWithOpenAI(keyword: string, tlds: string[]): Promise<CategorizedNames | null> {
   const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) return null;
+  if (!apiKey) { _lastOpenAIError = "no_api_key"; return null; }
 
   const isKorean = /[가-힣]/.test(keyword);
   const langNote = isKorean
@@ -141,17 +143,23 @@ Return ONLY: {"seo":["name1",...],"brand":["name1",...],"similar":["name1",...]}
 
     if (!res.ok) {
       const errText = await res.text().catch(() => "");
-      console.error("OpenAI API error:", res.status, errText);
+      _lastOpenAIError = `http_${res.status}: ${errText.slice(0, 200)}`;
       return null;
     }
 
     const data = await res.json();
     const content = data.choices?.[0]?.message?.content?.trim() ?? "";
-    console.log("OpenAI response:", content.slice(0, 300));
+    const finishReason = data.choices?.[0]?.finish_reason ?? "";
+    const reasoning = data.usage?.completion_tokens_details?.reasoning_tokens ?? 0;
+
+    if (!content) {
+      _lastOpenAIError = `empty_content(finish=${finishReason},reasoning=${reasoning},total=${data.usage?.completion_tokens ?? 0})`;
+      return null;
+    }
 
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
-      console.error("OpenAI response has no JSON:", content.slice(0, 200));
+      _lastOpenAIError = `no_json: ${content.slice(0, 100)}`;
       return null;
     }
 
@@ -164,7 +172,8 @@ Return ONLY: {"seo":["name1",...],"brand":["name1",...],"similar":["name1",...]}
       brand: clean(parsed.brand).slice(0, 7),
       similar: clean(parsed.similar).slice(0, 6),
     };
-  } catch {
+  } catch (err) {
+    _lastOpenAIError = `exception: ${String(err).slice(0, 200)}`;
     return null;
   }
 }
@@ -223,12 +232,11 @@ export async function POST(request: NextRequest) {
   }
 
   // OpenAI → fallback
-  const hasKey = !!process.env.OPENAI_API_KEY;
-  const keyPrefix = process.env.OPENAI_API_KEY?.slice(0, 10) ?? "NOT_SET";
   let aiSource = "openai";
+  let aiError = "";
   let categorized = await generateWithOpenAI(keyword, tlds);
   if (!categorized) {
-    aiSource = `fallback(key=${hasKey},prefix=${keyPrefix})`;
+    aiSource = "fallback";
     categorized = generateFallbackNames(keyword, tlds);
   } else {
     // OpenAI는 이름만 반환하므로 TLD 붙이기
@@ -263,5 +271,6 @@ export async function POST(request: NextRequest) {
     brand: toResult(categorized.brand),
     similar: toResult(categorized.similar),
     _source: aiSource,
+    _error: aiSource === "fallback" ? _lastOpenAIError : undefined,
   });
 }
