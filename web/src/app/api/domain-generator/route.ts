@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 30; // Vercel 함수 타임아웃 30초 (GPT-5 reasoning 대응)
 
 const RDAP_BASE = "https://rdap.org/domain";
 const RDAP_TIMEOUT_MS = 3000;
@@ -136,35 +137,11 @@ async function generateWithOpenAI(keyword: string, tlds: string[]): Promise<Cate
   if (!apiKey) return null;
 
   const isKorean = /[가-힣]/.test(keyword);
-  const langNote = isKorean
-    ? `IMPORTANT: The keyword "${keyword}" is in Korean. First understand its meaning, then generate ENGLISH domain names that capture the concept, meaning, or feeling of this Korean word. Do NOT transliterate Korean to English — translate the MEANING. For example: "도메인분석" means "domain analysis", "커피숍" means "coffee shop".`
-    : "";
+  const langNote = isKorean ? ` (Korean word — generate ENGLISH names based on its meaning)` : "";
 
-  const prompt = `You are a creative domain naming expert. Generate domain name ideas related to "${keyword}".
-${langNote}
-
-Return exactly 20 names in 3 categories as JSON:
-
-"seo" (7 names): Include the keyword or a synonym. Descriptive and search-friendly.
-  Example for "coffee": best-coffee, my-cafe, coffee-hub, get-brew, daily-coffee, top-roast, fresh-bean
-
-"brand" (7 names): COMPLETELY NEW invented words. DO NOT include "${keyword}" or any part of it.
-  Create short (3-7 char) catchy made-up words that FEEL related to the concept but use different words entirely.
-  Example for "coffee": brewly, sipzr, kafex, muggo, roastio, javva, cupiq
-  Example for "domaincheck": verfyx, sitepulse, webiq, dnslook, urlvox, netprobe, checkora
-
-"similar" (6 names): Combine the concept with trendy words. Can use abbreviations or creative splits.
-  Example for "coffee": brew-stack, cafe-dash, roast-flow, bean-wave, cup-spark, mocha-lab
-  Example for "domaincheck": site-scan, web-audit, dns-pulse, url-check, net-verify, domain-spy
-
-RULES:
-- Lowercase only, letters, numbers, and hyphens allowed (NO dots, NO TLD)
-- 3 to 14 characters
-- Brand names MUST NOT contain "${keyword}" or any substring of it
-- Each name must be unique and different from all others
-- Hyphens are OK and encouraged for readability (e.g., "do-check", "web-scan")
-
-Return ONLY: {"seo":["name1",...],"brand":["name1",...],"similar":["name1",...]}`;
+  const prompt = `Domain names for "${keyword}"${langNote}. JSON only, 20 names:
+{"seo":[7 SEO names with keyword],"brand":[7 short invented words WITHOUT "${keyword}"],"similar":[6 trendy compound names]}
+Rules: lowercase, 3-14 chars, hyphens OK, no dots/TLD. Brand must NOT contain the keyword.`;
 
   try {
     const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -173,7 +150,7 @@ Return ONLY: {"seo":["name1",...],"brand":["name1",...],"similar":["name1",...]}
       body: JSON.stringify({
         model: "gpt-5-nano-2025-08-07",
         messages: [{ role: "user", content: prompt }],
-        max_completion_tokens: 4000,
+        max_completion_tokens: 8000,
       }),
     });
 
