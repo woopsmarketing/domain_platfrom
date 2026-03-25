@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
+import { Lock } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 import { calculateDomainGrade, GRADE_BG_MAP } from "@/lib/domain-utils";
 import { cleanDomain } from "@/lib/clean-domain";
@@ -77,31 +78,19 @@ export function BulkAnalysis() {
         <>
           {/* 데스크탑 테이블 */}
           <div className="hidden overflow-x-auto rounded-lg border sm:block">
-            <table className="w-full text-sm" style={{ minWidth: "1200px" }}>
+            <table className="w-full text-sm">
               <thead>
-                <tr className="border-b bg-muted/30">
-                  <th className="sticky left-0 z-10 bg-muted/30 px-4 py-1 text-left" rowSpan={2}></th>
-                  <th className="px-2 py-1 text-center" rowSpan={2}></th>
-                  <th className="border-l border-border/40 px-2 py-1 text-center text-xs font-semibold text-blue-600" colSpan={4}>Moz</th>
-                  <th className="border-l border-border/40 px-2 py-1 text-center text-xs font-semibold text-orange-600" colSpan={6}>Ahrefs</th>
-                  <th className="border-l border-border/40 px-2 py-1 text-center text-xs font-semibold text-purple-600" colSpan={4}>Majestic</th>
-                  <th className="border-l border-border/40 px-2 py-1 text-center text-xs font-semibold text-green-600" rowSpan={2}>Wayback</th>
-                </tr>
                 <tr className="border-b bg-muted/50">
-                  <th className="border-l border-border/40 px-2 py-2 text-right text-xs font-medium">DA</th>
-                  <th className="px-2 py-2 text-right text-xs font-medium">PA</th>
-                  <th className="px-2 py-2 text-right text-xs font-medium">Links</th>
-                  <th className="px-2 py-2 text-right text-xs font-medium">Spam</th>
-                  <th className="border-l border-border/40 px-2 py-2 text-right text-xs font-medium">DR</th>
-                  <th className="px-2 py-2 text-right text-xs font-medium">백링크</th>
-                  <th className="px-2 py-2 text-right text-xs font-medium">참조도메인</th>
-                  <th className="px-2 py-2 text-right text-xs font-medium">트래픽</th>
-                  <th className="px-2 py-2 text-right text-xs font-medium">가치($)</th>
-                  <th className="px-2 py-2 text-right text-xs font-medium">키워드</th>
-                  <th className="border-l border-border/40 px-2 py-2 text-right text-xs font-medium">TF</th>
-                  <th className="px-2 py-2 text-right text-xs font-medium">CF</th>
-                  <th className="px-2 py-2 text-right text-xs font-medium">Links</th>
-                  <th className="px-2 py-2 text-right text-xs font-medium">참조도메인</th>
+                  <th className="sticky left-0 z-10 bg-muted/50 px-4 py-3 text-left font-medium">도메인</th>
+                  <th className="px-3 py-3 text-center font-medium">등급</th>
+                  <th className="px-3 py-3 text-right font-medium">DA</th>
+                  <th className="px-3 py-3 text-right font-medium">PA</th>
+                  <th className="px-3 py-3 text-right font-medium">DR</th>
+                  <th className="px-3 py-3 text-right font-medium">TF</th>
+                  <th className="px-3 py-3 text-right font-medium">CF</th>
+                  <th className="px-3 py-3 text-right font-medium">백링크</th>
+                  <th className="px-3 py-3 text-right font-medium">참조도메인</th>
+                  <th className="px-3 py-3 text-right font-medium">Wayback</th>
                 </tr>
               </thead>
               <tbody>
@@ -110,31 +99,20 @@ export function BulkAnalysis() {
                   const wb = detail.wayback;
                   return (
                     <tr key={detail.domain.name} className="border-b last:border-0 hover:bg-muted/20">
-                      <td className="sticky left-0 z-10 bg-card px-4 py-2.5">
-                        <a href={`/domain/${detail.domain.name}`} target="_blank" rel="noopener noreferrer" className="text-primary underline-offset-4 hover:underline text-xs font-medium">
+                      <td className="sticky left-0 z-10 bg-card px-4 py-3">
+                        <a href={`/domain/${detail.domain.name}`} target="_blank" rel="noopener noreferrer" className="text-primary underline-offset-4 hover:underline font-medium">
                           {detail.domain.name}
                         </a>
                       </td>
-                      <td className="px-2 py-2.5 text-center">{gradeCircle(detail)}</td>
-                      {/* Moz */}
-                      <td className="border-l border-border/20 px-2 py-2.5 text-right tabular-nums text-xs">{m?.mozDA ?? "-"}</td>
-                      <td className="px-2 py-2.5 text-right tabular-nums text-xs">{m?.mozPA ?? "-"}</td>
-                      <td className="px-2 py-2.5 text-right tabular-nums text-xs">{m?.mozLinks != null ? formatNumber(m.mozLinks) : "-"}</td>
-                      <td className="px-2 py-2.5 text-right tabular-nums text-xs">{m?.mozSpam != null ? `${m.mozSpam}%` : "-"}</td>
-                      {/* Ahrefs */}
-                      <td className="border-l border-border/20 px-2 py-2.5 text-right tabular-nums text-xs">{m?.ahrefsDR ?? "-"}</td>
-                      <td className="px-2 py-2.5 text-right tabular-nums text-xs">{m?.ahrefsBacklinks != null ? formatNumber(m.ahrefsBacklinks) : "-"}</td>
-                      <td className="px-2 py-2.5 text-right tabular-nums text-xs">{m?.ahrefsRefDomains != null ? formatNumber(m.ahrefsRefDomains) : "-"}</td>
-                      <td className="px-2 py-2.5 text-right tabular-nums text-xs">{m?.ahrefsTraffic != null ? formatNumber(m.ahrefsTraffic) : "-"}</td>
-                      <td className="px-2 py-2.5 text-right tabular-nums text-xs">{m?.ahrefsTrafficValue != null ? formatNumber(m.ahrefsTrafficValue) : "-"}</td>
-                      <td className="px-2 py-2.5 text-right tabular-nums text-xs">{m?.ahrefsOrganicKeywords != null ? formatNumber(m.ahrefsOrganicKeywords) : "-"}</td>
-                      {/* Majestic */}
-                      <td className="border-l border-border/20 px-2 py-2.5 text-right tabular-nums text-xs">{m?.majesticTF ?? "-"}</td>
-                      <td className="px-2 py-2.5 text-right tabular-nums text-xs">{m?.majesticCF ?? "-"}</td>
-                      <td className="px-2 py-2.5 text-right tabular-nums text-xs">{m?.majesticLinks != null ? formatNumber(m.majesticLinks) : "-"}</td>
-                      <td className="px-2 py-2.5 text-right tabular-nums text-xs">{m?.majesticRefDomains != null ? formatNumber(m.majesticRefDomains) : "-"}</td>
-                      {/* Wayback */}
-                      <td className="border-l border-border/20 px-2 py-2.5 text-right tabular-nums text-xs">{wb?.totalSnapshots != null ? formatNumber(wb.totalSnapshots) : "-"}</td>
+                      <td className="px-3 py-3 text-center">{gradeCircle(detail)}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{m?.mozDA ?? "-"}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{m?.mozPA ?? "-"}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{m?.ahrefsDR ?? "-"}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{m?.majesticTF ?? "-"}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{m?.majesticCF ?? "-"}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{m?.ahrefsBacklinks != null ? formatNumber(m.ahrefsBacklinks) : "-"}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{m?.ahrefsRefDomains != null ? formatNumber(m.ahrefsRefDomains) : "-"}</td>
+                      <td className="px-3 py-3 text-right tabular-nums">{wb?.totalSnapshots != null ? formatNumber(wb.totalSnapshots) : "-"}</td>
                     </tr>
                   );
                 })}
@@ -160,20 +138,34 @@ export function BulkAnalysis() {
                     </span>
                     {gradeCircle(detail)}
                   </div>
-                  <div className="mt-3 grid grid-cols-4 gap-2 text-center">
+                  <div className="mt-3 grid grid-cols-5 gap-2 text-center">
                     <div><p className="text-xs text-muted-foreground">DA</p><p className="text-sm font-semibold">{m?.mozDA ?? "-"}</p></div>
+                    <div><p className="text-xs text-muted-foreground">PA</p><p className="text-sm font-semibold">{m?.mozPA ?? "-"}</p></div>
                     <div><p className="text-xs text-muted-foreground">DR</p><p className="text-sm font-semibold">{m?.ahrefsDR ?? "-"}</p></div>
                     <div><p className="text-xs text-muted-foreground">TF</p><p className="text-sm font-semibold">{m?.majesticTF ?? "-"}</p></div>
                     <div><p className="text-xs text-muted-foreground">CF</p><p className="text-sm font-semibold">{m?.majesticCF ?? "-"}</p></div>
                   </div>
                   <div className="mt-2 grid grid-cols-3 gap-2 text-center">
                     <div><p className="text-xs text-muted-foreground">백링크</p><p className="text-xs font-semibold">{m?.ahrefsBacklinks != null ? formatNumber(m.ahrefsBacklinks) : "-"}</p></div>
-                    <div><p className="text-xs text-muted-foreground">트래픽</p><p className="text-xs font-semibold">{m?.ahrefsTraffic != null ? formatNumber(m.ahrefsTraffic) : "-"}</p></div>
-                    <div><p className="text-xs text-muted-foreground">스팸</p><p className="text-xs font-semibold">{m?.mozSpam != null ? `${m.mozSpam}%` : "-"}</p></div>
+                    <div><p className="text-xs text-muted-foreground">참조도메인</p><p className="text-xs font-semibold">{m?.ahrefsRefDomains != null ? formatNumber(m.ahrefsRefDomains) : "-"}</p></div>
+                    <div><p className="text-xs text-muted-foreground">Wayback</p><p className="text-xs font-semibold">{wb?.totalSnapshots != null ? formatNumber(wb.totalSnapshots) : "-"}</p></div>
                   </div>
                 </a>
               );
             })}
+          </div>
+          {/* Pro 안내 */}
+          <div className="mt-4 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-blue-500/5 p-4">
+            <div className="flex items-start gap-3">
+              <Lock className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+              <div>
+                <p className="text-sm font-semibold">Pro 업그레이드로 더 많은 지표를 확인하세요</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Pro 구독 시 다음 지표를 추가로 확인할 수 있습니다:
+                  월간 트래픽, 트래픽 가치($), 오가닉 키워드 수, Moz Links, 스팸 점수, Majestic Links, Majestic 참조 도메인
+                </p>
+              </div>
+            </div>
           </div>
         </>
       )}
