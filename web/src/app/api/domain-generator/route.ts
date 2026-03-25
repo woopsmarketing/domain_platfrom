@@ -34,8 +34,12 @@ function koreanToEnglish(keyword: string): string[] {
   for (const [ko, enList] of Object.entries(KO_TO_EN)) {
     if (lower.includes(ko)) return enList;
   }
-  if (/[가-힣]/.test(keyword)) return [keyword];
-  return [lower.replace(/[^a-z0-9]/g, "")];
+  if (/[가-힣]/.test(keyword)) {
+    // 한국어 키워드 — 매핑에 없으면 일반적인 영어 키워드로 대체
+    return ["web", "site", "app", "hub", "go"];
+  }
+  const cleaned = lower.replace(/[^a-z0-9]/g, "");
+  return cleaned ? [cleaned] : ["web", "site", "app"];
 }
 
 // ---------- Fallback 단어 조합 ----------
@@ -131,7 +135,7 @@ Return ONLY: {"seo":["name1",...],"brand":["name1",...],"similar":["name1",...]}
         model: "gpt-5-nano-2025-08-07",
         messages: [{ role: "user", content: prompt }],
         temperature: 1.2,
-        max_tokens: 800,
+        max_completion_tokens: 4000,
       }),
     });
 
