@@ -223,10 +223,12 @@ export async function POST(request: NextRequest) {
   }
 
   // OpenAI → fallback
+  const hasKey = !!process.env.OPENAI_API_KEY;
+  const keyPrefix = process.env.OPENAI_API_KEY?.slice(0, 10) ?? "NOT_SET";
   let aiSource = "openai";
   let categorized = await generateWithOpenAI(keyword, tlds);
   if (!categorized) {
-    aiSource = "fallback";
+    aiSource = `fallback(key=${hasKey},prefix=${keyPrefix})`;
     categorized = generateFallbackNames(keyword, tlds);
   } else {
     // OpenAI는 이름만 반환하므로 TLD 붙이기
