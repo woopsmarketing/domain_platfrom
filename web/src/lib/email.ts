@@ -22,7 +22,10 @@ export async function sendEmail({ to, toName, subject, htmlContent }: SendEmailP
       "api-key": apiKey,
     },
     body: JSON.stringify({
-      sender: { name: "도메인체커", email: "noreply@domainchecker.co.kr" },
+      sender: {
+        name: "도메인체커",
+        email: process.env.BREVO_SENDER_EMAIL || "vnfm0580@gmail.com"
+      },
       to: [{ email: to, name: toName || to }],
       subject,
       htmlContent,
@@ -31,6 +34,11 @@ export async function sendEmail({ to, toName, subject, htmlContent }: SendEmailP
 
   if (!res.ok) {
     const err = await res.text();
-    console.error("Brevo email error:", err);
+    console.error("Brevo email error:", res.status, err);
+    return { success: false, error: err };
   }
+
+  const result = await res.json();
+  console.log("Brevo email sent:", result.messageId);
+  return { success: true, messageId: result.messageId };
 }
