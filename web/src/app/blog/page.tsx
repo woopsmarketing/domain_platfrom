@@ -94,39 +94,33 @@ export default function BlogIndexPage() {
       <div className="mt-10 grid gap-4">
         {articles.map((article, index) => (
           <Link key={article.slug} href={`/blog/${article.slug}`} className="group">
-            <div className="relative rounded-xl border bg-card p-6 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-primary/50">
-              {/* NEW 배지 — 첫 번째 글 */}
-              {index === 0 && (
-                <span className="absolute top-4 right-4 rounded-full bg-red-500/10 px-2.5 py-0.5 text-xs font-semibold text-red-600 dark:text-red-400">
-                  NEW
-                </span>
-              )}
-
+            <div className="blog-card">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                {/* 좌측: 카테고리 + 제목 + 설명 */}
                 <div className="flex-1 min-w-0">
-                  <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      categoryColors[article.category] || "bg-muted text-muted-foreground"
-                    }`}
-                  >
-                    {article.category}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                        categoryColors[article.category] || "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {article.category}
+                    </span>
+                    {index === 0 && (
+                      <span className="blog-badge-new">NEW</span>
+                    )}
+                  </div>
 
-                  <h2 className="mt-2.5 text-lg font-semibold text-foreground leading-snug group-hover:text-primary transition-colors">
-                    {article.title}
-                  </h2>
+                  <h2 className="blog-card-title">{article.title}</h2>
 
                   <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">
                     {article.description}
                   </p>
 
-                  <span className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="blog-card-arrow mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary">
                     읽어보기 <ArrowRight className="h-3.5 w-3.5" />
                   </span>
                 </div>
 
-                {/* 우측: 날짜 + 읽는 시간 */}
                 <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1.5 text-xs text-muted-foreground shrink-0">
                   <span className="inline-flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5" />

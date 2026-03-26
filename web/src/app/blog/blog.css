@@ -1,0 +1,254 @@
+/* 블로그 전용 스타일 */
+
+/* ── 블로그 목록 카드 ── */
+.blog-card {
+  position: relative;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  padding: 1.5rem;
+  transition: all 0.2s ease;
+}
+
+.blog-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px rgb(0 0 0 / 0.08);
+  border-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
+}
+
+.blog-card-title {
+  margin-top: 0.625rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--color-foreground);
+  transition: color 0.15s ease;
+}
+
+.blog-card:hover .blog-card-title {
+  color: var(--color-primary);
+}
+
+.blog-card-arrow {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.blog-card:hover .blog-card-arrow {
+  opacity: 1;
+}
+
+/* ── NEW 배지 ── */
+.blog-badge-new {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, #ef4444, #f97316);
+  padding: 0.125rem 0.5rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: white;
+  text-transform: uppercase;
+  line-height: 1.5;
+}
+
+/* ── 블로그 본문 (article prose) ── */
+.blog-prose {
+  font-size: 1rem;
+  line-height: 1.85;
+  color: var(--color-muted-foreground);
+}
+
+.blog-prose h2 {
+  margin-top: 3rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid color-mix(in srgb, var(--color-primary) 15%, transparent);
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--color-foreground);
+}
+
+.blog-prose h3 {
+  margin-top: 2rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-foreground);
+}
+
+.blog-prose h3::before {
+  content: "";
+  display: inline-block;
+  width: 3px;
+  height: 1.1em;
+  margin-right: 0.5rem;
+  background: var(--color-primary);
+  border-radius: 2px;
+  vertical-align: text-bottom;
+}
+
+.blog-prose p {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.blog-prose strong {
+  font-weight: 700;
+  color: var(--color-foreground);
+}
+
+.blog-prose a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: opacity 0.15s ease;
+}
+
+.blog-prose a:hover {
+  text-decoration: underline;
+  opacity: 0.85;
+}
+
+.blog-prose ul,
+.blog-prose ol {
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
+}
+
+.blog-prose ul {
+  list-style: disc;
+}
+
+.blog-prose ol {
+  list-style: decimal;
+}
+
+.blog-prose li {
+  margin-top: 0.375rem;
+  margin-bottom: 0.375rem;
+  padding-left: 0.25rem;
+}
+
+.blog-prose li::marker {
+  color: var(--color-primary);
+}
+
+/* ── 블로그 테이블 ── */
+.blog-prose table {
+  width: 100%;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.blog-prose th {
+  padding: 0.625rem 0.75rem;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-foreground);
+  background: color-mix(in srgb, var(--color-muted) 50%, transparent);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.blog-prose td {
+  padding: 0.625rem 0.75rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
+}
+
+.blog-prose tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── 블로그 인용 ── */
+.blog-prose blockquote {
+  margin: 1.5rem 0;
+  padding: 1rem 1.25rem;
+  border-left: 3px solid var(--color-primary);
+  background: color-mix(in srgb, var(--color-muted) 40%, transparent);
+  border-radius: 0 0.5rem 0.5rem 0;
+  font-style: italic;
+}
+
+/* ── 목차 박스 ── */
+.blog-toc {
+  margin-top: 2rem;
+  margin-bottom: 2.5rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-border);
+  background: color-mix(in srgb, var(--color-muted) 30%, transparent);
+}
+
+.blog-toc-title {
+  margin-bottom: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-foreground);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.blog-toc ol {
+  margin: 0;
+  padding-left: 1.25rem;
+  list-style: decimal;
+}
+
+.blog-toc li {
+  margin: 0.25rem 0;
+  font-size: 0.875rem;
+}
+
+.blog-toc a {
+  color: var(--color-muted-foreground);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.blog-toc a:hover {
+  color: var(--color-primary);
+}
+
+/* ── 블로그 메타 (날짜/읽는 시간) ── */
+.blog-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: var(--color-muted-foreground);
+}
+
+/* ── CTA 카드 ── */
+.blog-cta {
+  margin-top: 3rem;
+  padding: 2rem;
+  border-radius: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 5%, transparent), color-mix(in srgb, var(--color-primary) 10%, transparent));
+  text-align: center;
+}
+
+/* ── 관련 글 ── */
+.blog-related {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.blog-related-card {
+  display: block;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  transition: background 0.15s ease;
+}
+
+.blog-related-card:hover {
+  background: color-mix(in srgb, var(--color-muted) 50%, transparent);
+}

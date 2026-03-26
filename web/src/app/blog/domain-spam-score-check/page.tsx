@@ -110,16 +110,16 @@ export default function DomainSpamScoreCheckPage() {
       </h1>
 
       {/* 날짜 + 읽는 시간 */}
-      <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+      <div className="blog-meta">
         <time dateTime="2026-03-26">2026년 3월 26일</time>
         <span aria-hidden="true">·</span>
         <span>8분 읽기</span>
       </div>
 
       {/* 목차(TOC) */}
-      <nav className="mt-8 rounded-lg border bg-muted/30 p-5">
-        <p className="mb-3 text-sm font-semibold text-foreground">목차</p>
-        <ol className="space-y-1.5 text-sm text-muted-foreground list-decimal pl-5">
+      <nav className="blog-toc">
+        <p className="blog-toc-title">목차</p>
+        <ol className="space-y-1.5">
           <li><a href="#what-is-spam-score" className="text-primary hover:underline">스팸 점수란 무엇인가</a></li>
           <li><a href="#spam-vs-other-metrics" className="text-primary hover:underline">스팸 점수 vs 다른 지표 비교</a></li>
           <li><a href="#8-causes" className="text-primary hover:underline">스팸 점수가 높아지는 8가지 원인</a></li>
@@ -133,8 +133,8 @@ export default function DomainSpamScoreCheckPage() {
         </ol>
       </nav>
 
-      {/* 본문 — prose 스타일 직접 구현 */}
-      <div className="mt-10 space-y-2">
+      {/* 본문 */}
+      <div className="blog-prose mt-10">
 
         {/* 1. 스팸 점수란 무엇인가 */}
         <section>
@@ -631,7 +631,7 @@ export default function DomainSpamScoreCheckPage() {
       </div>
 
       {/* CTA */}
-      <div className="mt-8 rounded-xl border bg-muted/30 p-6 text-center">
+      <div className="blog-cta">
         <p className="text-lg font-semibold">도메인의 건강 상태를 확인해 보세요</p>
         <p className="mt-1 text-sm text-muted-foreground">
           도메인체커에서 DA, DR 등 기본 SEO 지표는 무료로 확인할 수 있으며,
