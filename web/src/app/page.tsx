@@ -178,11 +178,11 @@ export default async function HomePage() {
           {highlights.length > 0 ? (
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {highlights.map((sale) => (
-                  <Link key={sale.id} href={`/domain/${sale.domains.name}`}>
+                  <Link key={sale.id} href={`/domain/${sale.domain}`}>
                     <Card className="group border-border/60 transition-all hover:border-primary/30 hover:shadow-md hover:shadow-primary/5">
                       <CardHeader className="pb-2">
                         <CardTitle className="text-sm font-medium group-hover:text-primary transition-colors">
-                          {sale.domains.name}
+                          {sale.domain}
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="flex items-center justify-between">
