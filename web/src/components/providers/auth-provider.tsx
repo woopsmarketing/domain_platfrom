@@ -31,6 +31,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getUser().then(({ data: { user } }) => {
       setUser(user);
       setLoading(false);
+    }).catch(() => {
+      setUser(null);
+      setLoading(false);
     });
 
     // 인증 상태 변경 리스너
@@ -57,18 +60,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .from("subscriptions")
       .select("tier, expires_at")
       .eq("user_id", user.id)
-      .single()
-      .then(({ data }) => {
-        if (data && data.tier === "pro") {
-          // expires_at이 미래인지 확인
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("Subscription query error:", error);
+        } else if (data && data.tier === "pro") {
           if (!data.expires_at || new Date(data.expires_at) > new Date()) {
             setTier("pro");
-          } else {
-            setTier("free");
+            setTierLoading(false);
+            return;
           }
-        } else {
-          setTier("free");
         }
+        setTier("free");
         setTierLoading(false);
       });
   }, [user]);
