@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase";
 import { sendEmail } from "@/lib/email";
+import { brokerConfirmation, brokerAdminNotification } from "@/lib/email-templates";
 
 export async function POST(request: Request) {
   try {
@@ -37,31 +38,25 @@ export async function POST(request: Request) {
       to: email,
       toName: name,
       subject: "[도메인체커] 경매 대행 문의가 접수되었습니다",
-      htmlContent: `
-        <h2>문의가 접수되었습니다</h2>
-        <p>${name}님, 경매 대행 문의를 접수했습니다.</p>
-        <p><strong>타겟 키워드:</strong> ${target_keyword}</p>
-        <p><strong>예산:</strong> ${budget || '미정'}</p>
-        <p>24시간 내 이메일로 연락드리겠습니다.</p>
-        <br>
-        <p>— 도메인체커 팀</p>
-      `,
+      htmlContent: brokerConfirmation({
+        name,
+        targetKeyword: target_keyword,
+        budget: budget || "미정",
+      }),
     });
 
     // 어드민에게 알림
     await sendEmail({
       to: "vnfm0580@gmail.com",
       subject: "[도메인체커 어드민] 새 경매 대행 문의 접수",
-      htmlContent: `
-        <h2>새 문의가 접수되었습니다</h2>
-        <p><strong>유형:</strong> 경매 대행</p>
-        <p><strong>이름:</strong> ${name}</p>
-        <p><strong>이메일:</strong> ${email}</p>
-        <p><strong>타겟 키워드:</strong> ${target_keyword}</p>
-        <p><strong>예산:</strong> ${budget || '미정'}</p>
-        <p><strong>메시지:</strong> ${message || '없음'}</p>
-        <p><a href="https://domainchecker.co.kr/admin">어드민에서 확인</a></p>
-      `,
+      htmlContent: brokerAdminNotification({
+        name,
+        email,
+        telegram: telegram || "",
+        targetKeyword: target_keyword,
+        budget: budget || "미정",
+        message: message || "",
+      }),
     });
 
     return NextResponse.json({ ok: true });
