@@ -1,7 +1,16 @@
 import type { MetadataRoute } from "next";
+import { articles } from "@/lib/blog";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = "https://domainchecker.co.kr";
+
+  // 블로그 글 자동 생성 — lib/blog.ts에 추가하면 자동 등록
+  const blogEntries: MetadataRoute.Sitemap = articles.map((article) => ({
+    url: `${base}/blog/${article.slug}`,
+    lastModified: new Date(article.date),
+    changeFrequency: "monthly",
+    priority: 0.7,
+  }));
 
   return [
     // 메인
@@ -23,11 +32,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/tools/bulk-analysis`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/tools/domain-expiry`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
 
-    // 블로그
+    // 블로그 (자동)
     { url: `${base}/blog`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
-    { url: `${base}/blog/domain-spam-score-check`, lastModified: new Date("2026-03-26"), changeFrequency: "monthly", priority: 0.7 },
-    { url: `${base}/blog/domain-auction-guide`, lastModified: new Date("2026-03-20"), changeFrequency: "monthly", priority: 0.7 },
-    { url: `${base}/blog/how-to-choose-domain`, lastModified: new Date("2026-03-15"), changeFrequency: "monthly", priority: 0.7 },
-    { url: `${base}/blog/what-is-da`, lastModified: new Date("2026-03-10"), changeFrequency: "monthly", priority: 0.7 },
+    ...blogEntries,
   ];
 }

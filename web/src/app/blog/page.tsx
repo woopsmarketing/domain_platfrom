@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Clock, Calendar } from "lucide-react";
+import { articles, CATEGORY_COLORS } from "@/lib/blog";
 
 export const metadata: Metadata = {
   title: "블로그 — 도메인체커 | 도메인 투자 & SEO 가이드",
@@ -13,51 +14,6 @@ export const metadata: Metadata = {
     "도메인 경매",
     "SEO 도메인 분석",
   ],
-};
-
-const articles = [
-  {
-    slug: "domain-spam-score-check",
-    title: "도메인 스팸 점수 확인 방법 — 내 도메인이 스팸으로 분류되고 있는지 점검하기",
-    description:
-      "도메인 스팸 점수(Spam Score)가 무엇인지, 왜 높아지는지, 어떻게 확인하고 낮출 수 있는지 실무 기준으로 정리했습니다.",
-    category: "SEO 분석",
-    date: "2026-03-26",
-    readTime: "8분",
-  },
-  {
-    slug: "domain-auction-guide",
-    title: "도메인 경매 완벽 가이드 — GoDaddy, Namecheap 낙찰 데이터 활용법",
-    description:
-      "도메인 경매의 작동 방식과 도메인체커 낙찰 데이터를 활용해 투자 기회를 찾는 방법을 소개합니다.",
-    category: "도메인 투자",
-    date: "2026-03-20",
-    readTime: "6분",
-  },
-  {
-    slug: "how-to-choose-domain",
-    title: "좋은 도메인 고르는 법 — 투자 가치 있는 도메인 5가지 기준",
-    description:
-      "DA/DR, TLD, 도메인 나이, 백링크, 브랜드 가능성 등 수익성 높은 도메인을 고르는 5가지 핵심 기준을 정리합니다.",
-    category: "도메인 투자",
-    date: "2026-03-15",
-    readTime: "5분",
-  },
-  {
-    slug: "what-is-da",
-    title: "Domain Authority(DA)란? 도메인 품질을 판단하는 핵심 지표",
-    description:
-      "Moz가 개발한 DA 지표의 의미, 계산 방식, 도메인 투자에서 DA가 중요한 이유를 알아봅니다.",
-    category: "SEO 기초",
-    date: "2026-03-10",
-    readTime: "4분",
-  },
-];
-
-const categoryColors: Record<string, string> = {
-  "SEO 분석": "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-  "도메인 투자": "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-  "SEO 기초": "bg-purple-500/10 text-purple-600 dark:text-purple-400",
 };
 
 function formatDate(dateStr: string) {
@@ -100,7 +56,7 @@ export default function BlogIndexPage() {
                   <div className="flex items-center gap-2">
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        categoryColors[article.category] || "bg-muted text-muted-foreground"
+                        CATEGORY_COLORS[article.category] || "bg-muted text-muted-foreground"
                       }`}
                     >
                       {article.category}
