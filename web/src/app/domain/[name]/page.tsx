@@ -12,6 +12,7 @@ import { fetchDomainMetrics } from "@/lib/external/rapidapi";
 import { fetchWayback } from "@/lib/external/wayback";
 import { saveWaybackToDb } from "@/lib/db/wayback";
 import { SeoMetricsCards } from "@/components/domain/seo-metrics-cards";
+import { ShareButton } from "@/components/domain/share-button";
 import type { DomainDetail } from "@/types/domain";
 import { isStale } from "@/lib/cache";
 
@@ -119,8 +120,11 @@ export default async function DomainDetailPage({ params }: PageProps) {
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
-        <div>
-          <h1 className="text-2xl font-bold">{name}</h1>
+        <div className="flex-1">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-bold">{name}</h1>
+            <ShareButton />
+          </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Badge variant={data.domain.status === "sold" ? "default" : "outline"}>
               {data.domain.status === "sold" ? "낙찰" : data.domain.status === "expired" ? "만료" : "활성"}

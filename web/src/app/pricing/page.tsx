@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useState } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Check, X, Sparkles, Zap, Loader2, CheckCircle } from "lucide-react";
@@ -53,6 +53,20 @@ function PricingContent() {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
 
   const isProUser = tier === "pro";
+
+  // Google Ads 전환 추적
+  useEffect(() => {
+    if (success && typeof window !== "undefined" && window.gtag) {
+      const conversionId = process.env.NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_ID;
+      if (conversionId) {
+        window.gtag("event", "conversion", {
+          send_to: conversionId,
+          value: 9900,
+          currency: "KRW",
+        });
+      }
+    }
+  }, [success]);
 
   const handleCheckout = useCallback(async () => {
     if (!user) {

@@ -9,12 +9,24 @@ import type { DomainMetrics } from "@/types/domain";
 function MetricRow({ label, value, proOnly = false }: { label: string; value: number | null; proOnly?: boolean }) {
   const locked = proOnly && !isPro();
 
+  // blur 미리보기용 placeholder 생성 (실제 값이 있으면 흐림 처리, 없으면 랜덤)
+  const blurValue = locked
+    ? value !== null
+      ? Math.round(value * 0.8 + Math.random() * value * 0.4)
+      : Math.floor(Math.random() * 900 + 100)
+    : null;
+
   return (
     <div className="flex justify-between text-sm">
       <span className="text-muted-foreground">{label}</span>
       {locked ? (
-        <Link href="/pricing" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors">
-          <Lock className="h-3 w-3" />Pro
+        <Link
+          href="/pricing"
+          className="group inline-flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors"
+          title="Pro 전용 지표 — 클릭하여 업그레이드"
+        >
+          <span className="blur-[5px] select-none tabular-nums">{blurValue?.toLocaleString()}</span>
+          <Lock className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
         </Link>
       ) : (
         <span className="font-medium tabular-nums">{value !== null ? value.toLocaleString() : "—"}</span>
