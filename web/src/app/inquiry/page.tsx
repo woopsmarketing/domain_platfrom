@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, Send, Headphones } from "lucide-react";
+import Link from "next/link";
+import { CheckCircle2, Send, Headphones, Home, Crown } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -68,12 +69,28 @@ export default function BrokerInquiryPage() {
     return (
       <div className="flex min-h-[60vh] items-center justify-center px-4">
         <Card className="w-full max-w-lg border-border/60">
-          <CardContent className="py-16 text-center">
+          <CardContent className="py-12 text-center">
             <CheckCircle2 className="mx-auto h-12 w-12 text-green-500 mb-4" />
             <h2 className="text-xl font-bold mb-2">문의가 접수되었습니다</h2>
             <p className="text-muted-foreground">
-              24시간 내 이메일로 연락드리겠습니다.
+              입력하신 이메일로 확인 메일을 보내드렸습니다.
+              <br />
+              24시간 내 상세 답변을 드리겠습니다.
             </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <Link href="/">
+                <Button variant="outline" className="w-full sm:w-auto gap-2">
+                  <Home className="h-4 w-4" />
+                  홈으로 가기
+                </Button>
+              </Link>
+              <Link href="/marketplace">
+                <Button className="w-full sm:w-auto gap-2">
+                  <Crown className="h-4 w-4" />
+                  프리미엄 도메인 보기
+                </Button>
+              </Link>
+            </div>
           </CardContent>
         </Card>
       </div>
