@@ -35,6 +35,12 @@ const articles = [
     description:
       "도메인 경매의 작동 방식과 도메인체커 낙찰 데이터를 활용해 투자 기회를 찾는 방법을 소개합니다.",
   },
+  {
+    slug: "domain-spam-score-check",
+    title: "도메인 스팸 점수 확인 방법 — 내 도메인이 스팸으로 분류되고 있는지 점검하기",
+    description:
+      "도메인 스팸 점수(Spam Score)가 무엇인지, 왜 높아지는지, 어떻게 확인하고 낮출 수 있는지 실무 기준으로 정리했습니다.",
+  },
 ];
 
 export default function BlogIndexPage() {
