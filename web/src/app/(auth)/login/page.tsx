@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect") || "/";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(
@@ -33,7 +34,7 @@ function LoginForm() {
       return;
     }
 
-    router.push("/");
+    router.push(redirect);
     router.refresh();
   };
 
@@ -41,7 +42,7 @@ function LoginForm() {
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${location.origin}/auth/callback` },
+      options: { redirectTo: `${location.origin}/auth/callback?next=${encodeURIComponent(redirect)}` },
     });
   };
 
@@ -81,6 +82,11 @@ function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             required
           />
+          <div className="mt-1.5 text-right">
+            <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-primary">
+              비밀번호를 잊으셨나요?
+            </Link>
+          </div>
         </div>
         <Button type="submit" disabled={loading} className="w-full">
           {loading ? "로그인 중..." : "로그인"}

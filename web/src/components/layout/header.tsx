@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { Search, Menu, X, LogOut, CreditCard } from "lucide-react";
+import { Search, Menu, X, LogOut, CreditCard, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -141,6 +141,14 @@ export function Header() {
                   </div>
                   <div className="my-1 h-px bg-border" />
                   <Link
+                    href="/account"
+                    onClick={() => setProfileMenuOpen(false)}
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
+                  >
+                    <User className="h-4 w-4" />
+                    내 계정
+                  </Link>
+                  <Link
                     href="/pricing"
                     onClick={() => setProfileMenuOpen(false)}
                     className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
@@ -240,6 +248,12 @@ export function Header() {
               <div className="px-3 py-2 text-sm text-muted-foreground truncate">
                 {user.email}
               </div>
+              <Link href="/account" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start text-sm">
+                  <User className="mr-2 h-4 w-4" />
+                  내 계정
+                </Button>
+              </Link>
               <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
                 <Button variant="ghost" className="w-full justify-start text-sm">
                   <CreditCard className="mr-2 h-4 w-4" />
