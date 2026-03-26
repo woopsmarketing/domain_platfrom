@@ -176,7 +176,7 @@ export default function AccountPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-fit"
+                  className="w-full sm:w-fit"
                   onClick={handleCustomerPortal}
                   disabled={portalLoading}
                 >
@@ -193,7 +193,7 @@ export default function AccountPage() {
                 </span>
               </div>
               <Link href="/pricing">
-                <Button size="sm" className="w-fit">
+                <Button size="sm" className="w-full sm:w-fit">
                   Pro로 업그레이드
                 </Button>
               </Link>
@@ -230,7 +230,7 @@ export default function AccountPage() {
                   Pro로 업그레이드하면 모든 기능을 무제한으로 사용할 수 있습니다
                 </p>
                 <Link href="/pricing" className="mt-2 inline-block">
-                  <Button size="sm" className="h-8 text-xs">
+                  <Button size="sm" className="h-11 text-sm">
                     요금제 비교하기
                   </Button>
                 </Link>

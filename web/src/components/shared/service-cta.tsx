@@ -6,9 +6,9 @@ import { Button } from "@/components/ui/button";
 
 export function ServiceCta() {
   return (
-    <section className="border-t px-4 py-16">
+    <section className="border-t px-4 py-10 sm:py-16">
       <div className="mx-auto max-w-5xl">
-        <h2 className="text-center text-2xl font-bold mb-2">도메인 거래 서비스</h2>
+        <h2 className="text-center text-xl sm:text-2xl font-bold mb-2">도메인 거래 서비스</h2>
         <p className="text-center text-muted-foreground mb-10">
           검증된 프리미엄 도메인 구매부터 경매 대행까지, 전문 서비스를 제공합니다
         </p>
@@ -26,7 +26,7 @@ export function ServiceCta() {
               </p>
             </div>
             <Link href="/marketplace" className="mt-auto">
-              <Button variant="outline" className="w-full gap-2">
+              <Button variant="outline" className="w-full gap-2 min-h-[48px]">
                 판매 도메인 보기 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
@@ -45,7 +45,7 @@ export function ServiceCta() {
               </p>
             </div>
             <Link href="/inquiry" className="mt-auto">
-              <Button className="w-full gap-2">
+              <Button className="w-full gap-2 min-h-[48px]">
                 대행 문의하기 <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>

@@ -100,7 +100,7 @@ function PricingContent() {
     billingCycle === "yearly" ? "연 ₩82,800 (30% 할인)" : "연간 결제 시 ₩6,900/월 (30% 할인)";
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-16">
+    <div className="mx-auto max-w-5xl px-4 py-10 sm:py-16">
       {/* Success Banner */}
       {success && (
         <div className="mb-8 flex items-center gap-3 rounded-lg border border-green-500/30 bg-green-500/10 px-5 py-4">
@@ -166,14 +166,14 @@ function PricingContent() {
       {/* Pricing Cards */}
       <div className="mt-10 grid gap-8 sm:grid-cols-2">
         {/* Free */}
-        <div className="rounded-2xl border border-border/60 p-8">
+        <div className="rounded-2xl border border-border/60 p-5 sm:p-8">
           <div className="mb-2 flex items-center gap-2">
             <Zap className="h-5 w-5 text-muted-foreground" />
             <h2 className="text-xl font-bold">Free</h2>
           </div>
           <p className="text-sm text-muted-foreground">기본 도메인 분석 도구</p>
           <div className="mt-6">
-            <span className="text-4xl font-bold">₩0</span>
+            <span className="text-3xl sm:text-4xl font-bold">₩0</span>
             <span className="ml-1 text-muted-foreground">/월</span>
           </div>
           <div className="mt-2 text-xs text-muted-foreground">
@@ -206,7 +206,7 @@ function PricingContent() {
         </div>
 
         {/* Pro */}
-        <div className="relative rounded-2xl border-2 border-primary p-8">
+        <div className="relative rounded-2xl border-2 border-primary p-5 sm:p-8">
           <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-xs font-semibold text-primary-foreground">
             추천
           </div>
@@ -216,7 +216,7 @@ function PricingContent() {
           </div>
           <p className="text-sm text-muted-foreground">모든 기능 무제한 사용</p>
           <div className="mt-6">
-            <span className="text-4xl font-bold">₩{monthlyPrice}</span>
+            <span className="text-3xl sm:text-4xl font-bold">₩{monthlyPrice}</span>
             <span className="ml-1 text-muted-foreground">/월</span>
           </div>
           <div className="mt-2 text-xs text-muted-foreground">{yearlyNote}</div>

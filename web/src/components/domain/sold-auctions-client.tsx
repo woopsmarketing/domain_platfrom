@@ -209,7 +209,7 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
                     <td className="px-4 py-3">
                       <Link
                         href={`/domain/${d.name}`}
-                        className="font-medium text-foreground hover:text-green-600 transition-colors"
+                        className="font-medium text-foreground hover:text-green-600 transition-colors block max-w-[160px] truncate sm:max-w-none sm:overflow-visible sm:whitespace-normal"
                       >
                         {d.name}
                       </Link>
@@ -254,7 +254,7 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
           <button
             onClick={() => loadMore(sortMode)}
             disabled={loading}
-            className="inline-flex items-center gap-2 rounded-lg border border-border/60 px-6 py-3 text-sm font-medium transition-colors hover:bg-muted disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg border border-border/60 px-6 py-3 text-sm font-medium w-full sm:w-auto justify-center transition-colors hover:bg-muted disabled:opacity-50"
           >
             {loading ? (
               <>

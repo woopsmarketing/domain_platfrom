@@ -26,7 +26,7 @@ export default function BlogIndexPage() {
   const categories = ["전체", ...Array.from(new Set(articles.map((a) => a.category)))];
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-16">
+    <div className="mx-auto max-w-4xl px-4 py-10 sm:py-16">
       <h1 className="text-3xl font-bold tracking-tight">블로그</h1>
       <p className="mt-2 text-muted-foreground">
         도메인 투자와 SEO 분석에 대한 실전 가이드

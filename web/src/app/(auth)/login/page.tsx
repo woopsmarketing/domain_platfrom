@@ -67,7 +67,7 @@ function LoginForm() {
             placeholder="email@example.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required
+            className="h-11" required
           />
         </div>
         <div>
@@ -80,7 +80,7 @@ function LoginForm() {
             placeholder="비밀번호 입력"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required
+            className="h-11" required
           />
           <div className="mt-1.5 text-right">
             <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-primary">

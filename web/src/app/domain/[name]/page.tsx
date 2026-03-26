@@ -121,8 +121,8 @@ export default async function DomainDetailPage({ params }: PageProps) {
           </Button>
         </Link>
         <div className="flex-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold">{name}</h1>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl font-bold break-all">{name}</h1>
             <ShareButton />
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">

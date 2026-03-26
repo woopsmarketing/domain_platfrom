@@ -182,7 +182,7 @@ export default async function MarketplacePage() {
                         <Link
                           href={`/marketplace/inquiry?domain=${encodeURIComponent(domainName)}&listing=${listing.id}`}
                         >
-                          <Button size="sm">문의하기</Button>
+                          <Button size="sm" className="min-h-[44px]">문의하기</Button>
                         </Link>
                       </div>
                     </CardContent>

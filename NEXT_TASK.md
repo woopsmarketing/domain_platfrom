@@ -1,6 +1,6 @@
 # NEXT_TASK.md
 
-> 마지막 업데이트: 2026-03-26
+> 마지막 업데이트: 2026-03-27
 
 ---
 
@@ -21,6 +21,13 @@
 | 브랜드: 도메인체커 / domainchecker.co.kr | ✅ |
 | 커스텀 로고 SVG (돋보기 아이콘) | ✅ |
 | 파비콘 (icon.svg) | ✅ |
+| 다크모드 (next-themes + 헤더 토글) | ✅ |
+| 헤더 "프리미엄 도메인" 메뉴 추가 | ✅ |
+| 2컬럼 CTA 섹션 (프리미엄 도메인 + 경매 대행) | ✅ |
+| **모바일 UX 최적화** | ✅ |
+| 모바일 터치 타겟 44px 통일 (헤더/로그인/계정/문의/마켓) | ✅ |
+| 모바일 가독성 (도메인 break-all, 테이블 truncate, CTA 여백) | ✅ |
+| 모바일 여백 최적화 (pricing/blog py-10 sm:py-16) | ✅ |
 | **SEO / 메타데이터** | |
 | sitemap.xml (정적 8페이지 — /domain/ 동적 제거) | ✅ |
 | robots.txt (/domain/ disallow, AI 크롤러 허용) | ✅ |
@@ -31,11 +38,12 @@
 | openGraph locale:ko_KR + twitter:summary | ✅ |
 | OG 이미지 — 메인 + 도메인별 동적 생성 | ✅ (미커밋) |
 | **성능/보안** | |
-| next.config.ts (압축, poweredByHeader 제거) | ✅ |
+| next.config.ts (압축, poweredByHeader 제거, AVIF/WebP, optimizeCss) | ✅ |
 | 폰트 display:swap | ✅ |
 | CSP Cloudflare Insights 허용 | ✅ |
 | PageSpeed 접근성 이슈 수정 (aria-label, 링크 텍스트) | ✅ |
 | 브라우저 확장 404 스팸 제거 | ✅ |
+| /tools 페이지 Server Component 전환 | ✅ |
 | **경매 기능** | |
 | 실시간 경매 페이지 (`/auctions`) — Namecheap GraphQL | ✅ |
 | 경매 카운트다운 타이머 + 0초 "확인 중..." 표시 | ✅ |
@@ -59,6 +67,42 @@
 | **인증 / 결제** | |
 | Supabase Auth (1단계) — 로그인/회원가입/AuthProvider | ✅ |
 | LemonSqueezy 결제 연동 (2단계) — 체크아웃/웹훅/tier 동기화 | ✅ |
+| **사용자 계정** | |
+| 사용자 대시보드 (`/account`) — 프로필/구독/사용량/히스토리 | ✅ |
+| 비밀번호 변경 (`/account/change-password`) | ✅ |
+| 비밀번호 찾기 (`/forgot-password`) | ✅ |
+| LemonSqueezy Customer Portal 연동 (`/api/customer-portal`) | ✅ |
+| 최근 검색 API (`/api/recent-searches`) | ✅ |
+| 로그인 리다이렉트 지원 (`?redirect=` 파라미터) | ✅ |
+| 헤더 프로필 드롭다운에 "내 계정" 링크 | ✅ |
+| **Free/Pro 제한** | |
+| useRateLimit 훅 + UpgradeModal 통일 | ✅ |
+| 10개 도구 일일 사용 제한 적용 (클라이언트) | ✅ |
+| 남은 횟수 표시 (비Pro 사용자) | ✅ |
+| **IP 기반 서버 Rate Limit (api_usage 테이블)** | ✅ |
+| 7개 API route에 서버 사이드 IP rate limit 적용 | ✅ |
+| Pro 사용자 rate limit 바이패스 | ✅ |
+| 대량 분석 5개 초과 경고 메시지 + Pro 100개 | ✅ |
+| **Free/Pro 제한 수치 통일 + KST 자정 리셋** | ✅ |
+| 클라이언트/서버 제한 수치 일치 (3/5/10) | ✅ |
+| 한국시간(KST, UTC+9) 자정 기준 일일 초기화 | ✅ |
+| **블로그** | |
+| 블로그 목록 페이지 개선 (카테고리 배지/날짜/읽는시간/NEW) | ✅ |
+| 스팸 점수 블로그 콘텐츠 대폭 보강 (5,000자+, TOC, 관련글) | ✅ |
+| **SEO 콘텐츠** | |
+| "벌크" → "대량" 전체 교체 (8개 파일) | ✅ |
+| /tools 메인 페이지 SEO 가이드 콘텐츠 (6개 섹션 카드) | ✅ |
+| /tools/bulk-analysis SEO 콘텐츠 + FAQ (4개) | ✅ |
+| /tools/domain-compare SEO 콘텐츠 + FAQ (3개) | ✅ |
+| **이메일** | |
+| Brevo 이메일 헬퍼 (`src/lib/email.ts`) | ✅ |
+| 경매 대행 문의 접수 확인 이메일 | ✅ |
+| 마켓플레이스 구매 문의 접수 확인 이메일 | ✅ |
+| 어드민 알림 이메일 (문의 접수 시) | ✅ |
+| Pro 지표 blur 미리보기 (Free 사용자) | ✅ |
+| 도메인 상세 공유 버튼 (ShareButton) | ✅ |
+| Google Ads Pro 전환 추적 (useEffect + env) | ✅ |
+| gtag 타입 선언 (gtag.d.ts) | ✅ |
 
 ---
 
@@ -70,6 +114,10 @@
 - [ ] **LemonSqueezy 환경변수 설정** — Vercel + .env.local에 LEMONSQUEEZY_API_KEY, WEBHOOK_SECRET, STORE_ID, VARIANT_ID 설정
 - [ ] **LemonSqueezy 웹훅 등록** — LemonSqueezy Dashboard에서 `https://domainchecker.co.kr/api/webhooks/lemonsqueezy` 등록
 - [ ] **LemonSqueezy 제품/Variant 생성** — 월간(₩9,900), 연간(₩82,800) 2개 Variant 생성
+- [ ] **Brevo 환경변수 설정** — Vercel + .env.local에 BREVO_API_KEY 설정
+- [ ] **Brevo 발신 이메일 인증** — Brevo에서 noreply@domainchecker.co.kr 도메인/이메일 인증 필요
+- [ ] **다크모드 색상 검수** — 모든 페이지에서 다크모드 색상 대비 확인 (특히 bg-muted, bg-card, border 계열)
+- [ ] **Google Ads 전환 ID 설정** — Vercel 환경변수에 NEXT_PUBLIC_GOOGLE_ADS_CONVERSION_ID 설정 (Google Ads 콘솔에서 발급)
 
 ### P1 — 정리 및 안정화
 
@@ -79,24 +127,28 @@
 - [ ] **godaddy_live.py 검증** — 실제 동작 확인 필요
 - [ ] **24시간 이전 낙찰 데이터 서버 사이드 접근 제어** — 현재 CSS blur만 적용, 실제 API 레벨 차단 구현 필요
 - [ ] **결제 플로우 E2E 테스트** — LemonSqueezy 테스트 모드에서 전체 플로우 확인
+- [ ] **최근 검색 API 사용자별 필터링** — 현재 전체 도메인 최근 검색 반환, 추후 user_id 기반 개인화 필요
+- [ ] **api_usage 테이블 정리 크론** — 30일 이상 된 레코드 자동 삭제 (Supabase pg_cron 또는 외부 스케줄러)
+- [ ] **기존 블로그 3편 CSS/가독성 통일** — what-is-da, how-to-choose-domain, domain-auction-guide에도 TOC/날짜/읽는시간/관련글 적용
+- [x] **나머지 도구 페이지 SEO 콘텐츠 추가** — 7개 페이지 모두 SEO 가이드+FAQ+JSON-LD 확인, SSL·HTTP 페이지 보강 완료
 
 ### P2 — 콘텐츠 확장 (SEO 트래픽)
 
+- [x] ~~블로그: "도메인 스팸 점수란? 확인 방법과 대처법"~~ → domain-spam-score-check 보강 완료
 - [ ] 블로그: "DR과 DA 차이점 완벽 정리"
 - [ ] 블로그: "만료 도메인으로 돈 버는 5가지 방법"
 - [ ] 블로그: "도메인 가치 평가하는 법 — 7가지 기준"
 - [ ] 블로그: "백링크란? SEO에서 중요한 이유"
-- [ ] 블로그: "도메인 스팸 점수란? 확인 방법과 대처법"
 - [ ] **OPENAI_API_KEY 발급** — domain-generator가 항상 fallback으로만 동작 중
 - [ ] **낙찰 이력 데이터 확인** — market-history 페이지 실제 데이터 노출 여부
 
 ### P3 — 추후
 
 - [ ] Railway Watcher 배포 (크롤러 상시 실행)
-- [ ] 최근 검색 위젯
+- [x] ~~최근 검색 위젯~~ → `/account` 대시보드에 포함
 - [ ] 블로그 추가 콘텐츠 8편까지 확장
-- [ ] 구독 관리 페이지 (해지/플랜 변경 UI)
-- [ ] LemonSqueezy Customer Portal 연동
+- [x] ~~구독 관리 페이지 (해지/플랜 변경 UI)~~ → `/account` + Customer Portal 연동 완료
+- [x] ~~LemonSqueezy Customer Portal 연동~~ → `/api/customer-portal` 완료
 
 ---
 
@@ -105,7 +157,7 @@
 | 항목 | 상태 |
 |------|------|
 | 로컬 pnpm dev | ✅ |
-| Supabase DB (6개 테이블 + subscriptions) | ✅ migration 완료 |
+| Supabase DB (6개 테이블 + subscriptions + api_usage) | ✅ migration 완료 |
 | RapidAPI | ✅ 구독 완료 |
 | Vercel 배포 | ✅ 완료 |
 | domainchecker.co.kr | ✅ 연결됨 |
@@ -118,3 +170,5 @@
 | LemonSqueezy 환경변수 | ❌ 미설정 |
 | LemonSqueezy 웹훅 등록 | ❌ 미등록 |
 | OPENAI_API_KEY | ❌ 미설정 (fallback 동작) |
+| BREVO_API_KEY | ❌ 미설정 (이메일 미발송) |
+| Brevo 발신 이메일 인증 | ❌ 미인증 |

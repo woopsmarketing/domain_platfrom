@@ -308,7 +308,7 @@ export function Header() {
             </div>
           ) : (
             <Link href="/login">
-              <Button variant="ghost" size="sm" className="text-xs">
+              <Button variant="ghost" size="sm" className="text-sm min-h-[44px]">
                 로그인
               </Button>
             </Link>
@@ -333,7 +333,7 @@ export function Header() {
       {/* Mobile menu */}
       <div
         className={`overflow-hidden border-t border-border/60 bg-background transition-all duration-200 ease-in-out md:hidden ${
-          mobileMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 border-t-0 opacity-0"
+          mobileMenuOpen ? "max-h-[80vh] overflow-y-auto opacity-100" : "max-h-0 border-t-0 opacity-0"
         }`}
       >
         <nav className="flex flex-col gap-1 px-4 pb-4 pt-2">
@@ -350,7 +350,7 @@ export function Header() {
               >
                 <Button
                   variant="ghost"
-                  className={`w-full justify-start text-sm ${
+                  className={`w-full justify-start text-sm min-h-[44px] ${
                     isActive ? "bg-accent text-foreground" : ""
                   }`}
                 >
@@ -368,20 +368,20 @@ export function Header() {
                 {user.email}
               </div>
               <Link href="/account" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start text-sm">
+                <Button variant="ghost" className="w-full justify-start text-sm min-h-[44px]">
                   <User className="mr-2 h-4 w-4" />
                   내 계정
                 </Button>
               </Link>
               <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="ghost" className="w-full justify-start text-sm">
+                <Button variant="ghost" className="w-full justify-start text-sm min-h-[44px]">
                   <CreditCard className="mr-2 h-4 w-4" />
                   요금제
                 </Button>
               </Link>
               <button
                 onClick={() => { handleSignOut(); setMobileMenuOpen(false); }}
-                className="flex w-full items-center rounded-md px-4 py-2 text-sm text-destructive hover:bg-accent transition-colors"
+                className="flex w-full items-center rounded-md px-4 py-2 text-sm min-h-[44px] text-destructive hover:bg-accent transition-colors"
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 로그아웃
@@ -398,7 +398,7 @@ export function Header() {
                 placeholder="도메인 검색..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="rounded-lg border-border/60 bg-muted/50 pl-9 placeholder:text-muted-foreground/70 focus:bg-background"
+                className="h-11 rounded-lg border-border/60 bg-muted/50 pl-9 placeholder:text-muted-foreground/70 focus:bg-background"
               />
             </div>
           </form>

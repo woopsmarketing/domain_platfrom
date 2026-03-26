@@ -169,7 +169,7 @@ export default function BrokerInquiryPage() {
             <div>
               <label className="mb-1.5 block text-sm font-medium">예산</label>
               <select
-                className="flex h-10 w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring sm:h-9 sm:text-sm"
+                className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring h-11 text-sm"
                 value={form.budget}
                 onChange={(e) => setForm({ ...form, budget: e.target.value })}
               >
