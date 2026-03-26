@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
 
 /**
  * GET /api/sold-domains?page=1&per_page=50&sort=recent
@@ -41,19 +42,37 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ items: [], total: 0, page, perPage });
     }
 
+    // Pro 사용자 확인
+    let isPro = false;
+    try {
+      const supabase = await createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: sub } = await client
+          .from("subscriptions")
+          .select("tier, expires_at")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (sub?.tier === "pro" && (!sub.expires_at || new Date(sub.expires_at) > new Date())) {
+          isPro = true;
+        }
+      }
+    } catch {
+      // 인증 실패 시 free로 처리
+    }
+
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
     const items = (data ?? []).map((row) => {
-      const isRecent = row.sold_at >= oneDayAgo;
+      const visible = isPro || row.sold_at >= oneDayAgo;
       return {
         id: row.id,
         name: row.domain,
         tld: row.tld,
         source: row.platform,
         soldAt: row.sold_at,
-        // 24시간 이전 데이터는 서버에서 마스킹 (Pro 전용)
-        soldPrice: isRecent ? row.price_usd : 0,
-        bidCount: isRecent ? row.bid_count : null,
+        soldPrice: visible ? row.price_usd : 0,
+        bidCount: visible ? row.bid_count : null,
       };
     });
 

@@ -42,6 +42,8 @@ export default async function MarketHistoryPage() {
     .select("id", { count: "exact", head: true })
     .gte("sold_at", oneDayAgo);
 
+  // 서버 사이드에서는 Pro 여부를 알 수 없으므로 전체 데이터를 전달
+  // 클라이언트에서 useAuth() tier 기반으로 잠금 처리
   const initialItems = (data ?? []).map((row) => ({
     id: row.id,
     name: row.domain,
