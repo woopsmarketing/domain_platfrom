@@ -103,6 +103,28 @@
 | 도메인 상세 공유 버튼 (ShareButton) | ✅ |
 | Google Ads Pro 전환 추적 (useEffect + env) | ✅ |
 | gtag 타입 선언 (gtag.d.ts) | ✅ |
+| **사용자 대시보드 전체** | |
+| 대시보드 레이아웃 (사이드바 + 모바일 탭) | ✅ |
+| 대시보드 메인 (통계 4카드 + 최근 분석 + 빠른 액션) | ✅ |
+| 분석 이력 (`/dashboard/history`) — 검색/페이지네이션 | ✅ |
+| 즐겨찾기 (`/dashboard/favorites`) — 추가/삭제/메모 편집 | ✅ |
+| 내 문의 (`/dashboard/inquiries`) — broker+inquiry 통합 | ✅ |
+| 구매 내역 (`/dashboard/purchases`) — 상태별 배지 | ✅ |
+| 알림 (`/dashboard/notifications`) — 읽음 처리/전체 읽음 | ✅ |
+| 내 플랜 (`/dashboard/plan`) — 구독 정보 + 기능 목록 | ✅ |
+| 프로필 설정 (`/dashboard/settings`) — 프로필/비번/로그아웃 | ✅ |
+| 7개 대시보드 API Routes | ✅ |
+| 도메인 분석 시 user_searches 자동 기록 | ✅ |
+| 도메인 상세 즐겨찾기 버튼 (FavoriteButton) | ✅ |
+| 헤더 알림 아이콘 (안읽은 수 배지) + 대시보드 링크 | ✅ |
+| **코드 리뷰 이슈 수정 (HIGH 4 + MEDIUM 7)** | ✅ |
+| email null 방어 (inquiries/stats API) | ✅ |
+| link/URL 검증 (notifications/plan) | ✅ |
+| useEffect 의존 배열 수정 (favorites/notifications) | ✅ |
+| 즐겨찾기 단건 체크 API + confirm 다이얼로그 | ✅ |
+| parseInt NaN 방어 (history API) | ✅ |
+| signOut 에러 처리 (settings) | ✅ |
+| alert → 인라인 에러 (plan portalError) | ✅ |
 
 ---
 
@@ -129,8 +151,11 @@
 - [ ] **결제 플로우 E2E 테스트** — LemonSqueezy 테스트 모드에서 전체 플로우 확인
 - [ ] **최근 검색 API 사용자별 필터링** — 현재 전체 도메인 최근 검색 반환, 추후 user_id 기반 개인화 필요
 - [ ] **api_usage 테이블 정리 크론** — 30일 이상 된 레코드 자동 삭제 (Supabase pg_cron 또는 외부 스케줄러)
-- [ ] **기존 블로그 3편 CSS/가독성 통일** — what-is-da, how-to-choose-domain, domain-auction-guide에도 TOC/날짜/읽는시간/관련글 적용
+- [x] **기존 블로그 3편 CSS/가독성 통일** — what-is-da, how-to-choose-domain, domain-auction-guide에 blog-prose/TOC/날짜/읽는시간/관련글/FAQ JSON-LD/콘텐츠 3000자+ 보강 완료
 - [x] **나머지 도구 페이지 SEO 콘텐츠 추가** — 7개 페이지 모두 SEO 가이드+FAQ+JSON-LD 확인, SSL·HTTP 페이지 보강 완료
+- [ ] **대시보드 알림 시스템 활성화** — 어드민이 문의 답변 시 user_notifications에 자동 insert하는 트리거/로직 구현
+- [ ] **대시보드 user_searches 중복 방지** — 같은 사용자가 동일 도메인을 연속 분석할 때 짧은 시간 내 중복 기록 방지 (예: 5분 디바운스)
+- [ ] **plan 페이지 구독 데이터 서버 사이드 이전** — 현재 클라이언트 직접 조회 (RLS 미적용, 보안 위험 낮지만 개선 권장)
 
 ### P2 — 콘텐츠 확장 (SEO 트래픽)
 
@@ -149,6 +174,7 @@
 - [ ] 블로그 추가 콘텐츠 8편까지 확장
 - [x] ~~구독 관리 페이지 (해지/플랜 변경 UI)~~ → `/account` + Customer Portal 연동 완료
 - [x] ~~LemonSqueezy Customer Portal 연동~~ → `/api/customer-portal` 완료
+- [ ] 어드민 대시보드 — 문의 관리/답변/알림 발송 통합 UI
 
 ---
 
@@ -157,7 +183,7 @@
 | 항목 | 상태 |
 |------|------|
 | 로컬 pnpm dev | ✅ |
-| Supabase DB (6개 테이블 + subscriptions + api_usage) | ✅ migration 완료 |
+| Supabase DB (6개 테이블 + subscriptions + api_usage + user_searches + user_purchases + user_notifications + wishlists) | ✅ migration 완료 |
 | RapidAPI | ✅ 구독 완료 |
 | Vercel 배포 | ✅ 완료 |
 | domainchecker.co.kr | ✅ 연결됨 |
@@ -171,4 +197,3 @@
 | LemonSqueezy 웹훅 등록 | ❌ 미등록 |
 | OPENAI_API_KEY | ❌ 미설정 (fallback 동작) |
 | BREVO_API_KEY | ❌ 미설정 (이메일 미발송) |
-| Brevo 발신 이메일 인증 | ❌ 미인증 |

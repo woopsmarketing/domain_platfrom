@@ -13,6 +13,7 @@ import { fetchWayback } from "@/lib/external/wayback";
 import { saveWaybackToDb } from "@/lib/db/wayback";
 import { SeoMetricsCards } from "@/components/domain/seo-metrics-cards";
 import { ShareButton } from "@/components/domain/share-button";
+import { FavoriteButton } from "@/components/domain/favorite-button";
 import type { DomainDetail } from "@/types/domain";
 import { isStale } from "@/lib/cache";
 
@@ -124,6 +125,7 @@ export default async function DomainDetailPage({ params }: PageProps) {
           <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-bold break-all">{name}</h1>
             <ShareButton />
+            <FavoriteButton domainName={name} />
           </div>
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Badge variant={data.domain.status === "sold" ? "default" : "outline"}>

@@ -63,6 +63,21 @@ export async function GET(
       await saveWaybackToDb(domainId, freshWayback);
     }
 
+    // 5.5. 로그인 사용자면 검색 이력 기록
+    try {
+      const { createClient } = await import("@/lib/supabase/server");
+      const authClient = await createClient();
+      const { data: { user } } = await authClient.auth.getUser();
+      if (user) {
+        const { createServiceClient } = await import("@/lib/supabase");
+        const svc = createServiceClient();
+        await svc.from("user_searches").insert({
+          user_id: user.id,
+          domain_name: name,
+        });
+      }
+    } catch { /* 비로그인 또는 실패 시 무시 */ }
+
     // 6. 최종 데이터 조합
     return NextResponse.json({
       data: {
