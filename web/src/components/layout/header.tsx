@@ -19,7 +19,7 @@ const navItems = [
 ];
 
 const toolItems = [
-  { href: "/tools/bulk-analysis", icon: BarChart3, title: "벌크 분석", desc: "여러 도메인 일괄 분석" },
+  { href: "/tools/bulk-analysis", icon: BarChart3, title: "대량 분석", desc: "여러 도메인 일괄 분석" },
   { href: "/tools/domain-compare", icon: GitCompare, title: "도메인 비교", desc: "나란히 비교 분석" },
   { href: "/tools/domain-availability", icon: Search, title: "가용성 확인", desc: "등록 가능 여부 확인" },
   { href: "/tools/domain-generator", icon: Sparkles, title: "AI 이름 생성", desc: "AI 도메인 추천" },

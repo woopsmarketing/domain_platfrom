@@ -9,7 +9,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 const FREE_FEATURES = [
   { text: "도메인 분석 (1일 5회)", included: true },
   { text: "AI 도메인 생성기 (1일 3회)", included: true },
-  { text: "벌크 분석 (5개, 1일 1회)", included: true },
+  { text: "대량 분석 (5개, 1일 1회)", included: true },
   { text: "도메인 비교 (2개)", included: true },
   { text: "기본 지표 (DA/PA/DR/TF/CF/백링크/참조도메인)", included: true },
   { text: "Wayback 스냅샷 수", included: true },
@@ -26,7 +26,7 @@ const FREE_FEATURES = [
 const PRO_FEATURES = [
   { text: "도메인 분석 무제한", included: true },
   { text: "AI 도메인 생성기 무제한", included: true },
-  { text: "벌크 분석 (100개, 무제한 횟수)", included: true },
+  { text: "대량 분석 (100개, 무제한 횟수)", included: true },
   { text: "도메인 비교 (10개)", included: true },
   {
     text: "모든 SEO 지표 (DA/PA/DR/TF/CF + 트래픽/키워드/스팸)",
@@ -258,7 +258,7 @@ function PricingContent() {
           {[
             {
               q: "무료로 어떤 기능을 사용할 수 있나요?",
-              a: "도메인 분석(1일 5회), AI 도메인 생성기(1일 3회), 벌크 분석(5개, 1일 1회), 기본 SEO 지표(DA/PA/DR/TF/CF), 백링크 수, 참조 도메인, Wayback 스냅샷, DNS/WHOIS/SSL/HTTP 도구를 무료로 사용할 수 있습니다.",
+              a: "도메인 분석(1일 5회), AI 도메인 생성기(1일 3회), 대량 분석(5개, 1일 1회), 기본 SEO 지표(DA/PA/DR/TF/CF), 백링크 수, 참조 도메인, Wayback 스냅샷, DNS/WHOIS/SSL/HTTP 도구를 무료로 사용할 수 있습니다.",
             },
             {
               q: "연간 결제 할인이 있나요?",

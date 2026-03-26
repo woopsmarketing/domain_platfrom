@@ -34,7 +34,7 @@ function getProviderLabel(provider: string | undefined) {
 const PRO_FEATURES = [
   { text: "도메인 분석 무제한", pro: true },
   { text: "AI 도메인 생성기 무제한", pro: true },
-  { text: "벌크 분석 (100개, 무제한)", pro: true },
+  { text: "대량 분석 (100개, 무제한)", pro: true },
   { text: "도메인 비교 (10개)", pro: true },
   { text: "Ahrefs 트래픽, 트래픽 가치, 키워드", pro: true },
   { text: "Moz Links, 스팸 점수", pro: true },
@@ -47,7 +47,7 @@ const PRO_FEATURES = [
 const FREE_LIMITS = [
   { text: "도메인 분석 1일 5회", pro: false },
   { text: "AI 생성기 1일 3회", pro: false },
-  { text: "벌크 분석 1일 1회 (5개)", pro: false },
+  { text: "대량 분석 1일 1회 (5개)", pro: false },
   { text: "도메인 비교 2개", pro: false },
   { text: "기본 지표만 (DA/PA/DR/TF/CF)", pro: false },
   { text: "낙찰 이력 최근 24시간만", pro: false },

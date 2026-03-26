@@ -206,7 +206,7 @@ export function BulkAnalysis() {
         open={showUpgrade}
         onClose={() => setShowUpgrade(false)}
         title="일일 사용 한도 도달"
-        description="오늘의 벌크 분석 사용 횟수를 모두 사용했습니다. Pro로 무제한 사용하세요."
+        description="오늘의 대량 분석 사용 횟수를 모두 사용했습니다. Pro로 무제한 사용하세요."
       />
     </div>
   );

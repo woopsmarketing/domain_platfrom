@@ -14,7 +14,7 @@ export function CtaSection() {
         <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
           <Link href="/tools">
             <Badge variant="secondary" className="cursor-pointer rounded-full px-5 py-2.5 text-sm min-h-[44px] inline-flex items-center transition-colors hover:bg-primary hover:text-primary-foreground">
-              벌크 분석 도구
+              대량 분석 도구
             </Badge>
           </Link>
           <Link href="/market-history">
