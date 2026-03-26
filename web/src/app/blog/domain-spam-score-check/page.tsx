@@ -602,30 +602,21 @@ export default function DomainSpamScoreCheckPage() {
         </section>
       </div>
 
-      {/* 관련 글 추천 */}
-      <div className="mt-16 rounded-xl border bg-muted/30 p-6">
-        <h2 className="text-lg font-semibold text-foreground">관련 글</h2>
-        <div className="mt-4 space-y-3">
-          <Link
-            href="/blog/what-is-da"
-            className="block rounded-lg border bg-card p-4 transition-colors hover:border-primary/50"
-          >
-            <p className="font-medium text-foreground">Domain Authority(DA)란? 도메인 품질을 판단하는 핵심 지표</p>
-            <p className="mt-1 text-sm text-muted-foreground">DA 지표의 의미와 도메인 투자에서의 활용법</p>
+      {/* 관련 글 */}
+      <div className="blog-related">
+        <h3 className="text-lg font-semibold mb-4">관련 글</h3>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Link href="/blog/what-is-da" className="blog-related-card">
+            <p className="font-medium text-sm">Domain Authority(DA)란?</p>
+            <p className="text-xs text-muted-foreground mt-1">DA의 의미, 계산 방식, 등급표까지 핵심 설명합니다.</p>
           </Link>
-          <Link
-            href="/blog/how-to-choose-domain"
-            className="block rounded-lg border bg-card p-4 transition-colors hover:border-primary/50"
-          >
-            <p className="font-medium text-foreground">좋은 도메인 고르는 법 — 투자 가치 있는 도메인 5가지 기준</p>
-            <p className="mt-1 text-sm text-muted-foreground">수익성 높은 도메인을 고르는 핵심 기준</p>
+          <Link href="/blog/how-to-choose-domain" className="blog-related-card">
+            <p className="font-medium text-sm">좋은 도메인 고르는 법 — 5가지 기준</p>
+            <p className="text-xs text-muted-foreground mt-1">DA/DR, TLD, 도메인 나이 등 투자 가치 있는 도메인을 고르는 핵심 기준.</p>
           </Link>
-          <Link
-            href="/blog/domain-auction-guide"
-            className="block rounded-lg border bg-card p-4 transition-colors hover:border-primary/50"
-          >
-            <p className="font-medium text-foreground">도메인 경매 완벽 가이드 — 낙찰 데이터 활용법</p>
-            <p className="mt-1 text-sm text-muted-foreground">경매에서 투자 기회를 찾는 방법</p>
+          <Link href="/blog/domain-auction-guide" className="blog-related-card">
+            <p className="font-medium text-sm">도메인 경매 완벽 가이드</p>
+            <p className="text-xs text-muted-foreground mt-1">경매 플랫폼 비교부터 입찰 전략, 낙찰 후 절차까지 알아보세요.</p>
           </Link>
         </div>
       </div>
