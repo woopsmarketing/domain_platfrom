@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Script from "next/script";
+import { ServiceCta } from "@/components/shared/service-cta";
 import {
   Search, Sparkles, ArrowRight, Network, FileSearch, DollarSign,
   Calendar, Shield, Activity, BarChart3, GitCompare, Star,
@@ -242,6 +243,8 @@ export default function ToolsPage() {
           ))}
         </div>
       </section>
+
+      <ServiceCta />
     </div>
   );
 }

@@ -16,6 +16,7 @@ const navItems = [
   { href: "/market-history", label: "낙찰 이력" },
   { href: "/tools", label: "분석 도구", hasDropdown: true },
   { href: "/blog", label: "블로그" },
+  { href: "/marketplace", label: "프리미엄 도메인" },
 ];
 
 const toolItems = [

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { createServiceClient } from "@/lib/supabase";
 import { SoldAuctionsClient } from "@/components/domain/sold-auctions-client";
+import { ServiceCta } from "@/components/shared/service-cta";
 
 // 동적 렌더링: 빌드 시 DB 쿼리 타임아웃 방지
 export const dynamic = "force-dynamic";
@@ -55,10 +56,13 @@ export default async function MarketHistoryPage() {
   }));
 
   return (
-    <SoldAuctionsClient
-      initialItems={initialItems}
-      initialTotal={count ?? 0}
-      recent24hCount={recent24hCount ?? 0}
-    />
+    <>
+      <SoldAuctionsClient
+        initialItems={initialItems}
+        initialTotal={count ?? 0}
+        recent24hCount={recent24hCount ?? 0}
+      />
+      <ServiceCta />
+    </>
   );
 }

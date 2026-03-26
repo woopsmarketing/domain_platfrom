@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Clock, Calendar } from "lucide-react";
 import { articles, CATEGORY_COLORS } from "@/lib/blog";
+import { ServiceCta } from "@/components/shared/service-cta";
 
 export const metadata: Metadata = {
   title: "블로그 — 도메인체커 | 도메인 투자 & SEO 가이드",
@@ -92,6 +93,8 @@ export default function BlogIndexPage() {
           </Link>
         ))}
       </div>
+
+      <ServiceCta />
     </div>
   );
 }

@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import Link from "next/link";
 import { Flame, AlertTriangle, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AuctionGrid } from "./auction-grid";
+import { ServiceCta } from "@/components/shared/service-cta";
 
 interface ActiveAuction {
   domain: string;
@@ -66,16 +66,7 @@ export function AuctionPageClient() {
         </p>
       </div>
 
-      {/* Broker Banner */}
-      <div className="mb-8 rounded-xl border border-primary/20 bg-primary/5 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <p className="font-semibold">원하는 도메인을 대신 구매해 드립니다</p>
-          <p className="text-sm text-muted-foreground">경매 입찰부터 도메인 이전까지 전 과정을 대행합니다</p>
-        </div>
-        <Link href="/inquiry">
-          <Button size="sm">대행 문의</Button>
-        </Link>
-      </div>
+
 
       {/* Stats */}
       <div className="mb-8 grid grid-cols-2 gap-4">
@@ -132,6 +123,7 @@ export function AuctionPageClient() {
           <p className="text-sm text-muted-foreground/70 mt-1">데이터는 30초마다 갱신됩니다.</p>
         </div>
       )}
+      <ServiceCta />
     </div>
   );
 }
