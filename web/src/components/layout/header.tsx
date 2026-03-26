@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { Search, Menu, X, LogOut, CreditCard, User, Sun, Moon } from "lucide-react";
+import { Search, Menu, X, LogOut, CreditCard, User, Sun, Moon, BarChart3, GitCompare, Sparkles, DollarSign, Network, FileSearch, Shield, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -14,8 +14,19 @@ const navItems = [
   { href: "/", label: "도메인 분석" },
   { href: "/auctions", label: "실시간 경매" },
   { href: "/market-history", label: "낙찰 이력" },
-  { href: "/tools", label: "분석 도구" },
+  { href: "/tools", label: "분석 도구", hasDropdown: true },
   { href: "/blog", label: "블로그" },
+];
+
+const toolItems = [
+  { href: "/tools/bulk-analysis", icon: BarChart3, title: "벌크 분석", desc: "여러 도메인 일괄 분석" },
+  { href: "/tools/domain-compare", icon: GitCompare, title: "도메인 비교", desc: "나란히 비교 분석" },
+  { href: "/tools/domain-availability", icon: Search, title: "가용성 확인", desc: "등록 가능 여부 확인" },
+  { href: "/tools/domain-generator", icon: Sparkles, title: "AI 이름 생성", desc: "AI 도메인 추천" },
+  { href: "/tools/domain-value", icon: DollarSign, title: "가치 평가", desc: "도메인 시장 가치" },
+  { href: "/tools/dns-checker", icon: Network, title: "DNS 조회", desc: "DNS 레코드 확인" },
+  { href: "/tools/whois-lookup", icon: FileSearch, title: "WHOIS 조회", desc: "소유자/만료일 확인" },
+  { href: "/tools/ssl-checker", icon: Shield, title: "SSL 확인", desc: "인증서 상태 점검" },
 ];
 
 export function Header() {
@@ -27,8 +38,10 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+  const [toolsOpen, setToolsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  const toolsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => setMounted(true), []);
 
@@ -53,6 +66,20 @@ export function Header() {
     router.refresh();
   };
 
+  const handleToolsEnter = () => {
+    if (toolsTimeoutRef.current) {
+      clearTimeout(toolsTimeoutRef.current);
+      toolsTimeoutRef.current = null;
+    }
+    setToolsOpen(true);
+  };
+
+  const handleToolsLeave = () => {
+    toolsTimeoutRef.current = setTimeout(() => {
+      setToolsOpen(false);
+    }, 150);
+  };
+
   // 메뉴 외부 클릭 시 닫기
   useEffect(() => {
     if (!mobileMenuOpen && !profileMenuOpen) return;
@@ -67,6 +94,13 @@ export function Header() {
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [mobileMenuOpen, profileMenuOpen]);
+
+  // cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (toolsTimeoutRef.current) clearTimeout(toolsTimeoutRef.current);
+    };
+  }, []);
 
   const userInitial = user?.email?.charAt(0).toUpperCase() ?? "?";
 
@@ -91,6 +125,65 @@ export function Header() {
               item.href === "/"
                 ? pathname === "/"
                 : pathname.startsWith(item.href);
+
+            // 분석 도구 — 드롭다운
+            if (item.hasDropdown) {
+              return (
+                <div
+                  key={item.href}
+                  className="relative"
+                  onMouseEnter={handleToolsEnter}
+                  onMouseLeave={handleToolsLeave}
+                >
+                  <Link href={item.href}>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`gap-1 text-sm font-medium ${
+                        isActive
+                          ? "bg-accent text-foreground"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {item.label}
+                      <ChevronDown className={`h-3 w-3 transition-transform ${toolsOpen ? "rotate-180" : ""}`} />
+                    </Button>
+                  </Link>
+                  {toolsOpen && (
+                    <div className="absolute left-0 top-full pt-2 z-50">
+                      <div className="w-[520px] rounded-xl border border-border/60 bg-card p-3 shadow-xl">
+                        <div className="grid grid-cols-2 gap-1">
+                          {toolItems.map((tool) => (
+                            <Link
+                              key={tool.href}
+                              href={tool.href}
+                              onClick={() => setToolsOpen(false)}
+                              className="flex items-start gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-accent"
+                            >
+                              <tool.icon className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                              <div>
+                                <p className="text-sm font-medium">{tool.title}</p>
+                                <p className="text-xs text-muted-foreground">{tool.desc}</p>
+                              </div>
+                            </Link>
+                          ))}
+                        </div>
+                        <div className="mt-2 border-t pt-2">
+                          <Link
+                            href="/tools"
+                            onClick={() => setToolsOpen(false)}
+                            className="flex items-center justify-center gap-1 rounded-lg py-2 text-sm font-medium text-primary hover:bg-accent transition-colors"
+                          >
+                            전체 도구 보기 →
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
             return (
               <Link key={item.href} href={item.href}>
                 <Button

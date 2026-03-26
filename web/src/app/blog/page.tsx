@@ -39,7 +39,7 @@ export default function BlogIndexPage() {
             className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
               cat === "전체"
                 ? "bg-foreground/10 text-foreground"
-                : categoryColors[cat] || "bg-muted text-muted-foreground"
+                : CATEGORY_COLORS[cat as keyof typeof CATEGORY_COLORS] || "bg-muted text-muted-foreground"
             }`}
           >
             {cat}
