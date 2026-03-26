@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Lock } from "lucide-react";
+import { Lock, AlertTriangle } from "lucide-react";
 import { formatNumber } from "@/lib/utils";
 import { calculateDomainGrade, GRADE_BG_MAP } from "@/lib/domain-utils";
 import { cleanDomain } from "@/lib/clean-domain";
@@ -15,10 +15,15 @@ export function BulkAnalysis() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<DomainDetail[]>([]);
+  const [trimWarning, setTrimWarning] = useState("");
   const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("bulk_analysis", 1);
+
+  const maxDomains = isPro ? 100 : 5;
 
   const analyze = useCallback(async () => {
     if (!checkAndIncrement()) return;
+    setTrimWarning("");
+
     const domains = input
       .split("\n")
       .map((d) => cleanDomain(d))
@@ -26,14 +31,24 @@ export function BulkAnalysis() {
 
     if (domains.length === 0) return;
 
-    const unique = [...new Set(domains)].slice(0, 5);
+    const unique = [...new Set(domains)];
+
+    if (unique.length > maxDomains) {
+      setTrimWarning(
+        isPro
+          ? `Pro 사용자는 최대 ${maxDomains}개까지 분석 가능합니다. 처음 ${maxDomains}개만 분석합니다.`
+          : `Free 사용자는 최대 ${maxDomains}개까지 분석 가능합니다. 처음 ${maxDomains}개만 분석합니다. Pro 구독으로 최대 100개까지 분석하세요.`
+      );
+    }
+
+    const toAnalyze = unique.slice(0, maxDomains);
 
     setLoading(true);
     setResults([]);
 
     try {
       const settled = await Promise.allSettled(
-        unique.map((d) =>
+        toAnalyze.map((d) =>
           fetch(`/api/domain/${encodeURIComponent(d)}`).then(async (r) => {
             if (!r.ok) throw new Error(`${d} failed`);
             const json = await r.json();
@@ -50,7 +65,7 @@ export function BulkAnalysis() {
     } finally {
       setLoading(false);
     }
-  }, [input, checkAndIncrement]);
+  }, [input, checkAndIncrement, maxDomains, isPro]);
 
   const gradeCircle = (detail: DomainDetail) => {
     const g = calculateDomainGrade(detail.metrics);
@@ -67,10 +82,17 @@ export function BulkAnalysis() {
     <div className="space-y-6">
       <textarea
         className="h-40 w-full rounded-lg border border-input bg-transparent px-4 py-3 text-base placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-        placeholder={"도메인을 한 줄에 하나씩 입력하세요 (무료: 최대 5개, 1일 1회)\nexample.com\ntest.io"}
+        placeholder={`도메인을 한 줄에 하나씩 입력하세요 (${isPro ? "Pro: 최대 100개" : "무료: 최대 5개, 1일 1회"})\nexample.com\ntest.io`}
         value={input}
         onChange={(e) => setInput(e.target.value)}
       />
+
+      {trimWarning && (
+        <div className="flex items-start gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-700 dark:text-yellow-400">
+          <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{trimWarning}</span>
+        </div>
+      )}
 
       <div className="flex items-center gap-3">
         <Button

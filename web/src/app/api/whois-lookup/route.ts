@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkApiRateLimit, isProUser } from "@/lib/rate-limit";
 import * as net from "net";
 
 // ccTLD별 WHOIS 서버 매핑
@@ -147,6 +148,22 @@ function convertWhoisToRdapFormat(raw: string, domain: string): Record<string, u
 }
 
 export async function GET(request: NextRequest) {
+  // Rate limit 체크
+  const pro = await isProUser(request);
+  if (!pro) {
+    const rateLimit = await checkApiRateLimit("whois_lookup", 30);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: "일일 사용 한도를 초과했습니다. Pro 구독으로 무제한 사용하세요.",
+          limit: rateLimit.limit,
+          used: rateLimit.used,
+        },
+        { status: 429 }
+      );
+    }
+  }
+
   const { searchParams } = request.nextUrl;
   const domain = searchParams.get("domain");
 

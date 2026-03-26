@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkApiRateLimit, isProUser } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30; // Vercel 함수 타임아웃 30초 (GPT-5 reasoning 대응)
@@ -224,6 +225,22 @@ async function checkAvailability(domain: string): Promise<boolean | null> {
 
 // ---------- Route handler ----------
 export async function POST(request: NextRequest) {
+  // Rate limit 체크
+  const pro = await isProUser(request);
+  if (!pro) {
+    const rateLimit = await checkApiRateLimit("ai_generator", 10);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: "일일 사용 한도를 초과했습니다. Pro 구독으로 무제한 사용하세요.",
+          limit: rateLimit.limit,
+          used: rateLimit.used,
+        },
+        { status: 429 }
+      );
+    }
+  }
+
   let body: { keyword?: string; tlds?: string[] };
   try {
     body = await request.json();

@@ -4,12 +4,29 @@ import { saveWaybackToDb } from "@/lib/db/wayback";
 import { fetchDomainMetrics } from "@/lib/external/rapidapi";
 import { fetchWayback } from "@/lib/external/wayback";
 import { isStale } from "@/lib/cache";
+import { checkApiRateLimit, isProUser } from "@/lib/rate-limit";
 
 export async function GET(
-  _req: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ name: string }> }
 ) {
   try {
+    // Rate limit 체크
+    const pro = await isProUser(request);
+    if (!pro) {
+      const rateLimit = await checkApiRateLimit("domain_analysis", 30);
+      if (!rateLimit.allowed) {
+        return NextResponse.json(
+          {
+            error: "일일 사용 한도를 초과했습니다. Pro 구독으로 무제한 사용하세요.",
+            limit: rateLimit.limit,
+            used: rateLimit.used,
+          },
+          { status: 429 }
+        );
+      }
+    }
+
     const { name } = await params;
 
     if (!name || typeof name !== "string" || name.trim() === "") {

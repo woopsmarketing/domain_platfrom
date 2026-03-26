@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { checkApiRateLimit, isProUser } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -73,6 +74,22 @@ const ALLOWED_TLDS = new Set([
 ]);
 
 export async function GET(request: NextRequest) {
+  // Rate limit 체크
+  const pro = await isProUser(request);
+  if (!pro) {
+    const rateLimit = await checkApiRateLimit("domain_availability", 30);
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        {
+          error: "일일 사용 한도를 초과했습니다. Pro 구독으로 무제한 사용하세요.",
+          limit: rateLimit.limit,
+          used: rateLimit.used,
+        },
+        { status: 429 }
+      );
+    }
+  }
+
   const { searchParams } = new URL(request.url);
   const domain = searchParams.get("domain")?.trim().toLowerCase();
   const tldsParam = searchParams.get("tlds");
