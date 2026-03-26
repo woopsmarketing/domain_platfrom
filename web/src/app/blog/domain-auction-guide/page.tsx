@@ -20,6 +20,22 @@ export const metadata: Metadata = {
 export default function DomainAuctionGuidePage() {
   return (
     <article className="mx-auto max-w-3xl px-4 py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: "도메인 경매 완벽 가이드 — GoDaddy, Namecheap 낙찰 데이터 활용법",
+            description: "도메인 경매의 작동 방식부터 GoDaddy Auctions, Namecheap 경매 낙찰 데이터를 활용해 투자 기회를 찾는 방법까지.",
+            author: { "@type": "Organization", name: "도메인체커" },
+            publisher: { "@type": "Organization", name: "도메인체커", logo: { "@type": "ImageObject", url: "https://domainchecker.co.kr/icon.svg" } },
+            mainEntityOfPage: "https://domainchecker.co.kr/blog/domain-auction-guide",
+            datePublished: "2025-01-15",
+            dateModified: "2025-01-15",
+          }),
+        }}
+      />
       <Link
         href="/blog"
         className="mb-8 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"

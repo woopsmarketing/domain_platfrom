@@ -72,8 +72,6 @@ export default function RootLayout({
             __html: `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-N255DR94BE');`,
           }}
         />
-      </head>
-      <body className={`${inter.className} antialiased`}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -98,10 +96,22 @@ export default function RootLayout({
                     "query-input": "required name=search_term_string",
                   },
                 },
+                {
+                  "@type": "BreadcrumbList",
+                  itemListElement: [
+                    { "@type": "ListItem", position: 1, name: "홈", item: "https://domainchecker.co.kr" },
+                    { "@type": "ListItem", position: 2, name: "도구", item: "https://domainchecker.co.kr/tools" },
+                    { "@type": "ListItem", position: 3, name: "낙찰 이력", item: "https://domainchecker.co.kr/market-history" },
+                    { "@type": "ListItem", position: 4, name: "실시간 경매", item: "https://domainchecker.co.kr/auctions" },
+                    { "@type": "ListItem", position: 5, name: "블로그", item: "https://domainchecker.co.kr/blog" },
+                  ],
+                },
               ],
             }),
           }}
         />
+      </head>
+      <body className={`${inter.className} antialiased`}>
         <AuthProvider>
           <div className="flex min-h-screen flex-col">
             <Header />

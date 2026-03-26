@@ -20,6 +20,22 @@ export const metadata: Metadata = {
 export default function WhatIsDaPage() {
   return (
     <article className="mx-auto max-w-3xl px-4 py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: "Domain Authority(DA)란? 도메인 품질을 판단하는 핵심 지표",
+            description: "Moz가 개발한 Domain Authority(DA)의 의미와 계산 방식, 도메인 투자에서 DA가 중요한 이유를 상세히 설명합니다.",
+            author: { "@type": "Organization", name: "도메인체커" },
+            publisher: { "@type": "Organization", name: "도메인체커", logo: { "@type": "ImageObject", url: "https://domainchecker.co.kr/icon.svg" } },
+            mainEntityOfPage: "https://domainchecker.co.kr/blog/what-is-da",
+            datePublished: "2025-01-15",
+            dateModified: "2025-01-15",
+          }),
+        }}
+      />
       <Link
         href="/blog"
         className="mb-8 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"

@@ -21,6 +21,22 @@ export const metadata: Metadata = {
 export default function HowToChooseDomainPage() {
   return (
     <article className="mx-auto max-w-3xl px-4 py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: "좋은 도메인 고르는 법 — 투자 가치 있는 도메인 5가지 기준",
+            description: "DA/DR, TLD, 도메인 나이, 백링크 프로필, 브랜드 가능성까지. 수익성 높은 도메인을 고르는 5가지 핵심 기준.",
+            author: { "@type": "Organization", name: "도메인체커" },
+            publisher: { "@type": "Organization", name: "도메인체커", logo: { "@type": "ImageObject", url: "https://domainchecker.co.kr/icon.svg" } },
+            mainEntityOfPage: "https://domainchecker.co.kr/blog/how-to-choose-domain",
+            datePublished: "2025-01-15",
+            dateModified: "2025-01-15",
+          }),
+        }}
+      />
       <Link
         href="/blog"
         className="mb-8 inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
