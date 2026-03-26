@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { Search, Menu, X } from "lucide-react";
+import { Search, Menu, X, LogOut, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAuth } from "@/components/providers/auth-provider";
+import { createClient } from "@/lib/supabase/client";
 
 const navItems = [
   { href: "/", label: "도메인 분석" },
@@ -18,9 +20,12 @@ const navItems = [
 export function Header() {
   const router = useRouter();
   const pathname = usePathname();
+  const { user, loading } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,17 +41,29 @@ export function Header() {
     }
   };
 
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setProfileMenuOpen(false);
+    router.refresh();
+  };
+
   // 메뉴 외부 클릭 시 닫기
   useEffect(() => {
-    if (!mobileMenuOpen) return;
+    if (!mobileMenuOpen && !profileMenuOpen) return;
     const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      if (mobileMenuOpen && menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setMobileMenuOpen(false);
+      }
+      if (profileMenuOpen && profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [mobileMenuOpen]);
+  }, [mobileMenuOpen, profileMenuOpen]);
+
+  const userInitial = user?.email?.charAt(0).toUpperCase() ?? "?";
 
   return (
     <header ref={menuRef} className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl">
@@ -87,7 +104,7 @@ export function Header() {
           })}
         </nav>
 
-        {/* Search — 데스크탑만 표시, 모바일은 히어로 검색으로 유도 */}
+        {/* Search — 데스크탑만 표시 */}
         <form
           onSubmit={handleSearch}
           className="mx-4 hidden flex-1 items-center justify-end md:flex"
@@ -104,30 +121,92 @@ export function Header() {
           </div>
         </form>
 
+        {/* Auth — 데스크탑 */}
+        <div className="hidden items-center md:flex">
+          {loading ? (
+            <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
+          ) : user ? (
+            <div ref={profileRef} className="relative">
+              <button
+                onClick={() => setProfileMenuOpen(!profileMenuOpen)}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground transition-opacity hover:opacity-80"
+                aria-label="프로필 메뉴"
+              >
+                {userInitial}
+              </button>
+              {profileMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-56 rounded-lg border border-border/60 bg-card p-1 shadow-lg">
+                  <div className="px-3 py-2 text-sm text-muted-foreground truncate">
+                    {user.email}
+                  </div>
+                  <div className="my-1 h-px bg-border" />
+                  <Link
+                    href="/pricing"
+                    onClick={() => setProfileMenuOpen(false)}
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors"
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    요금제
+                  </Link>
+                  <div className="my-1 h-px bg-border" />
+                  <button
+                    onClick={handleSignOut}
+                    className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm hover:bg-accent transition-colors text-destructive"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    로그아웃
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link href="/login">
+              <Button variant="ghost" size="sm">
+                로그인
+              </Button>
+            </Link>
+          )}
+        </div>
+
         {/* 모바일 오른쪽 여백 채우기 */}
         <div className="flex-1 md:hidden" />
 
-        {/* Mobile menu toggle */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="ml-2 md:hidden"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="메뉴"
-          aria-expanded={mobileMenuOpen}
-        >
-          {mobileMenuOpen ? (
-            <X className="h-5 w-5" />
+        {/* Mobile auth + menu toggle */}
+        <div className="flex items-center gap-1 md:hidden">
+          {loading ? (
+            <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
+          ) : user ? (
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground">
+              {userInitial}
+            </div>
           ) : (
-            <Menu className="h-5 w-5" />
+            <Link href="/login">
+              <Button variant="ghost" size="sm" className="text-xs">
+                로그인
+              </Button>
+            </Link>
           )}
-        </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="ml-1"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="메뉴"
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
+          </Button>
+        </div>
       </div>
 
-      {/* Mobile menu — 슬라이드 애니메이션 */}
+      {/* Mobile menu */}
       <div
         className={`overflow-hidden border-t border-border/60 bg-background transition-all duration-200 ease-in-out md:hidden ${
-          mobileMenuOpen ? "max-h-80 opacity-100" : "max-h-0 border-t-0 opacity-0"
+          mobileMenuOpen ? "max-h-[500px] opacity-100" : "max-h-0 border-t-0 opacity-0"
         }`}
       >
         <nav className="flex flex-col gap-1 px-4 pb-4 pt-2">
@@ -153,7 +232,31 @@ export function Header() {
               </Link>
             );
           })}
-          {/* 모바일 검색 — 메뉴 내 */}
+
+          {/* 모바일: 로그인 상태에 따른 추가 항목 */}
+          {!loading && user && (
+            <>
+              <div className="my-1 h-px bg-border" />
+              <div className="px-3 py-2 text-sm text-muted-foreground truncate">
+                {user.email}
+              </div>
+              <Link href="/pricing" onClick={() => setMobileMenuOpen(false)}>
+                <Button variant="ghost" className="w-full justify-start text-sm">
+                  <CreditCard className="mr-2 h-4 w-4" />
+                  요금제
+                </Button>
+              </Link>
+              <button
+                onClick={() => { handleSignOut(); setMobileMenuOpen(false); }}
+                className="flex w-full items-center rounded-md px-4 py-2 text-sm text-destructive hover:bg-accent transition-colors"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                로그아웃
+              </button>
+            </>
+          )}
+
+          {/* 모바일 검색 */}
           <form onSubmit={(e) => { handleSearch(e); setMobileMenuOpen(false); }} className="mt-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
