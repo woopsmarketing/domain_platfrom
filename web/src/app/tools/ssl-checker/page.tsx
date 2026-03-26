@@ -77,6 +77,87 @@ export default function SslCheckerPage() {
           </div>
         </section>
 
+
+        {/* SSL이 중요한 이유 */}
+        <section className="mt-16">
+          <h2 className="text-2xl font-bold tracking-tight">SSL 인증서가 중요한 이유</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            SSL은 단순한 보안 기능을 넘어 웹사이트의 신뢰도와 검색 순위에 직접적인 영향을 미칩니다.
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              { title: "SEO 랭킹 요소", desc: "구글은 2014년부터 HTTPS를 검색 순위 신호로 사용하고 있습니다. SSL이 없는 사이트는 검색 결과에서 불이익을 받을 수 있습니다." },
+              { title: "사용자 신뢰도", desc: "브라우저 주소창의 자물쇠 아이콘은 방문자에게 안전한 사이트라는 신호를 줍니다. SSL이 없으면 \'안전하지 않음\' 경고가 표시됩니다." },
+              { title: "데이터 보호", desc: "SSL은 사용자가 입력하는 비밀번호, 개인정보, 결제 정보 등을 암호화하여 중간에서 탈취할 수 없도록 보호합니다." },
+              { title: "브라우저 경고 방지", desc: "SSL이 없거나 만료되면 Chrome, Firefox 등 주요 브라우저가 경고 페이지를 표시하여 방문자가 이탈합니다." },
+              { title: "결제 시스템 필수", desc: "온라인 결제를 처리하려면 SSL 인증서가 반드시 필요합니다. PCI DSS 규정에서 HTTPS를 의무화하고 있습니다." },
+              { title: "도메인 가치 판단", desc: "중고 도메인 구매 시 SSL 인증서 상태를 확인하면 해당 도메인의 관리 수준과 활용 이력을 파악할 수 있습니다." },
+            ].map((item) => (
+              <div key={item.title} className="rounded-lg border p-5">
+                <h3 className="font-semibold">{item.title}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* SSL 인증서 종류 비교 */}
+        <section className="mt-16">
+          <h2 className="text-2xl font-bold tracking-tight">SSL 인증서 종류 비교</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            용도에 맞는 SSL 인증서를 선택하세요.
+          </p>
+          <div className="mt-6 overflow-x-auto rounded-lg border">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-muted/40">
+                  <th className="px-4 py-3 text-left font-semibold">종류</th>
+                  <th className="px-4 py-3 text-left font-semibold">인증 수준</th>
+                  <th className="px-4 py-3 text-left font-semibold hidden sm:table-cell">비용</th>
+                  <th className="px-4 py-3 text-left font-semibold hidden md:table-cell">적합 대상</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {[
+                  { type: "DV (Domain Validation)", level: "도메인 소유 확인", cost: "무료~$50/년", target: "개인 블로그, 소규모 사이트" },
+                  { type: "OV (Organization Validation)", level: "조직 실재 확인", cost: "$50~$200/년", target: "기업 웹사이트, 비영리 단체" },
+                  { type: "EV (Extended Validation)", level: "확장 검증 (최고 수준)", cost: "$100~$500/년", target: "은행, 전자상거래, 대기업" },
+                  { type: "와일드카드 (Wildcard)", level: "서브도메인 전체 보호", cost: "$100~$300/년", target: "서브도메인이 많은 서비스" },
+                ].map((row) => (
+                  <tr key={row.type} className="hover:bg-muted/30">
+                    <td className="px-4 py-3 font-medium">{row.type}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{row.level}</td>
+                    <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">{row.cost}</td>
+                    <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">{row.target}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* SSL 체크리스트 */}
+        <section className="mt-16">
+          <h2 className="text-2xl font-bold tracking-tight">SSL 보안 체크리스트</h2>
+          <div className="mt-6 rounded-lg border">
+            <ul className="divide-y">
+              {[
+                "SSL 인증서가 유효 기간 내인가?",
+                "TLS 1.2 이상 프로토콜을 사용하고 있는가?",
+                "인증서의 도메인과 실제 도메인이 일치하는가?",
+                "HTTP에서 HTTPS로 자동 리다이렉트 되는가?",
+                "혼합 콘텐츠(Mixed Content) 경고가 없는가?",
+                "인증서 체인이 올바르게 설정되었는가?",
+              ].map((item) => (
+                <li key={item} className="flex items-center gap-3 px-5 py-3.5 text-sm">
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-green-500" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
         <section className="mt-16">
           <h2 className="text-2xl font-bold tracking-tight">자주 묻는 질문</h2>
           <div className="mt-6 divide-y rounded-lg border">

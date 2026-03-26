@@ -93,6 +93,55 @@ export default function HttpStatusPage() {
           </div>
         </section>
 
+
+        {/* HTTP 상태 코드 활용 가이드 */}
+        <section className="mt-16">
+          <h2 className="text-2xl font-bold tracking-tight">HTTP 상태 코드 활용 가이드</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            HTTP 상태 코드를 이해하면 웹사이트 문제를 빠르게 진단하고 SEO를 개선할 수 있습니다.
+          </p>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              { title: "리다이렉트 체인 확인", desc: "301/302 리다이렉트가 여러 번 연속되면 페이지 로딩 속도가 느려지고 SEO에 불리합니다. 가능하면 최종 목적지로 직접 연결하세요." },
+              { title: "301 vs 302 SEO 영향", desc: "301(영구 이동)은 링크 가치를 새 URL로 전달하지만, 302(임시 이동)는 전달하지 않습니다. 도메인 이전 시 반드시 301을 사용하세요." },
+              { title: "중고 도메인 리다이렉트 확인", desc: "경매에서 구매한 도메인이 어디로 리다이렉트되는지 확인하세요. 스팸 사이트로 연결되던 이력이 있으면 SEO에 악영향을 줄 수 있습니다." },
+              { title: "404 에러 모니터링", desc: "존재하지 않는 페이지로 들어오는 트래픽은 손실입니다. 404 에러가 많으면 301 리다이렉트로 관련 페이지로 안내하세요." },
+              { title: "서버 오류(5xx) 대응", desc: "500, 502, 503 등 서버 오류가 지속되면 검색엔진이 사이트를 색인에서 제외할 수 있습니다. 즉시 호스팅 업체에 문의하세요." },
+              { title: "도메인 파킹 감지", desc: "구매 전 도메인의 HTTP 상태를 확인하면 파킹 페이지, 광고 페이지, 또는 실제 운영 중인 사이트인지 판별할 수 있습니다." },
+            ].map((item) => (
+              <div key={item.title} className="rounded-lg border p-5">
+                <h3 className="font-semibold">{item.title}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 리다이렉트 설정 모범 사례 */}
+        <section className="mt-16">
+          <h2 className="text-2xl font-bold tracking-tight">리다이렉트 설정 모범 사례</h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            올바른 리다이렉트 설정은 SEO 가치를 보존하고 사용자 경험을 향상시킵니다.
+          </p>
+          <div className="mt-6 rounded-lg border">
+            <ul className="divide-y">
+              {[
+                "도메인 이전 시 301 리다이렉트를 사용하여 SEO 가치를 전달하세요",
+                "리다이렉트 체인은 2단계 이내로 유지하세요 (이상적으로는 1단계)",
+                "HTTP → HTTPS 리다이렉트를 설정하여 보안과 SEO를 동시에 확보하세요",
+                "www와 non-www 중 하나로 통일하고 나머지는 301 리다이렉트하세요",
+                "삭제된 페이지는 관련 콘텐츠로 301 리다이렉트하거나 410(삭제됨) 상태를 반환하세요",
+                "임시 점검 시에만 302를 사용하고, 영구적인 변경에는 반드시 301을 사용하세요",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-3 px-5 py-3.5 text-sm">
+                  <ArrowRight className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
         <section className="mt-16">
           <h2 className="text-2xl font-bold tracking-tight">자주 묻는 질문</h2>
           <div className="mt-6 divide-y rounded-lg border">
