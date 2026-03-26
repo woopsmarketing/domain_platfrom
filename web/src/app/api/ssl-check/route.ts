@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
   // Rate limit 체크
   const pro = await isProUser(request);
   if (!pro) {
-    const rateLimit = await checkApiRateLimit("ssl_checker", 30);
+    const rateLimit = await checkApiRateLimit("ssl_checker", 5);
     if (!rateLimit.allowed) {
       return NextResponse.json(
         {

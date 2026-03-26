@@ -42,7 +42,7 @@ export function DnsCheckerClient() {
   const [loading, setLoading] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<Set<RecordType>>(new Set(RECORD_TYPES));
   const [copied, setCopied] = useState<string | null>(null);
-  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("dns_checker", 10);
+  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("dns_checker", 5);
 
   const toggleType = (t: RecordType) => {
     setSelectedTypes((prev) => {

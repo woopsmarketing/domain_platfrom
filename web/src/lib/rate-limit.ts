@@ -19,7 +19,7 @@ export async function checkApiRateLimit(
     "unknown";
 
   const client = createServiceClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
   // 현재 사용량 조회
   const { data } = await client

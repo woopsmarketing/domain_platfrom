@@ -34,7 +34,7 @@ export function SslCheckerClient() {
   const [data, setData] = useState<SslData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("ssl_checker", 10);
+  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("ssl_checker", 5);
 
   const lookup = useCallback(async () => {
     if (!checkAndIncrement()) return;

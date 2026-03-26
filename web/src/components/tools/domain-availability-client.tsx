@@ -24,7 +24,7 @@ export function DomainAvailabilityClient() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<Result[]>([]);
   const [searched, setSearched] = useState(false);
-  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("domain_availability", 10);
+  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("domain_availability", 5);
 
   const toggleTld = (tld: string) => {
     setSelectedTlds((prev) => {

@@ -151,7 +151,7 @@ export async function GET(request: NextRequest) {
   // Rate limit 체크
   const pro = await isProUser(request);
   if (!pro) {
-    const rateLimit = await checkApiRateLimit("whois_lookup", 30);
+    const rateLimit = await checkApiRateLimit("whois_lookup", 5);
     if (!rateLimit.allowed) {
       return NextResponse.json(
         {

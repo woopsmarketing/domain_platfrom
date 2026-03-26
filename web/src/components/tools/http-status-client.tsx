@@ -33,7 +33,7 @@ export function HttpStatusClient() {
   const [chain, setChain] = useState<ChainEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("http_status", 10);
+  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("http_status", 5);
 
   const lookup = useCallback(async () => {
     if (!checkAndIncrement()) return;

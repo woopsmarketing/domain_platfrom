@@ -235,7 +235,7 @@ export function DomainValueClient() {
   const [advanced, setAdvanced] = useState<AdvancedResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [advancedLoading, setAdvancedLoading] = useState(false);
-  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("domain_value", 5);
+  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("domain_value", 3);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

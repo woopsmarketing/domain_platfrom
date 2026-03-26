@@ -47,7 +47,7 @@ export function WhoisLookupClient() {
   const [data, setData] = useState<WhoisData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("whois_lookup", 10);
+  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("whois_lookup", 5);
 
   const lookup = useCallback(async () => {
     if (!checkAndIncrement()) return;

@@ -17,7 +17,7 @@ export function DomainCompare() {
   const [domains, setDomains] = useState<string[]>(["", ""]);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<DomainDetail[]>([]);
-  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("domain_compare", 5);
+  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("domain_compare", 3);
 
   const updateDomain = (index: number, value: string) => {
     setDomains((prev) => {

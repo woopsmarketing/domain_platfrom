@@ -228,7 +228,7 @@ export async function POST(request: NextRequest) {
   // Rate limit 체크
   const pro = await isProUser(request);
   if (!pro) {
-    const rateLimit = await checkApiRateLimit("ai_generator", 10);
+    const rateLimit = await checkApiRateLimit("ai_generator", 3);
     if (!rateLimit.allowed) {
       return NextResponse.json(
         {

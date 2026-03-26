@@ -79,7 +79,7 @@ export function DomainExpiryClient() {
   const [data, setData] = useState<ExpiryData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("domain_expiry", 10);
+  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("domain_expiry", 5);
 
   const lookup = useCallback(async () => {
     if (!checkAndIncrement()) return;
