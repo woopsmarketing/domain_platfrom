@@ -68,7 +68,7 @@ export default async function HomePage() {
   }
 
   try {
-    highlights = await getTodayHighlights(10);
+    highlights = await getTodayHighlights(15);
   } catch {
     highlights = [];
   }
