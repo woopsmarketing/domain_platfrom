@@ -17,6 +17,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: base, lastModified: new Date(), changeFrequency: "daily", priority: 1.0 },
     { url: `${base}/auctions`, lastModified: new Date(), changeFrequency: "always", priority: 0.9 },
     { url: `${base}/market-history`, lastModified: new Date(), changeFrequency: "daily", priority: 0.9 },
+    { url: `${base}/marketplace`, lastModified: new Date(), changeFrequency: "daily", priority: 0.8 },
+    { url: `${base}/inquiry`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
     { url: `${base}/pricing`, lastModified: new Date(), changeFrequency: "monthly", priority: 0.7 },
 
     // 도구

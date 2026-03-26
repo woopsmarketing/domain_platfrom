@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { getPopularDomains, getTodayHighlights } from "@/lib/db/analytics";
 import { formatPrice } from "@/lib/utils";
 import { HeroSection } from "@/components/home/hero-section";
@@ -207,6 +208,19 @@ export default async function HomePage() {
               </CardContent>
             </Card>
           )}
+        </div>
+      </section>
+
+      {/* 경매 대행 CTA */}
+      <section className="border-b px-4 py-8">
+        <div className="mx-auto max-w-5xl">
+          <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-semibold">원하는 도메인을 대신 구매해 드립니다</p>
+              <p className="text-sm text-muted-foreground">경매 입찰부터 도메인 이전까지 전 과정을 대행합니다</p>
+            </div>
+            <Link href="/inquiry"><Button size="sm">대행 문의</Button></Link>
+          </div>
         </div>
       </section>
 

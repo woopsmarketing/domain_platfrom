@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import { Flame, AlertTriangle, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { AuctionGrid } from "./auction-grid";
 
 interface ActiveAuction {
@@ -62,6 +64,17 @@ export function AuctionPageClient() {
           현재 활발하게 입찰 경쟁이 진행 중인 도메인입니다.
           30초마다 최신 데이터로 자동 갱신됩니다.
         </p>
+      </div>
+
+      {/* Broker Banner */}
+      <div className="mb-8 rounded-xl border border-primary/20 bg-primary/5 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="font-semibold">원하는 도메인을 대신 구매해 드립니다</p>
+          <p className="text-sm text-muted-foreground">경매 입찰부터 도메인 이전까지 전 과정을 대행합니다</p>
+        </div>
+        <Link href="/inquiry">
+          <Button size="sm">대행 문의</Button>
+        </Link>
       </div>
 
       {/* Stats */}

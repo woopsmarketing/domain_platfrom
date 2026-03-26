@@ -37,6 +37,9 @@ export function Footer() {
                 <Link href="/market-history" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
                   낙찰 이력
                 </Link>
+                <Link href="/marketplace" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                  도메인 판매
+                </Link>
                 <Link href="/tools" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
                   분석 도구
                 </Link>
@@ -64,6 +67,9 @@ export function Footer() {
                 </Link>
                 <Link href="/blog/domain-auction-guide" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
                   경매 가이드
+                </Link>
+                <Link href="/inquiry" className="text-sm text-muted-foreground transition-colors hover:text-foreground">
+                  경매 대행 문의
                 </Link>
               </nav>
             </div>
