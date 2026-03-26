@@ -10,6 +10,7 @@ import {
   Lock,
   Loader2,
 } from "lucide-react";
+import { useAuth } from "@/components/providers/auth-provider";
 
 interface SoldDomain {
   id: string;
@@ -67,6 +68,8 @@ function formatUSD(price: number): string {
 }
 
 export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount }: SoldAuctionsProps) {
+  const { tier } = useAuth();
+  const isProUser = tier === "pro";
   const [domains, setDomains] = useState<SoldDomain[]>(initialItems);
   const [loading, setLoading] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("recent");
@@ -197,7 +200,7 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
             </thead>
             <tbody>
               {domains.map((d) => {
-                const free = isWithin24h(d.soldAt);
+                const free = isProUser || isWithin24h(d.soldAt);
                 return (
                   <tr
                     key={d.id}
@@ -270,8 +273,8 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
         </p>
       )}
 
-      {/* Pro 안내 */}
-      {domains.length > 0 && (
+      {/* Pro 안내 — Free 사용자만 표시 */}
+      {domains.length > 0 && !isProUser && (
         <div className="mt-2 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-blue-500/5 p-4 flex items-center gap-3">
           <Lock className="h-5 w-5 shrink-0 text-primary" />
           <div>
