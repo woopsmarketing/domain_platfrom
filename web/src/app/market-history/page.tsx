@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { createServiceClient } from "@/lib/supabase";
 import { SoldAuctionsClient } from "@/components/domain/sold-auctions-client";
 
-// On-Demand Revalidation: 낙찰 발생 시에만 캐시 갱신 (active-auctions에서 트리거)
-// 시간 기반 revalidate 없음 — 낙찰 없으면 DB 호출도 없음
+// 동적 렌더링: 빌드 시 DB 쿼리 타임아웃 방지
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "도메인 거래 시세 — 실제 경매 낙찰 가격 데이터",
