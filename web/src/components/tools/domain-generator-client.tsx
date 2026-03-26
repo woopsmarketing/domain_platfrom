@@ -3,6 +3,8 @@
 import { useState, useCallback } from "react";
 import Link from "next/link";
 import { Sparkles, Loader2, CheckCircle2, XCircle, AlertCircle, ExternalLink, Search, Target } from "lucide-react";
+import { useRateLimit } from "@/hooks/use-rate-limit";
+import { UpgradeModal } from "@/components/ui/upgrade-modal";
 
 const ALL_TLDS = ["com", "net", "org", "io", "ai", "co", "dev", "app"] as const;
 
@@ -28,6 +30,7 @@ export function DomainGeneratorClient() {
   const [selectedTlds, setSelectedTlds] = useState<Set<string>>(new Set(["com", "net", "io"]));
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<GeneratorResults | null>(null);
+  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("ai_generator", 3);
 
   const toggleTld = (tld: string) => {
     setSelectedTlds((prev) => {
@@ -40,6 +43,7 @@ export function DomainGeneratorClient() {
 
   const handleGenerate = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!checkAndIncrement()) return;
     const kw = keyword.trim().toLowerCase();
     if (!kw) return;
 
@@ -59,7 +63,7 @@ export function DomainGeneratorClient() {
     } finally {
       setLoading(false);
     }
-  }, [keyword, selectedTlds]);
+  }, [keyword, selectedTlds, checkAndIncrement]);
 
   const totalCount = results ? results.seo.length + results.brand.length + results.similar.length : 0;
   const availableCount = results
@@ -91,7 +95,7 @@ export function DomainGeneratorClient() {
         </div>
 
         {/* TLD selection */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {ALL_TLDS.map((tld) => (
             <button key={tld} type="button" onClick={() => toggleTld(tld)}
               className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
@@ -102,6 +106,7 @@ export function DomainGeneratorClient() {
               .{tld}
             </button>
           ))}
+          {!isPro && <span className="text-xs text-muted-foreground ml-2">오늘 {remaining}회 남음</span>}
         </div>
       </form>
 
@@ -161,6 +166,13 @@ export function DomainGeneratorClient() {
           })}
         </div>
       )}
+
+      <UpgradeModal
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        title="일일 사용 한도 도달"
+        description="오늘의 AI 도메인 생성 사용 횟수를 모두 사용했습니다. Pro로 무제한 사용하세요."
+      />
     </div>
   );
 }

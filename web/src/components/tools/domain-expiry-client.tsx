@@ -4,6 +4,8 @@ import { useState, useCallback } from "react";
 import { Search, Loader2, Calendar, Clock, AlertTriangle, CheckCircle2, Gavel, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import { cleanDomain } from "@/lib/clean-domain";
+import { useRateLimit } from "@/hooks/use-rate-limit";
+import { UpgradeModal } from "@/components/ui/upgrade-modal";
 
 interface ExpiryData {
   domainName: string;
@@ -77,8 +79,10 @@ export function DomainExpiryClient() {
   const [data, setData] = useState<ExpiryData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("domain_expiry", 10);
 
   const lookup = useCallback(async () => {
+    if (!checkAndIncrement()) return;
     const d = cleanDomain(domain);
     if (!d || !d.includes(".")) return;
 
@@ -137,7 +141,7 @@ export function DomainExpiryClient() {
     } finally {
       setLoading(false);
     }
-  }, [domain]);
+  }, [domain, checkAndIncrement]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,6 +169,7 @@ export function DomainExpiryClient() {
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "확인"}
         </button>
       </form>
+      {!isPro && <p className="mt-2 text-xs text-muted-foreground">오늘 {remaining}회 남음</p>}
 
       {error && (
         <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-600 dark:border-red-800 dark:bg-red-950/30 dark:text-red-400">
@@ -273,6 +278,13 @@ export function DomainExpiryClient() {
           </div>
         </div>
       )}
+
+      <UpgradeModal
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        title="일일 사용 한도 도달"
+        description="오늘의 만료일 확인 사용 횟수를 모두 사용했습니다. Pro로 무제한 사용하세요."
+      />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { ProToggle } from "@/components/dev/pro-toggle";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { ThemeProvider } from "@/components/providers/theme-provider";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], display: "swap" });
@@ -113,12 +114,14 @@ export default function RootLayout({
       </head>
       <body className={`${inter.className} antialiased`}>
         <AuthProvider>
-          <div className="flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
-          <ProToggle />
+          <ThemeProvider>
+            <div className="flex min-h-screen flex-col">
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+            <ProToggle />
+          </ThemeProvider>
         </AuthProvider>
       </body>
     </html>

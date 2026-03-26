@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { Search, Loader2, TrendingUp, ArrowRight, Sparkles, BarChart3, Globe, Link2, DollarSign } from "lucide-react";
 import { cleanDomain } from "@/lib/clean-domain";
+import { useRateLimit } from "@/hooks/use-rate-limit";
+import { UpgradeModal } from "@/components/ui/upgrade-modal";
 
 interface ValueResult {
   domain: string;
@@ -53,7 +55,6 @@ function evaluate(domain: string): ValueResult {
 
   const factors: ValueResult["factors"] = [];
 
-  // 길이 점수 (완만한 곡선)
   let lengthScore = 4;
   if (length <= 3) lengthScore = 25;
   else if (length <= 6) lengthScore = 22;
@@ -68,7 +69,6 @@ function evaluate(domain: string): ValueResult {
     note: `${length}자 — ${length <= 6 ? "짧고 기억하기 좋음" : length <= 10 ? "적당한 길이" : length <= 15 ? "다소 긴 편" : "매우 긴 편"}`,
   });
 
-  // TLD 점수 (편향 없음)
   const tldScore = TLD_SCORES[tld] ?? 12;
   factors.push({
     label: "확장자 (TLD)",
@@ -77,7 +77,6 @@ function evaluate(domain: string): ValueResult {
     note: `.${tld} — ${tldScore >= 25 ? "가장 범용적" : tldScore >= 20 ? "안정적" : tldScore >= 18 ? "인기 확장자" : "일반"}`,
   });
 
-  // 문자 구성
   const isAlphaOnly = /^[a-z]+$/.test(name);
   const isAlphaNum = /^[a-z0-9]+$/.test(name);
   const isNumOnly = /^\d+$/.test(name);
@@ -95,7 +94,6 @@ function evaluate(domain: string): ValueResult {
     note: isAlphaOnly ? "영문자만 — 깔끔함" : hasHyphens ? "하이픈 포함" : isNumOnly ? "숫자만" : "영문+숫자 혼합",
   });
 
-  // 발음 용이성
   const vowels = (name.match(/[aeiou]/g) ?? []).length;
   const ratio = length > 0 ? vowels / length : 0;
   let pronounceScore = 12;
@@ -133,7 +131,6 @@ function buildAdvanced(basicScore: number, domain: string, metrics: Record<strin
 
   const factors: AdvancedResult["factors"] = [];
 
-  // DA 점수
   let daScore = 3;
   if (da >= 50) daScore = 30;
   else if (da >= 30) daScore = 22;
@@ -141,7 +138,6 @@ function buildAdvanced(basicScore: number, domain: string, metrics: Record<strin
   else if (da >= 5) daScore = 8;
   factors.push({ label: "검색 순위 점수 (DA)", score: daScore, max: 30, note: `DA ${da} — ${da >= 50 ? "높은 권위도" : da >= 30 ? "중상위" : da >= 15 ? "보통" : "낮음"}` });
 
-  // 백링크 프로필
   let linkScore = 3;
   if (refDomains >= 1000) linkScore = 25;
   else if (refDomains >= 100) linkScore = 18;
@@ -149,7 +145,6 @@ function buildAdvanced(basicScore: number, domain: string, metrics: Record<strin
   else if (refDomains >= 1) linkScore = 6;
   factors.push({ label: "백링크 프로필", score: linkScore, max: 25, note: `참조 도메인 ${refDomains.toLocaleString()}개, 백링크 ${backlinks.toLocaleString()}개` });
 
-  // 트래픽 가치
   let tvScore = 3;
   if (trafficValue >= 10000) tvScore = 25;
   else if (trafficValue >= 1000) tvScore = 18;
@@ -157,7 +152,6 @@ function buildAdvanced(basicScore: number, domain: string, metrics: Record<strin
   else if (trafficValue >= 10) tvScore = 6;
   factors.push({ label: "트래픽 가치", score: tvScore, max: 25, note: `월 트래픽 ${traffic.toLocaleString()}, 가치 $${trafficValue.toLocaleString()}` });
 
-  // 기본 점수 환산
   const basicConverted = Math.round((basicScore / 100) * 20);
   factors.push({ label: "도메인 이름 품질", score: basicConverted, max: 20, note: `기본 평가 ${basicScore}점 기반` });
 
@@ -170,7 +164,6 @@ function buildAdvanced(basicScore: number, domain: string, metrics: Record<strin
   else if (totalScore >= 40) { grade = "Medium"; estimatedValue = "$500 ~ $5,000"; }
   else if (totalScore >= 25) { grade = "Standard"; estimatedValue = "$50 ~ $500"; }
 
-  // AI 분석 요약 생성 — 기본 평가 + 고도화 평가 통합 의견
   const nameParts = domain.split(".");
   const nameOnly = nameParts[0];
   const tld = nameParts.slice(1).join(".");
@@ -178,7 +171,6 @@ function buildAdvanced(basicScore: number, domain: string, metrics: Record<strin
 
   const sections: string[] = [];
 
-  // 1. 도메인 이름 특성 평가
   const nameTraits: string[] = [];
   if (nameLen <= 5) nameTraits.push(`${nameLen}자로 매우 짧아 기억하기 쉽고 브랜드 가치가 높습니다`);
   else if (nameLen <= 10) nameTraits.push(`${nameLen}자로 적당한 길이이며 일반적인 브랜드명으로 활용 가능합니다`);
@@ -189,7 +181,6 @@ function buildAdvanced(basicScore: number, domain: string, metrics: Record<strin
 
   sections.push(`[이름 특성] "${domain}"은(는) ${nameTraits.join(". ")}. .${tld} 확장자는 ${tld === "com" ? "가장 범용적이고 신뢰도가 높은" : tld === "kr" || tld === "co.kr" ? "한국 시장에 적합한" : "해당 업계에서 통용되는"} 확장자입니다.`);
 
-  // 2. SEO 지표 평가
   const seoTraits: string[] = [];
   if (da > 0 || dr > 0) {
     if (da >= 40) seoTraits.push(`DA ${da}점으로 검색엔진에서 높은 권위도를 인정받고 있습니다. 이 도메인 위에 콘텐츠를 올리면 빠르게 상위 노출될 가능성이 높습니다`);
@@ -211,14 +202,12 @@ function buildAdvanced(basicScore: number, domain: string, metrics: Record<strin
   }
   sections.push(`[SEO 분석] ${seoTraits.join(". ")}.`);
 
-  // 3. 스팸/위험도
   if (spamScore > 0) {
     if (spamScore >= 30) sections.push(`[주의] 스팸 점수가 ${spamScore}점으로 높습니다. 과거에 스팸 사이트로 사용되었을 가능성이 있으며, 검색엔진 페널티 리스크가 있습니다. 구매 전 반드시 과거 이력을 확인하세요.`);
     else if (spamScore >= 10) sections.push(`[참고] 스팸 점수가 ${spamScore}점입니다. 크게 우려할 수준은 아니지만 과거 이력 확인을 권장합니다.`);
     else sections.push(`[안전] 스팸 점수 ${spamScore}점으로 깨끗한 상태입니다.`);
   }
 
-  // 4. 종합 의견
   if (grade === "Premium" || grade === "High") {
     sections.push(`[종합] 이 도메인은 이름 품질과 SEO 지표 모두 우수하여 ${estimatedValue} 수준의 시장 가치가 예상됩니다. 브랜드 구축이나 도메인 투자 목적 모두에 적합합니다.`);
   } else if (grade === "Medium") {
@@ -246,9 +235,11 @@ export function DomainValueClient() {
   const [advanced, setAdvanced] = useState<AdvancedResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [advancedLoading, setAdvancedLoading] = useState(false);
+  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("domain_value", 5);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!checkAndIncrement()) return;
     const d = cleanDomain(domain);
     if (!d || !d.includes(".")) return;
     setLoading(true);
@@ -297,6 +288,7 @@ export function DomainValueClient() {
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "평가"}
         </button>
       </form>
+      {!isPro && <p className="mt-2 text-xs text-muted-foreground">오늘 {remaining}회 남음</p>}
 
       {/* 기본 평가 결과 */}
       {result && (
@@ -428,6 +420,13 @@ export function DomainValueClient() {
           </div>
         </div>
       )}
+
+      <UpgradeModal
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        title="일일 사용 한도 도달"
+        description="오늘의 도메인 가치 평가 사용 횟수를 모두 사용했습니다. Pro로 무제한 사용하세요."
+      />
     </div>
   );
 }

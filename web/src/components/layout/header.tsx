@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { Search, Menu, X, LogOut, CreditCard, User } from "lucide-react";
+import { Search, Menu, X, LogOut, CreditCard, User, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/components/providers/auth-provider";
 import { createClient } from "@/lib/supabase/client";
+import { useTheme } from "next-themes";
 
 const navItems = [
   { href: "/", label: "도메인 분석" },
@@ -21,11 +22,15 @@ export function Header() {
   const router = useRouter();
   const pathname = usePathname();
   const { user, loading } = useAuth();
+  const { resolvedTheme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => setMounted(true), []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -121,8 +126,19 @@ export function Header() {
           </div>
         </form>
 
-        {/* Auth — 데스크탑 */}
+        {/* Theme toggle + Auth — 데스크탑 */}
         <div className="hidden items-center md:flex">
+          {mounted ? (
+            <button
+              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              className="mr-2 rounded-md p-2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="테마 전환"
+            >
+              {resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+          ) : (
+            <div className="mr-2 h-8 w-8" />
+          )}
           {loading ? (
             <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
           ) : user ? (
@@ -179,8 +195,17 @@ export function Header() {
         {/* 모바일 오른쪽 여백 채우기 */}
         <div className="flex-1 md:hidden" />
 
-        {/* Mobile auth + menu toggle */}
+        {/* Mobile theme toggle + auth + menu toggle */}
         <div className="flex items-center gap-1 md:hidden">
+          {mounted && (
+            <button
+              onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+              className="rounded-md p-2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="테마 전환"
+            >
+              {resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+          )}
           {loading ? (
             <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
           ) : user ? (

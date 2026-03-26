@@ -8,13 +8,17 @@ import { formatNumber } from "@/lib/utils";
 import { calculateDomainGrade, GRADE_BG_MAP } from "@/lib/domain-utils";
 import { cleanDomain } from "@/lib/clean-domain";
 import type { DomainDetail } from "@/types/domain";
+import { useRateLimit } from "@/hooks/use-rate-limit";
+import { UpgradeModal } from "@/components/ui/upgrade-modal";
 
 export function BulkAnalysis() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<DomainDetail[]>([]);
+  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("bulk_analysis", 1);
 
   const analyze = useCallback(async () => {
+    if (!checkAndIncrement()) return;
     const domains = input
       .split("\n")
       .map((d) => cleanDomain(d))
@@ -23,14 +27,6 @@ export function BulkAnalysis() {
     if (domains.length === 0) return;
 
     const unique = [...new Set(domains)].slice(0, 5);
-
-    // 1일 1회 제한 (localStorage)
-    const today = new Date().toISOString().slice(0, 10);
-    const lastUsed = localStorage.getItem("bulk_last_used");
-    if (lastUsed === today) {
-      alert("무료 회원은 벌크 분석을 1일 1회만 사용할 수 있습니다. Pro 업그레이드로 무제한 사용하세요.");
-      return;
-    }
 
     setLoading(true);
     setResults([]);
@@ -51,11 +47,10 @@ export function BulkAnalysis() {
         .map((r) => r.value);
 
       setResults(fulfilled);
-      localStorage.setItem("bulk_last_used", today);
     } finally {
       setLoading(false);
     }
-  }, [input]);
+  }, [input, checkAndIncrement]);
 
   const gradeCircle = (detail: DomainDetail) => {
     const g = calculateDomainGrade(detail.metrics);
@@ -77,13 +72,16 @@ export function BulkAnalysis() {
         onChange={(e) => setInput(e.target.value)}
       />
 
-      <Button
-        className="h-12 px-8 text-base"
-        onClick={analyze}
-        disabled={loading || input.trim().length === 0}
-      >
-        {loading ? "분석 중..." : "분석 시작"}
-      </Button>
+      <div className="flex items-center gap-3">
+        <Button
+          className="h-12 px-8 text-base"
+          onClick={analyze}
+          disabled={loading || input.trim().length === 0}
+        >
+          {loading ? "분석 중..." : "분석 시작"}
+        </Button>
+        {!isPro && <span className="text-xs text-muted-foreground">오늘 {remaining}회 남음</span>}
+      </div>
 
       {results.length > 0 && (
         <>
@@ -181,6 +179,13 @@ export function BulkAnalysis() {
           </Link>
         </>
       )}
+
+      <UpgradeModal
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        title="일일 사용 한도 도달"
+        description="오늘의 벌크 분석 사용 횟수를 모두 사용했습니다. Pro로 무제한 사용하세요."
+      />
     </div>
   );
 }

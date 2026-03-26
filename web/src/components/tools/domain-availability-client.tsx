@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Search, ExternalLink, Loader2, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useRateLimit } from "@/hooks/use-rate-limit";
+import { UpgradeModal } from "@/components/ui/upgrade-modal";
 
 const ALL_TLDS = ["com", "net", "org", "io", "ai", "co", "dev", "app"] as const;
 
@@ -22,6 +24,7 @@ export function DomainAvailabilityClient() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<Result[]>([]);
   const [searched, setSearched] = useState(false);
+  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("domain_availability", 10);
 
   const toggleTld = (tld: string) => {
     setSelectedTlds((prev) => {
@@ -38,6 +41,7 @@ export function DomainAvailabilityClient() {
   const handleSearch = useCallback(
     async (e: React.FormEvent) => {
       e.preventDefault();
+      if (!checkAndIncrement()) return;
       const name = query
         .trim()
         .toLowerCase()
@@ -71,7 +75,7 @@ export function DomainAvailabilityClient() {
         setLoading(false);
       }
     },
-    [query, selectedTlds]
+    [query, selectedTlds, checkAndIncrement]
   );
 
   return (
@@ -107,7 +111,7 @@ export function DomainAvailabilityClient() {
         </div>
 
         {/* TLD checkboxes */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {ALL_TLDS.map((tld) => (
             <button
               key={tld}
@@ -122,6 +126,7 @@ export function DomainAvailabilityClient() {
               .{tld}
             </button>
           ))}
+          {!isPro && <span className="text-xs text-muted-foreground ml-2">오늘 {remaining}회 남음</span>}
         </div>
       </form>
 
@@ -189,6 +194,13 @@ export function DomainAvailabilityClient() {
           </table>
         </div>
       )}
+
+      <UpgradeModal
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        title="일일 사용 한도 도달"
+        description="오늘의 도메인 가용성 확인 사용 횟수를 모두 사용했습니다. Pro로 무제한 사용하세요."
+      />
     </div>
   );
 }

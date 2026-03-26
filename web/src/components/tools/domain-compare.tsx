@@ -10,11 +10,14 @@ import { formatNumber } from "@/lib/utils";
 import { calculateDomainGrade, calculateDomainAge, GRADE_BG_MAP } from "@/lib/domain-utils";
 import { cleanDomain } from "@/lib/clean-domain";
 import type { DomainDetail } from "@/types/domain";
+import { useRateLimit } from "@/hooks/use-rate-limit";
+import { UpgradeModal } from "@/components/ui/upgrade-modal";
 
 export function DomainCompare() {
   const [domains, setDomains] = useState<string[]>(["", ""]);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<DomainDetail[]>([]);
+  const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("domain_compare", 5);
 
   const updateDomain = (index: number, value: string) => {
     setDomains((prev) => {
@@ -35,6 +38,7 @@ export function DomainCompare() {
   };
 
   const compare = useCallback(async () => {
+    if (!checkAndIncrement()) return;
     const valid = domains
       .map((d) => cleanDomain(d))
       .filter((d) => d.length > 0 && d.includes("."));
@@ -63,7 +67,7 @@ export function DomainCompare() {
     } finally {
       setLoading(false);
     }
-  }, [domains]);
+  }, [domains, checkAndIncrement]);
 
   const findWinner = (
     values: (number | null | undefined)[],
@@ -140,7 +144,7 @@ export function DomainCompare() {
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         {domains.length < 3 && (
           <Button variant="outline" className="h-12 px-8 text-base" onClick={addDomain}>
             도메인 추가
@@ -153,6 +157,7 @@ export function DomainCompare() {
         >
           {loading ? "비교 중..." : "비교하기"}
         </Button>
+        {!isPro && <span className="text-xs text-muted-foreground">오늘 {remaining}회 남음</span>}
       </div>
 
       {results.length >= 2 && (
@@ -232,6 +237,13 @@ export function DomainCompare() {
           </Link>
         </>
       )}
+
+      <UpgradeModal
+        open={showUpgrade}
+        onClose={() => setShowUpgrade(false)}
+        title="일일 사용 한도 도달"
+        description="오늘의 도메인 비교 사용 횟수를 모두 사용했습니다. Pro로 무제한 사용하세요."
+      />
     </div>
   );
 }
