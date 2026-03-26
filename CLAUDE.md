@@ -202,9 +202,29 @@ SUPABASE_SERVICE_ROLE_KEY=      # Supabase > Settings > API > service_role key
 RAPIDAPI_KEY=                   # rapidapi.com → domain-metrics-check + domain-value 고도화
 WHOIS_API_KEY=                  # 미사용 — /api/whois-lookup은 RDAP 직접 사용
 OPENAI_API_KEY=                 # openai.com — domain-generator (미설정 시 로컬 단어조합 fallback)
+LEMONSQUEEZY_API_KEY=           # LemonSqueezy > Settings > API Keys
+LEMONSQUEEZY_WEBHOOK_SECRET=    # LemonSqueezy > Settings > Webhooks > Signing secret
+LEMONSQUEEZY_STORE_ID=          # LemonSqueezy Store ID (326237)
+LEMON_MONTHLY_VARIANT_ID=       # 월간 구독 Variant ID (1449242)
+LEMON_YEARLY_VARIANT_ID=        # 연간 구독 Variant ID (1449248)
 # DATABASE_URL                  # 잔류 키 — 코드 미사용, 정리 권장
 # REDIS_URL                     # 잔류 키 — 코드 미사용, 정리 권장
 ```
+
+---
+
+## 알려진 이슈 / 주의사항
+
+### Vercel + Next.js 16 미들웨어 빌드
+- `middleware.ts`는 반드시 **`web/middleware.ts`** (프로젝트 루트)에 위치해야 함
+- `src/middleware.ts`에 두면 `./src/src/middleware.ts` 경로 오류 발생
+- 외부 모듈 import (예: `@/lib/supabase/middleware`)를 사용하면 Vercel Turbopack 트레이싱에서 `middleware.js.nft.json` 파일을 찾지 못하는 에러 발생
+- **해결**: 미들웨어 로직을 `middleware.ts`에 인라인으로 작성, 외부 import 최소화
+
+### 패키지 추가 시 반드시 확인
+- `pnpm add <패키지>`를 실행할 때 **반드시 `web/` 디렉토리에서** 실행해야 함
+- 루트에서 실행하면 `web/package.json`에 반영되지 않아 Vercel 빌드 실패
+- 패키지 추가 후 `web/package.json`과 `web/pnpm-lock.yaml` 모두 커밋 필수
 
 ---
 
