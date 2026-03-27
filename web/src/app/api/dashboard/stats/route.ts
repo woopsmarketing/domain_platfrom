@@ -23,6 +23,10 @@ export async function GET() {
       favorites: favoritesRes.count ?? 0,
       inquiries: inquiriesRes.count ?? 0,
       unreadNotifications: notificationsRes.count ?? 0,
+    }, {
+      headers: {
+        "Cache-Control": "private, max-age=60, stale-while-revalidate=120",
+      },
     });
   } catch (error) {
     console.error("[GET /api/dashboard/stats]", error);

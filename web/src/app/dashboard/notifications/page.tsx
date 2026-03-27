@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, CheckCheck } from "lucide-react";
+import { useFetch } from "@/hooks/use-fetch";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -16,28 +16,14 @@ type NotificationItem = {
   created_at: string;
 };
 
+type NotificationsResponse = {
+  items: NotificationItem[];
+};
+
 export default function NotificationsPage() {
   const router = useRouter();
-  const [items, setItems] = useState<NotificationItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const fetchNotifications = useCallback(async () => {
-    try {
-      const res = await fetch("/api/dashboard/notifications");
-      if (res.ok) {
-        const data = await res.json();
-        setItems(data.items ?? []);
-      }
-    } catch {
-      // ignore
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
+  const { data, loading, refresh } = useFetch<NotificationsResponse>("/api/dashboard/notifications", { cacheTime: 30000 });
+  const items = data?.items ?? [];
 
   const handleMarkAllRead = async () => {
     try {
@@ -47,7 +33,7 @@ export default function NotificationsPage() {
         body: JSON.stringify({ markAllRead: true }),
       });
       if (res.ok) {
-        setItems((prev) => prev.map((item) => ({ ...item, is_read: true })));
+        refresh();
       }
     } catch {
       // ignore
@@ -62,9 +48,7 @@ export default function NotificationsPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ id: item.id }),
         });
-        setItems((prev) =>
-          prev.map((n) => (n.id === item.id ? { ...n, is_read: true } : n))
-        );
+        refresh();
       } catch {
         // ignore
       }

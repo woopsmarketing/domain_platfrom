@@ -19,7 +19,9 @@ export async function GET(request: NextRequest) {
         .eq("user_id", user!.id)
         .eq("domain_name", check)
         .maybeSingle();
-      return NextResponse.json({ isFavorite: !!data, id: data?.id ?? null });
+      return NextResponse.json({ isFavorite: !!data, id: data?.id ?? null }, {
+        headers: { "Cache-Control": "private, no-cache" },
+      });
     }
 
     const { data, error } = await service
@@ -33,7 +35,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "조회 중 오류가 발생했습니다" }, { status: 500 });
     }
 
-    return NextResponse.json({ items: data ?? [] });
+    return NextResponse.json({ items: data ?? [] }, {
+      headers: { "Cache-Control": "private, no-cache" },
+    });
   } catch (error) {
     console.error("[GET /api/dashboard/favorites]", error);
     return NextResponse.json({ error: "처리 중 오류가 발생했습니다" }, { status: 500 });

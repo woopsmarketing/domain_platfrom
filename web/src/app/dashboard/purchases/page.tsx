@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
+import { useFetch } from "@/hooks/use-fetch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,10 @@ type PurchaseItem = {
   notes: string | null;
 };
 
+type PurchasesResponse = {
+  items: PurchaseItem[];
+};
+
 const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
   pending: { label: "결제 대기", variant: "secondary" },
   paid: { label: "결제 완료", variant: "default" },
@@ -25,25 +29,8 @@ const statusMap: Record<string, { label: string; variant: "default" | "secondary
 };
 
 export default function PurchasesPage() {
-  const [items, setItems] = useState<PurchaseItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchPurchases = async () => {
-      try {
-        const res = await fetch("/api/dashboard/purchases");
-        if (res.ok) {
-          const data = await res.json();
-          setItems(data.items ?? []);
-        }
-      } catch {
-        // ignore
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPurchases();
-  }, []);
+  const { data, loading } = useFetch<PurchasesResponse>("/api/dashboard/purchases", { cacheTime: 120000 });
+  const items = data?.items ?? [];
 
   const getStatusInfo = (status: string) => statusMap[status] ?? { label: status, variant: "outline" as const };
 

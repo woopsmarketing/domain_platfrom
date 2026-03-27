@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { MessageSquare } from "lucide-react";
+import { useFetch } from "@/hooks/use-fetch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -19,6 +19,10 @@ type InquiryItem = {
   message?: string;
 };
 
+type InquiriesResponse = {
+  items: InquiryItem[];
+};
+
 const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
   pending: { label: "대기", variant: "secondary" },
   replied: { label: "답변 완료", variant: "default" },
@@ -27,25 +31,8 @@ const statusMap: Record<string, { label: string; variant: "default" | "secondary
 };
 
 export default function InquiriesPage() {
-  const [items, setItems] = useState<InquiryItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchInquiries = async () => {
-      try {
-        const res = await fetch("/api/dashboard/inquiries");
-        if (res.ok) {
-          const data = await res.json();
-          setItems(data.items ?? []);
-        }
-      } catch {
-        // ignore
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchInquiries();
-  }, []);
+  const { data, loading } = useFetch<InquiriesResponse>("/api/dashboard/inquiries", { cacheTime: 120000 });
+  const items = data?.items ?? [];
 
   const getStatusInfo = (status: string) => statusMap[status] ?? { label: status, variant: "outline" as const };
 

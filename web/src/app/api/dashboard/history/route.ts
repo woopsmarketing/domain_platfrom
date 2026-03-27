@@ -37,6 +37,10 @@ export async function GET(request: NextRequest) {
       total: count ?? 0,
       page,
       limit,
+    }, {
+      headers: {
+        "Cache-Control": "private, max-age=30, stale-while-revalidate=60",
+      },
     });
   } catch (error) {
     console.error("[GET /api/dashboard/history]", error);

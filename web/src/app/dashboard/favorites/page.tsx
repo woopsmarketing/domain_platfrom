@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Heart, Pencil, Trash2, Check, X } from "lucide-react";
+import { useFetch } from "@/hooks/use-fetch";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -14,29 +15,15 @@ type FavoriteItem = {
   created_at: string;
 };
 
+type FavoritesResponse = {
+  items: FavoriteItem[];
+};
+
 export default function FavoritesPage() {
-  const [items, setItems] = useState<FavoriteItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, loading, refresh } = useFetch<FavoritesResponse>("/api/dashboard/favorites", { cacheTime: 0 });
+  const items = data?.items ?? [];
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editMemo, setEditMemo] = useState("");
-
-  const fetchFavorites = useCallback(async () => {
-    try {
-      const res = await fetch("/api/dashboard/favorites");
-      if (res.ok) {
-        const data = await res.json();
-        setItems(data.items ?? []);
-      }
-    } catch {
-      // ignore
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    fetchFavorites();
-  }, [fetchFavorites]);
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("이 도메인을 즐겨찾기에서 삭제하시겠습니까?")) return;
@@ -48,7 +35,7 @@ export default function FavoritesPage() {
         body: JSON.stringify({ id }),
       });
       if (res.ok) {
-        setItems((prev) => prev.filter((item) => item.id !== id));
+        refresh();
       }
     } catch {
       // ignore
@@ -68,10 +55,7 @@ export default function FavoritesPage() {
         body: JSON.stringify({ id, memo: editMemo }),
       });
       if (res.ok) {
-        const data = await res.json();
-        setItems((prev) =>
-          prev.map((item) => (item.id === id ? { ...item, memo: data.item?.memo ?? editMemo } : item))
-        );
+        refresh();
       }
     } catch {
       // ignore

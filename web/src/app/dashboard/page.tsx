@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useFetch } from "@/hooks/use-fetch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Search, Heart, MessageSquare, Bell, ArrowRight } from "lucide-react";
@@ -14,42 +14,21 @@ type Stats = {
   unreadNotifications: number;
 };
 
-type HistoryItem = {
-  id: number;
-  domain_name: string;
-  searched_at: string;
+type HistoryResponse = {
+  items: { id: number; domain_name: string; searched_at: string }[];
+  total: number;
+  page: number;
+  limit: number;
 };
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [recentHistory, setRecentHistory] = useState<HistoryItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: stats, loading: statsLoading } = useFetch<Stats>("/api/dashboard/stats", { cacheTime: 60000 });
+  const { data: historyData, loading: historyLoading } = useFetch<HistoryResponse>("/api/dashboard/history?limit=5", { cacheTime: 30000 });
 
+  const loading = statsLoading || historyLoading;
+  const recentHistory = historyData?.items ?? [];
   const userName = user?.email?.split("@")[0] ?? "사용자";
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [statsRes, historyRes] = await Promise.all([
-          fetch("/api/dashboard/stats"),
-          fetch("/api/dashboard/history?limit=5"),
-        ]);
-        if (statsRes.ok) {
-          setStats(await statsRes.json());
-        }
-        if (historyRes.ok) {
-          const data = await historyRes.json();
-          setRecentHistory(data.items ?? []);
-        }
-      } catch {
-        // ignore
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
 
   const statCards = [
     { label: "총 분석", value: stats?.searches ?? 0, icon: Search, color: "text-blue-500" },
@@ -76,7 +55,7 @@ export default function DashboardPage() {
               </div>
               <div>
                 <p className="text-2xl font-bold">
-                  {loading ? (
+                  {statsLoading ? (
                     <span className="inline-block h-7 w-8 animate-pulse rounded bg-muted" />
                   ) : (
                     card.value
@@ -100,7 +79,7 @@ export default function DashboardPage() {
               </Button>
             </Link>
           </div>
-          {loading ? (
+          {historyLoading ? (
             <div className="flex flex-col gap-2">
               {Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="h-10 animate-pulse rounded bg-muted" />

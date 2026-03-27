@@ -18,7 +18,11 @@ export async function GET() {
       return NextResponse.json({ error: "조회 중 오류가 발생했습니다" }, { status: 500 });
     }
 
-    return NextResponse.json({ items: data ?? [] });
+    return NextResponse.json({ items: data ?? [] }, {
+      headers: {
+        "Cache-Control": "private, max-age=120, stale-while-revalidate=240",
+      },
+    });
   } catch (error) {
     console.error("[GET /api/dashboard/purchases]", error);
     return NextResponse.json({ error: "처리 중 오류가 발생했습니다" }, { status: 500 });

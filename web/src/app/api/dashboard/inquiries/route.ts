@@ -43,7 +43,11 @@ export async function GET() {
       (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
     );
 
-    return NextResponse.json({ items: all });
+    return NextResponse.json({ items: all }, {
+      headers: {
+        "Cache-Control": "private, max-age=120, stale-while-revalidate=240",
+      },
+    });
   } catch (error) {
     console.error("[GET /api/dashboard/inquiries]", error);
     return NextResponse.json({ error: "처리 중 오류가 발생했습니다" }, { status: 500 });
