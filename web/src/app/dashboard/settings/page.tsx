@@ -6,14 +6,7 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
+import { formatDateKR } from "@/lib/utils";
 
 function getProviderLabel(provider: string | undefined) {
   if (provider === "google") return "Google";
@@ -54,7 +47,7 @@ export default function SettingsPage() {
             <div className="min-w-0">
               <p className="truncate text-lg font-semibold">{user.email}</p>
               <p className="text-sm text-muted-foreground">
-                가입일: {user.created_at ? formatDate(user.created_at) : "-"}
+                가입일: {user.created_at ? formatDateKR(user.created_at) : "-"}
               </p>
               <p className="text-sm text-muted-foreground">
                 로그인 방법: {getProviderLabel(user.app_metadata?.provider)}

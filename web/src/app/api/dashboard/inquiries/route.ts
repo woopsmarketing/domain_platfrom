@@ -1,23 +1,19 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { createServiceClient } from "@/lib/supabase";
+import { requireAuth, getServiceClient } from "@/lib/api-helpers";
 
 export async function GET() {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });
-    }
+    const { user, error: authError } = await requireAuth();
+    if (authError) return authError;
 
-    const email = user.email;
+    const email = user!.email;
 
     // email이 null이면 email 기반 테이블은 빈 배열 반환
     if (!email) {
       return NextResponse.json({ items: [] });
     }
 
-    const service = createServiceClient();
+    const service = getServiceClient();
 
     const [brokerRes, inquiryRes] = await Promise.all([
       service

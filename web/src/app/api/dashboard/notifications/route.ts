@@ -1,20 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { createServiceClient } from "@/lib/supabase";
+import { requireAuth, getServiceClient } from "@/lib/api-helpers";
 
 export async function GET() {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });
-    }
+    const { user, error: authError } = await requireAuth();
+    if (authError) return authError;
 
-    const service = createServiceClient();
+    const service = getServiceClient();
     const { data, error } = await service
       .from("user_notifications")
       .select("id, type, title, message, is_read, link, created_at")
-      .eq("user_id", user.id)
+      .eq("user_id", user!.id)
       .order("created_at", { ascending: false })
       .limit(50);
 
@@ -32,22 +28,19 @@ export async function GET() {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });
-    }
+    const { user, error: authError } = await requireAuth();
+    if (authError) return authError;
 
     const body = await request.json();
     const { id, markAllRead } = body;
 
-    const service = createServiceClient();
+    const service = getServiceClient();
 
     if (markAllRead) {
       const { error } = await service
         .from("user_notifications")
         .update({ is_read: true })
-        .eq("user_id", user.id)
+        .eq("user_id", user!.id)
         .eq("is_read", false);
 
       if (error) {
@@ -66,7 +59,7 @@ export async function PATCH(request: NextRequest) {
       .from("user_notifications")
       .update({ is_read: true })
       .eq("id", id)
-      .eq("user_id", user.id);
+      .eq("user_id", user!.id);
 
     if (error) {
       console.error("[PATCH /api/dashboard/notifications] mark read error:", error);

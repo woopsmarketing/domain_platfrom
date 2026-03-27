@@ -1,27 +1,11 @@
 import { NextResponse } from "next/server";
-import { createServiceClient } from "@/lib/supabase";
-import { createClient } from "@/lib/supabase/server";
-
-const ADMIN_USER_ID = process.env.NEXT_PUBLIC_ADMIN_USER_ID;
-
-async function verifyAdmin(): Promise<boolean> {
-  try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    return !!user && user.id === ADMIN_USER_ID;
-  } catch {
-    return false;
-  }
-}
+import { requireAdmin, getServiceClient } from "@/lib/api-helpers";
 
 export async function GET() {
-  if (!(await verifyAdmin())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const { error: authError } = await requireAdmin();
+  if (authError) return authError;
 
-  const client = createServiceClient();
+  const client = getServiceClient();
   const { data, error } = await client
     .from("marketplace_listings")
     .select("*, domains(name, tld)")
@@ -35,9 +19,8 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  if (!(await verifyAdmin())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const { error: authError } = await requireAdmin();
+  if (authError) return authError;
 
   try {
     const body = await request.json();
@@ -50,7 +33,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const client = createServiceClient();
+    const client = getServiceClient();
 
     // domains 테이블에서 검색, 없으면 자동 생성
     const parts = domain_name.split(".");
@@ -105,9 +88,8 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  if (!(await verifyAdmin())) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const { error: authError } = await requireAdmin();
+  if (authError) return authError;
 
   try {
     const body = await request.json();
@@ -117,7 +99,7 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: "잘못된 요청입니다" }, { status: 400 });
     }
 
-    const client = createServiceClient();
+    const client = getServiceClient();
     const { error } = await client
       .from("marketplace_listings")
       .update({ is_active, updated_at: new Date().toISOString() })

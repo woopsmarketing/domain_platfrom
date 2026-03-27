@@ -1,14 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { createServiceClient } from "@/lib/supabase";
+import { requireAuth, getServiceClient } from "@/lib/api-helpers";
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });
-    }
+    const { user, error: authError } = await requireAuth();
+    if (authError) return authError;
 
     const { searchParams } = new URL(request.url);
     const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1);
@@ -16,12 +12,12 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get("search") ?? "";
     const offset = (page - 1) * limit;
 
-    const service = createServiceClient();
+    const service = getServiceClient();
 
     let query = service
       .from("user_searches")
       .select("id, domain_name, searched_at", { count: "exact" })
-      .eq("user_id", user.id)
+      .eq("user_id", user!.id)
       .order("searched_at", { ascending: false })
       .range(offset, offset + limit - 1);
 

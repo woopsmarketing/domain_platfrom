@@ -7,6 +7,8 @@ import { useAuth } from "@/components/providers/auth-provider";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { formatDateKR } from "@/lib/utils";
+import { PRO_FEATURES, FREE_LIMITS } from "@/lib/constants";
 
 type Subscription = {
   tier: string;
@@ -15,36 +17,6 @@ type Subscription = {
   cancel_at: string | null;
   lemon_customer_id: string | null;
 };
-
-function formatDate(dateStr: string) {
-  return new Date(dateStr).toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
-const PRO_FEATURES = [
-  "도메인 분석 무제한",
-  "AI 도메인 생성기 무제한",
-  "대량 분석 (100개, 무제한)",
-  "도메인 비교 (10개)",
-  "Ahrefs 트래픽, 트래픽 가치, 키워드",
-  "Moz Links, 스팸 점수",
-  "Majestic Links, 참조 도메인",
-  "전체 낙찰 이력 열람",
-  "고도화 도메인 가치 평가",
-  "DNS/WHOIS/SSL/HTTP 무제한",
-];
-
-const FREE_LIMITS = [
-  "도메인 분석 1일 5회",
-  "AI 생성기 1일 3회",
-  "대량 분석 1일 1회 (5개)",
-  "도메인 비교 2개",
-  "기본 지표만 (DA/PA/DR/TF/CF)",
-  "낙찰 이력 최근 24시간만",
-];
 
 export default function PlanPage() {
   const { user, tier, tierLoading } = useAuth();
@@ -120,12 +92,12 @@ export default function PlanPage() {
               )}
               {sub?.expires_at && !sub?.cancel_at && (
                 <p className="text-sm text-muted-foreground">
-                  다음 결제일: {formatDate(sub.expires_at)}
+                  다음 결제일: {formatDateKR(sub.expires_at)}
                 </p>
               )}
               {sub?.cancel_at && (
                 <p className="text-sm text-amber-600">
-                  해지 예정 — {formatDate(sub.cancel_at)}까지 사용 가능
+                  해지 예정 — {formatDateKR(sub.cancel_at)}까지 사용 가능
                 </p>
               )}
               {sub?.lemon_customer_id && (
@@ -171,20 +143,20 @@ export default function PlanPage() {
           </h2>
           {isPro ? (
             <div className="grid gap-2 sm:grid-cols-2">
-              {PRO_FEATURES.map((text) => (
-                <div key={text} className="flex items-center gap-2 text-sm">
+              {PRO_FEATURES.map((f) => (
+                <div key={f.key} className="flex items-center gap-2 text-sm">
                   <Check className="h-4 w-4 shrink-0 text-primary" />
-                  <span>{text}</span>
+                  <span>{f.text}</span>
                 </div>
               ))}
             </div>
           ) : (
             <div className="flex flex-col gap-4">
               <div className="grid gap-2 sm:grid-cols-2">
-                {FREE_LIMITS.map((text) => (
-                  <div key={text} className="flex items-center gap-2 text-sm">
+                {FREE_LIMITS.map((f) => (
+                  <div key={f.key} className="flex items-center gap-2 text-sm">
                     <X className="h-4 w-4 shrink-0 text-muted-foreground/50" />
-                    <span className="text-muted-foreground">{text}</span>
+                    <span className="text-muted-foreground">{f.text}</span>
                   </div>
                 ))}
               </div>

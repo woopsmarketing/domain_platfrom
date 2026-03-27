@@ -27,3 +27,18 @@ export function formatDate(date: string | Date): string {
     day: "2-digit",
   }).format(new Date(date));
 }
+
+/** 한국어 긴 날짜 포맷 (예: 2026년 3월 27일) */
+export function formatDateKR(dateStr: string): string {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("ko-KR", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+/** KST 기준 오늘 날짜 (YYYY-MM-DD) */
+export function getTodayKST(): string {
+  return new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+}

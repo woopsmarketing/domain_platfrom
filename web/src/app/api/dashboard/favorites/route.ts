@@ -1,26 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { createServiceClient } from "@/lib/supabase";
+import { requireAuth, getServiceClient } from "@/lib/api-helpers";
 
 export async function GET(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });
-    }
+    const { user, error: authError } = await requireAuth();
+    if (authError) return authError;
 
     const { searchParams } = new URL(request.url);
     const check = searchParams.get("check");
 
-    const service = createServiceClient();
+    const service = getServiceClient();
 
     // 단건 체크: 특정 도메인이 즐겨찾기에 있는지 확인
     if (check) {
       const { data } = await service
         .from("wishlists")
         .select("id")
-        .eq("user_id", user.id)
+        .eq("user_id", user!.id)
         .eq("domain_name", check)
         .maybeSingle();
       return NextResponse.json({ isFavorite: !!data, id: data?.id ?? null });
@@ -29,7 +25,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await service
       .from("wishlists")
       .select("id, domain_name, memo, created_at")
-      .eq("user_id", user.id)
+      .eq("user_id", user!.id)
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -46,11 +42,8 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });
-    }
+    const { user, error: authError } = await requireAuth();
+    if (authError) return authError;
 
     const body = await request.json();
     const { domain_name, memo } = body;
@@ -59,13 +52,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "도메인 이름이 필요합니다" }, { status: 400 });
     }
 
-    const service = createServiceClient();
+    const service = getServiceClient();
 
     // 중복 체크
     const { data: existing } = await service
       .from("wishlists")
       .select("id")
-      .eq("user_id", user.id)
+      .eq("user_id", user!.id)
       .eq("domain_name", domain_name)
       .maybeSingle();
 
@@ -76,7 +69,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await service
       .from("wishlists")
       .insert({
-        user_id: user.id,
+        user_id: user!.id,
         domain_name,
         memo: memo ?? null,
       })
@@ -97,11 +90,8 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });
-    }
+    const { user, error: authError } = await requireAuth();
+    if (authError) return authError;
 
     const body = await request.json();
     const { id } = body;
@@ -110,12 +100,12 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "ID가 필요합니다" }, { status: 400 });
     }
 
-    const service = createServiceClient();
+    const service = getServiceClient();
     const { error } = await service
       .from("wishlists")
       .delete()
       .eq("id", id)
-      .eq("user_id", user.id);
+      .eq("user_id", user!.id);
 
     if (error) {
       console.error("[DELETE /api/dashboard/favorites] delete error:", error);
@@ -131,11 +121,8 @@ export async function DELETE(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });
-    }
+    const { user, error: authError } = await requireAuth();
+    if (authError) return authError;
 
     const body = await request.json();
     const { id, memo } = body;
@@ -144,12 +131,12 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "ID가 필요합니다" }, { status: 400 });
     }
 
-    const service = createServiceClient();
+    const service = getServiceClient();
     const { data, error } = await service
       .from("wishlists")
       .update({ memo: memo ?? null })
       .eq("id", id)
-      .eq("user_id", user.id)
+      .eq("user_id", user!.id)
       .select("id, domain_name, memo, created_at")
       .maybeSingle();
 

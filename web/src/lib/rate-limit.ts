@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/supabase";
+import { getTodayKST } from "@/lib/utils";
 import { headers } from "next/headers";
 
 interface RateLimitResult {
@@ -19,7 +20,7 @@ export async function checkApiRateLimit(
     "unknown";
 
   const client = createServiceClient();
-  const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const today = getTodayKST();
 
   // 현재 사용량 조회
   const { data } = await client

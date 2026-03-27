@@ -7,6 +7,8 @@ import { Check, X, Sparkles } from "lucide-react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
+import { formatDateKR } from "@/lib/utils";
+import { PRO_FEATURES, FREE_LIMITS } from "@/lib/constants";
 
 type Subscription = {
   tier: string;
@@ -16,42 +18,11 @@ type Subscription = {
   lemon_customer_id: string | null;
 };
 
-function formatDate(dateStr: string) {
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("ko-KR", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-}
-
 function getProviderLabel(provider: string | undefined) {
   if (provider === "google") return "Google";
   if (provider === "email") return "이메일";
   return provider ?? "이메일";
 }
-
-const PRO_FEATURES = [
-  { text: "도메인 분석 무제한", pro: true },
-  { text: "AI 도메인 생성기 무제한", pro: true },
-  { text: "대량 분석 (100개, 무제한)", pro: true },
-  { text: "도메인 비교 (10개)", pro: true },
-  { text: "Ahrefs 트래픽, 트래픽 가치, 키워드", pro: true },
-  { text: "Moz Links, 스팸 점수", pro: true },
-  { text: "Majestic Links, 참조 도메인", pro: true },
-  { text: "전체 낙찰 이력 열람", pro: true },
-  { text: "고도화 도메인 가치 평가", pro: true },
-  { text: "DNS/WHOIS/SSL/HTTP 무제한", pro: true },
-];
-
-const FREE_LIMITS = [
-  { text: "도메인 분석 1일 5회", pro: false },
-  { text: "AI 생성기 1일 3회", pro: false },
-  { text: "대량 분석 1일 1회 (5개)", pro: false },
-  { text: "도메인 비교 2개", pro: false },
-  { text: "기본 지표만 (DA/PA/DR/TF/CF)", pro: false },
-  { text: "낙찰 이력 최근 24시간만", pro: false },
-];
 
 export default function AccountPage() {
   const router = useRouter();
@@ -134,7 +105,7 @@ export default function AccountPage() {
             <div className="min-w-0">
               <p className="truncate text-lg font-semibold">{user.email}</p>
               <p className="text-sm text-muted-foreground">
-                가입일: {user.created_at ? formatDate(user.created_at) : "-"}
+                가입일: {user.created_at ? formatDateKR(user.created_at) : "-"}
               </p>
               <p className="text-sm text-muted-foreground">
                 로그인 방법: {getProviderLabel(user.app_metadata?.provider)}
@@ -164,12 +135,12 @@ export default function AccountPage() {
               )}
               {sub?.expires_at && !sub?.cancel_at && (
                 <p className="text-sm text-muted-foreground">
-                  다음 결제일: {formatDate(sub.expires_at)}
+                  다음 결제일: {formatDateKR(sub.expires_at)}
                 </p>
               )}
               {sub?.cancel_at && (
                 <p className="text-sm text-amber-600">
-                  해지 예정 — {formatDate(sub.cancel_at)}까지 사용 가능
+                  해지 예정 — {formatDateKR(sub.cancel_at)}까지 사용 가능
                 </p>
               )}
               {sub?.lemon_customer_id && (
@@ -209,7 +180,7 @@ export default function AccountPage() {
           {isPro ? (
             <div className="grid gap-2 sm:grid-cols-2">
               {PRO_FEATURES.map((f) => (
-                <div key={f.text} className="flex items-center gap-2 text-sm">
+                <div key={f.key} className="flex items-center gap-2 text-sm">
                   <Check className="h-4 w-4 shrink-0 text-primary" />
                   <span>{f.text}</span>
                 </div>
@@ -219,7 +190,7 @@ export default function AccountPage() {
             <div className="flex flex-col gap-4">
               <div className="grid gap-2 sm:grid-cols-2">
                 {FREE_LIMITS.map((f) => (
-                  <div key={f.text} className="flex items-center gap-2 text-sm">
+                  <div key={f.key} className="flex items-center gap-2 text-sm">
                     <X className="h-4 w-4 shrink-0 text-muted-foreground/50" />
                     <span className="text-muted-foreground">{f.text}</span>
                   </div>

@@ -1,26 +1,21 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { createServiceClient } from "@/lib/supabase";
+import { requireAuth, getServiceClient } from "@/lib/api-helpers";
 
 export async function GET() {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: "인증이 필요합니다" }, { status: 401 });
-    }
+    const { user, error: authError } = await requireAuth();
+    if (authError) return authError;
 
-    const service = createServiceClient();
-    const email = user.email;
+    const service = getServiceClient();
+    const email = user!.email;
 
     const [searchesRes, favoritesRes, inquiriesRes, notificationsRes] = await Promise.all([
-      service.from("user_searches").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-      service.from("wishlists").select("id", { count: "exact", head: true }).eq("user_id", user.id),
-      // email이 null이면 쿼리 스킵 — count 0으로 처리
+      service.from("user_searches").select("id", { count: "exact", head: true }).eq("user_id", user!.id),
+      service.from("wishlists").select("id", { count: "exact", head: true }).eq("user_id", user!.id),
       email
         ? service.from("broker_inquiries").select("id", { count: "exact", head: true }).eq("email", email)
         : Promise.resolve({ count: 0 }),
-      service.from("user_notifications").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("is_read", false),
+      service.from("user_notifications").select("id", { count: "exact", head: true }).eq("user_id", user!.id).eq("is_read", false),
     ]);
 
     return NextResponse.json({

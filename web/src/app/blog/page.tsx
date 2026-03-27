@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight, Clock, Calendar } from "lucide-react";
 import { articles, CATEGORY_COLORS } from "@/lib/blog";
 import { ServiceCta } from "@/components/shared/service-cta";
+import { formatDateKR } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "블로그 — 도메인체커 | 도메인 투자 & SEO 가이드",
@@ -16,11 +17,6 @@ export const metadata: Metadata = {
     "SEO 도메인 분석",
   ],
 };
-
-function formatDate(dateStr: string) {
-  const d = new Date(dateStr);
-  return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
-}
 
 export default function BlogIndexPage() {
   const categories = ["전체", ...Array.from(new Set(articles.map((a) => a.category)))];
@@ -81,7 +77,7 @@ export default function BlogIndexPage() {
                 <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1.5 text-xs text-muted-foreground shrink-0">
                   <span className="inline-flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5" />
-                    {formatDate(article.date)}
+                    {formatDateKR(article.date)}
                   </span>
                   <span className="inline-flex items-center gap-1">
                     <Clock className="h-3.5 w-3.5" />

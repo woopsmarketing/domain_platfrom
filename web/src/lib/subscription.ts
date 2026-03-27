@@ -5,6 +5,8 @@
  * 추후: Supabase Auth + subscriptions 테이블 연동
  */
 
+import { getTodayKST } from "@/lib/utils";
+
 export type SubscriptionTier = "free" | "pro";
 
 const STORAGE_KEY = "subscription_tier";
@@ -36,7 +38,7 @@ export function checkDailyLimit(
 ): { allowed: boolean; used: number; limit: number } {
   if (isPro()) return { allowed: true, used: 0, limit: Infinity };
 
-  const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const today = getTodayKST();
   const storageKey = `usage_${key}_${today}`;
   const used = parseInt(localStorage.getItem(storageKey) ?? "0", 10);
 
@@ -46,7 +48,7 @@ export function checkDailyLimit(
 export function incrementDailyUsage(key: string): void {
   if (isPro()) return;
 
-  const today = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const today = getTodayKST();
   const storageKey = `usage_${key}_${today}`;
   const used = parseInt(localStorage.getItem(storageKey) ?? "0", 10);
   localStorage.setItem(storageKey, String(used + 1));
