@@ -83,6 +83,21 @@ export default async function DomainDetailPage({ params }: PageProps) {
       incrementSearchCount(domainId),
     ]);
 
+    // 5.5. 로그인 사용자면 분석 이력 기록
+    try {
+      const { createClient } = await import("@/lib/supabase/server");
+      const authClient = await createClient();
+      const { data: { user } } = await authClient.auth.getUser();
+      if (user) {
+        const { createServiceClient } = await import("@/lib/supabase");
+        const svc = createServiceClient();
+        await svc.from("user_searches").insert({
+          user_id: user.id,
+          domain_name: name,
+        });
+      }
+    } catch { /* 비로그인 시 무시 */ }
+
     data = {
       domain: dbData?.domain ?? {
         id: domainId,
