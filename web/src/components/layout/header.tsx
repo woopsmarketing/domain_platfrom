@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { Search, Menu, X, LogOut, CreditCard, User, Sun, Moon, BarChart3, GitCompare, Sparkles, DollarSign, Network, FileSearch, Shield, ChevronDown, Bell, LayoutDashboard } from "lucide-react";
+import { Search, Menu, X, LogOut, CreditCard, User, Sun, Moon, BarChart3, GitCompare, Sparkles, DollarSign, Network, FileSearch, Shield, ChevronDown, LayoutDashboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -40,27 +40,11 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [toolsOpen, setToolsOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
   const menuRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
   const toolsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => setMounted(true), []);
-
-  // 안읽은 알림 수 조회
-  useEffect(() => {
-    if (!user) { setUnreadCount(0); return; }
-    const fetchUnread = async () => {
-      try {
-        const res = await fetch("/api/dashboard/stats");
-        if (res.ok) {
-          const data = await res.json();
-          setUnreadCount(data.unreadNotifications ?? 0);
-        }
-      } catch { /* ignore */ }
-    };
-    fetchUnread();
-  }, [user]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -252,15 +236,6 @@ export function Header() {
           {loading ? (
             <div className="h-8 w-8 rounded-full bg-muted animate-pulse" />
           ) : user ? (
-            <>
-            <Link href="/dashboard/notifications" className="relative mr-2 rounded-md p-2 text-muted-foreground hover:text-foreground transition-colors" aria-label="알림">
-              <Bell className="h-4 w-4" />
-              {unreadCount > 0 && (
-                <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">
-                  {unreadCount > 99 ? "99+" : unreadCount}
-                </span>
-              )}
-            </Link>
             <div ref={profileRef} className="relative">
               <button
                 onClick={() => setProfileMenuOpen(!profileMenuOpen)}
@@ -310,7 +285,6 @@ export function Header() {
                 </div>
               )}
             </div>
-            </>
           ) : (
             <Link href="/login">
               <Button variant="ghost" size="sm">

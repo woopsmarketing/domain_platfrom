@@ -1,26 +1,22 @@
-"use client";
-
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase";
 import { MessageSquare } from "lucide-react";
-import { useFetch } from "@/hooks/use-fetch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+
+export const dynamic = "force-dynamic";
 
 type InquiryItem = {
   id: string | number;
   type: "broker" | "inquiry";
   status: string;
   created_at: string;
-  // broker fields
   target_keyword?: string;
   budget?: string;
-  // inquiry fields
   listing_id?: string;
   offered_price_usd?: number;
   message?: string;
-};
-
-type InquiriesResponse = {
-  items: InquiryItem[];
 };
 
 const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
@@ -30,23 +26,54 @@ const statusMap: Record<string, { label: string; variant: "default" | "secondary
   resolved: { label: "해결", variant: "default" },
 };
 
-export default function InquiriesPage() {
-  const { data, loading } = useFetch<InquiriesResponse>("/api/dashboard/inquiries", { cacheTime: 120000 });
-  const items = data?.items ?? [];
+function getStatusInfo(status: string) {
+  return statusMap[status] ?? { label: status, variant: "outline" as const };
+}
 
-  const getStatusInfo = (status: string) => statusMap[status] ?? { label: status, variant: "outline" as const };
+export default async function InquiriesPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login?redirect=/dashboard/inquiries");
+
+  const email = user.email;
+
+  let items: InquiryItem[] = [];
+
+  if (email) {
+    const client = createServiceClient();
+    const [brokerRes, inquiryRes] = await Promise.all([
+      client
+        .from("broker_inquiries")
+        .select("id, name, email, target_keyword, budget, message, status, created_at")
+        .eq("email", email)
+        .order("created_at", { ascending: false }),
+      client
+        .from("inquiries")
+        .select("id, listing_id, name, email, message, offered_price_usd, status, created_at")
+        .eq("email", email)
+        .order("created_at", { ascending: false }),
+    ]);
+
+    const brokerItems = (brokerRes.data ?? []).map((item) => ({
+      ...item,
+      type: "broker" as const,
+    }));
+
+    const inquiryItems = (inquiryRes.data ?? []).map((item) => ({
+      ...item,
+      type: "inquiry" as const,
+    }));
+
+    items = [...brokerItems, ...inquiryItems].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-bold">내 문의</h1>
 
-      {loading ? (
-        <div className="flex flex-col gap-2">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-16 animate-pulse rounded-xl bg-muted" />
-          ))}
-        </div>
-      ) : items.length === 0 ? (
+      {items.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <MessageSquare className="mx-auto mb-3 h-8 w-8 text-muted-foreground/30" />

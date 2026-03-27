@@ -10,7 +10,6 @@ import {
   Heart,
   MessageSquare,
   ShoppingBag,
-  Bell,
   CreditCard,
   Settings,
 } from "lucide-react";
@@ -21,7 +20,6 @@ const sidebarItems = [
   { href: "/dashboard/favorites", icon: Heart, label: "즐겨찾기" },
   { href: "/dashboard/inquiries", icon: MessageSquare, label: "내 문의" },
   { href: "/dashboard/purchases", icon: ShoppingBag, label: "구매 내역" },
-  { href: "/dashboard/notifications", icon: Bell, label: "알림" },
   { href: "/dashboard/plan", icon: CreditCard, label: "내 플랜" },
   { href: "/dashboard/settings", icon: Settings, label: "프로필 설정" },
 ];

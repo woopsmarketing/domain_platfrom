@@ -1,11 +1,13 @@
-"use client";
-
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase";
 import { ShoppingBag } from "lucide-react";
-import { useFetch } from "@/hooks/use-fetch";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+
+export const dynamic = "force-dynamic";
 
 type PurchaseItem = {
   id: string;
@@ -16,10 +18,6 @@ type PurchaseItem = {
   notes: string | null;
 };
 
-type PurchasesResponse = {
-  items: PurchaseItem[];
-};
-
 const statusMap: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
   pending: { label: "결제 대기", variant: "secondary" },
   paid: { label: "결제 완료", variant: "default" },
@@ -28,23 +26,29 @@ const statusMap: Record<string, { label: string; variant: "default" | "secondary
   cancelled: { label: "취소", variant: "outline" },
 };
 
-export default function PurchasesPage() {
-  const { data, loading } = useFetch<PurchasesResponse>("/api/dashboard/purchases", { cacheTime: 120000 });
-  const items = data?.items ?? [];
+function getStatusInfo(status: string) {
+  return statusMap[status] ?? { label: status, variant: "outline" as const };
+}
 
-  const getStatusInfo = (status: string) => statusMap[status] ?? { label: status, variant: "outline" as const };
+export default async function PurchasesPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login?redirect=/dashboard/purchases");
+
+  const client = createServiceClient();
+  const { data } = await client
+    .from("user_purchases")
+    .select("id, domain_name, price_usd, status, purchased_at, notes")
+    .eq("user_id", user.id)
+    .order("purchased_at", { ascending: false });
+
+  const items: PurchaseItem[] = data ?? [];
 
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-bold">구매 내역</h1>
 
-      {loading ? (
-        <div className="flex flex-col gap-2">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-16 animate-pulse rounded-xl bg-muted" />
-          ))}
-        </div>
-      ) : items.length === 0 ? (
+      {items.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <ShoppingBag className="mx-auto mb-3 h-8 w-8 text-muted-foreground/30" />

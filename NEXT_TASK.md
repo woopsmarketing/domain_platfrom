@@ -44,6 +44,10 @@
 | PageSpeed 접근성 이슈 수정 (aria-label, 링크 텍스트) | ✅ |
 | 브라우저 확장 404 스팸 제거 | ✅ |
 | /tools 페이지 Server Component 전환 | ✅ |
+| **대시보드 API 캐싱 최적화** | ✅ |
+| 6개 API Cache-Control 헤더 (stats 60s, history 30s, favorites no-cache, inquiries 120s, purchases 120s, notifications 30s) | ✅ |
+| useFetch SWR 훅 (메모리 캐시 + 백그라운드 갱신 + AbortController) | ✅ |
+| 5개 대시보드 페이지 useFetch 적용 (dashboard/favorites/inquiries/purchases/notifications) | ✅ |
 | **경매 기능** | |
 | 실시간 경매 페이지 (`/auctions`) — Namecheap GraphQL | ✅ |
 | 경매 카운트다운 타이머 + 0초 "확인 중..." 표시 | ✅ |
@@ -125,6 +129,15 @@
 | parseInt NaN 방어 (history API) | ✅ |
 | signOut 에러 처리 (settings) | ✅ |
 | alert → 인라인 에러 (plan portalError) | ✅ |
+| **코드 리팩토링 + 테스트** | |
+| API 공통 헬퍼 추출 (`src/lib/api-helpers.ts`) — requireAuth/requireAdmin | ✅ |
+| Dashboard API 6개 리팩토링 (인증 보일러플레이트 제거) | ✅ |
+| Admin API 2개 리팩토링 (verifyAdmin → requireAdmin) | ✅ |
+| PRO_FEATURES/FREE_LIMITS 상수 추출 (`src/lib/constants.ts`) | ✅ |
+| formatDateKR 통일 — 4개 파일 로컬 정의 → utils.ts import | ✅ |
+| getTodayKST 유틸 추출 — subscription.ts/rate-limit.ts 중복 제거 | ✅ |
+| Vitest 테스트 환경 세팅 | ✅ |
+| 단위 테스트 13개 (utils/subscription/email/blog) | ✅ |
 
 ---
 
@@ -156,6 +169,7 @@
 - [ ] **대시보드 알림 시스템 활성화** — 어드민이 문의 답변 시 user_notifications에 자동 insert하는 트리거/로직 구현
 - [ ] **대시보드 user_searches 중복 방지** — 같은 사용자가 동일 도메인을 연속 분석할 때 짧은 시간 내 중복 기록 방지 (예: 5분 디바운스)
 - [ ] **plan 페이지 구독 데이터 서버 사이드 이전** — 현재 클라이언트 직접 조회 (RLS 미적용, 보안 위험 낮지만 개선 권장)
+- [ ] **테스트 커버리지 확대** — API route 통합 테스트, 컴포넌트 렌더링 테스트 추가
 
 ### P2 — 콘텐츠 확장 (SEO 트래픽)
 
@@ -197,3 +211,4 @@
 | LemonSqueezy 웹훅 등록 | ❌ 미등록 |
 | OPENAI_API_KEY | ❌ 미설정 (fallback 동작) |
 | BREVO_API_KEY | ❌ 미설정 (이메일 미발송) |
+| Vitest 테스트 환경 | ✅ 13개 테스트 통과 |

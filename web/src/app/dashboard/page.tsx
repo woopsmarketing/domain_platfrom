@@ -1,40 +1,51 @@
-"use client";
-
 import Link from "next/link";
-import { useAuth } from "@/components/providers/auth-provider";
-import { useFetch } from "@/hooks/use-fetch";
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Search, Heart, MessageSquare, Bell, ArrowRight } from "lucide-react";
+import { Search, Heart, MessageSquare, CreditCard, ArrowRight } from "lucide-react";
 
-type Stats = {
-  searches: number;
-  favorites: number;
-  inquiries: number;
-  unreadNotifications: number;
-};
+export const dynamic = "force-dynamic";
 
-type HistoryResponse = {
-  items: { id: number; domain_name: string; searched_at: string }[];
-  total: number;
-  page: number;
-  limit: number;
-};
+export default async function DashboardPage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login?redirect=/dashboard");
 
-export default function DashboardPage() {
-  const { user } = useAuth();
-  const { data: stats, loading: statsLoading } = useFetch<Stats>("/api/dashboard/stats", { cacheTime: 60000 });
-  const { data: historyData, loading: historyLoading } = useFetch<HistoryResponse>("/api/dashboard/history?limit=5", { cacheTime: 30000 });
+  const client = createServiceClient();
+  const email = user.email;
 
-  const loading = statsLoading || historyLoading;
-  const recentHistory = historyData?.items ?? [];
-  const userName = user?.email?.split("@")[0] ?? "사용자";
+  const [searchesRes, favoritesRes, inquiriesRes, subscriptionRes, historyRes] = await Promise.all([
+    client.from("user_searches").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+    client.from("wishlists").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+    email
+      ? client.from("broker_inquiries").select("id", { count: "exact", head: true }).eq("email", email)
+      : Promise.resolve({ count: 0 }),
+    client.from("subscriptions").select("tier").eq("user_id", user.id).maybeSingle(),
+    client
+      .from("user_searches")
+      .select("id, domain_name, searched_at")
+      .eq("user_id", user.id)
+      .order("searched_at", { ascending: false })
+      .limit(5),
+  ]);
+
+  const stats = {
+    searches: searchesRes.count ?? 0,
+    favorites: favoritesRes.count ?? 0,
+    inquiries: inquiriesRes.count ?? 0,
+    plan: subscriptionRes.data?.tier ?? "free",
+  };
+
+  const recentHistory = historyRes.data ?? [];
+  const userName = user.email?.split("@")[0] ?? "사용자";
 
   const statCards = [
-    { label: "총 분석", value: stats?.searches ?? 0, icon: Search, color: "text-blue-500" },
-    { label: "즐겨찾기", value: stats?.favorites ?? 0, icon: Heart, color: "text-pink-500" },
-    { label: "문의", value: stats?.inquiries ?? 0, icon: MessageSquare, color: "text-green-500" },
-    { label: "안읽은 알림", value: stats?.unreadNotifications ?? 0, icon: Bell, color: "text-amber-500" },
+    { label: "총 분석", value: stats.searches, icon: Search, color: "text-blue-500" },
+    { label: "즐겨찾기", value: stats.favorites, icon: Heart, color: "text-pink-500" },
+    { label: "문의", value: stats.inquiries, icon: MessageSquare, color: "text-green-500" },
+    { label: "플랜", value: stats.plan === "free" ? "Free" : "Pro", icon: CreditCard, color: "text-amber-500" },
   ];
 
   return (
@@ -54,13 +65,7 @@ export default function DashboardPage() {
                 <card.icon className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-2xl font-bold">
-                  {statsLoading ? (
-                    <span className="inline-block h-7 w-8 animate-pulse rounded bg-muted" />
-                  ) : (
-                    card.value
-                  )}
-                </p>
+                <p className="text-2xl font-bold">{card.value}</p>
                 <p className="text-xs text-muted-foreground">{card.label}</p>
               </div>
             </CardContent>
@@ -79,13 +84,7 @@ export default function DashboardPage() {
               </Button>
             </Link>
           </div>
-          {historyLoading ? (
-            <div className="flex flex-col gap-2">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="h-10 animate-pulse rounded bg-muted" />
-              ))}
-            </div>
-          ) : recentHistory.length === 0 ? (
+          {recentHistory.length === 0 ? (
             <div className="py-8 text-center">
               <p className="text-sm text-muted-foreground">아직 분석 기록이 없습니다.</p>
               <Link href="/">
