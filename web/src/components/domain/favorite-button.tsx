@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Heart } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/providers/auth-provider";
 
 interface FavoriteButtonProps {
@@ -21,7 +20,6 @@ export function FavoriteButton({ domainName }: FavoriteButtonProps) {
     if (!user) return;
     const checkFavorite = async () => {
       try {
-        // 단건 체크: 전체 목록 대신 해당 도메인만 조회
         const res = await fetch(`/api/dashboard/favorites?check=${encodeURIComponent(domainName)}`);
         if (res.ok) {
           const data = await res.json();
@@ -38,7 +36,7 @@ export function FavoriteButton({ domainName }: FavoriteButtonProps) {
   }, [user, domainName]);
 
   const handleToggle = async () => {
-    if (loading) return;
+    if (loading || busy) return;
     if (!user) {
       router.push(`/login?redirect=/domain/${domainName}`);
       return;
@@ -76,18 +74,20 @@ export function FavoriteButton({ domainName }: FavoriteButtonProps) {
   };
 
   return (
-    <Button
-      variant="outline"
-      size="sm"
+    <button
       onClick={handleToggle}
       disabled={busy}
-      className="gap-1.5"
+      className="inline-flex items-center justify-center rounded-md p-2 transition-colors hover:bg-accent disabled:opacity-50"
       aria-label={isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+      title={isFavorite ? "즐겨찾기 해제" : "즐겨찾기 추가"}
     >
       <Heart
-        className={`h-3.5 w-3.5 ${isFavorite ? "fill-pink-500 text-pink-500" : ""}`}
+        className={`h-5 w-5 transition-colors ${
+          isFavorite
+            ? "fill-red-500 text-red-500"
+            : "text-muted-foreground hover:text-red-400"
+        }`}
       />
-      {isFavorite ? "즐겨찾기됨" : "즐겨찾기"}
-    </Button>
+    </button>
   );
 }
