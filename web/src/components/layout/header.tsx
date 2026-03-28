@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import { Search, Menu, X, LogOut, CreditCard, User, Sun, Moon, BarChart3, GitCompare, Sparkles, DollarSign, Network, FileSearch, Shield, ChevronDown, LayoutDashboard } from "lucide-react";
+import { Search, Menu, X, LogOut, CreditCard, User, Sun, Moon, BarChart3, GitCompare, Sparkles, DollarSign, Network, FileSearch, Shield, ChevronDown, LayoutDashboard, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -28,6 +28,7 @@ const toolItems = [
   { href: "/tools/dns-checker", icon: Network, title: "DNS 조회", desc: "DNS 레코드 확인" },
   { href: "/tools/whois-lookup", icon: FileSearch, title: "WHOIS 조회", desc: "소유자/만료일 확인" },
   { href: "/tools/ssl-checker", icon: Shield, title: "SSL 확인", desc: "인증서 상태 점검" },
+  { href: "/tools/backlink-checker", icon: Link2, title: "백링크 확인", desc: "백링크 프로필 분석" },
 ];
 
 export function Header() {

@@ -4,7 +4,7 @@ import Script from "next/script";
 import { ServiceCta } from "@/components/shared/service-cta";
 import {
   Search, Sparkles, ArrowRight, Network, FileSearch, DollarSign,
-  Calendar, Shield, Activity, BarChart3, GitCompare, Star,
+  Calendar, Shield, Activity, BarChart3, GitCompare, Star, Link2,
 } from "lucide-react";
 
 interface ToolCard {
@@ -28,6 +28,13 @@ const TOOL_CARDS: ToolCard[] = [
     icon: GitCompare,
     title: "도메인 비교",
     desc: "2~3개 도메인을 나란히 비교하여 어떤 도메인이 더 좋은지 판단",
+    popular: true,
+  },
+  {
+    href: "/tools/backlink-checker",
+    icon: Link2,
+    title: "백링크 확인",
+    desc: "도메인의 백링크 수, DoFollow/NoFollow, 참조 도메인을 분석",
     popular: true,
   },
   {
