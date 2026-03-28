@@ -15,14 +15,14 @@ export function HeroSection() {
           완전 무료 — 회원가입 없이 즉시 사용
         </Badge>
         <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-          도메인 지수를
+          도메인 분석,
           <br />
           <span className="bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
-            무료로 분석하세요
+            무료로 시작하세요
           </span>
         </h1>
         <p className="mx-auto mt-6 max-w-xl text-lg text-muted-foreground">
-          도메인명만 입력하면 DA, DR, Trust Flow, Whois, 거래 이력을 즉시 분석합니다.
+          도메인 점수, 백링크, 신뢰도를 즉시 확인하세요. SEO 분석에 필요한 핵심 지표를 한 곳에서 무료로 제공합니다.
         </p>
 
         <div className="mt-10">

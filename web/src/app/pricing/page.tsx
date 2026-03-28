@@ -119,13 +119,13 @@ function PricingContent() {
       {/* Hero */}
       <section className="text-center">
         <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          심플한{" "}
+          도메인 분석{" "}
           <span className="bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
             요금제
           </span>
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-lg text-muted-foreground">
-          무료로 시작하고, 더 많은 데이터가 필요할 때 Pro로 업그레이드하세요.
+          무료 도메인 분석으로 시작하고, 더 많은 데이터가 필요할 때 Pro로 업그레이드하세요.
         </p>
       </section>
 

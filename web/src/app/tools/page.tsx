@@ -153,9 +153,9 @@ export default function ToolsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
-      <h1 className="text-3xl font-bold tracking-tight">무료 도메인 도구 모음</h1>
+      <h1 className="text-3xl font-bold tracking-tight">무료 SEO 분석 도구 모음</h1>
       <p className="mt-2 text-muted-foreground">
-        도메인 분석, 비교, 검색, 생성까지. 도메인에 관한 모든 도구를 무료로 사용하세요.
+        도메인 분석부터 백링크 확인, DNS 조회까지. 웹사이트 분석에 필요한 모든 SEO 도구를 무료로 사용하세요.
       </p>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

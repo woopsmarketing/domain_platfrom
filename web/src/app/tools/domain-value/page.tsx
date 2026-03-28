@@ -4,11 +4,11 @@ import { Globe, Search, Gavel, ChevronDown, ArrowRight, DollarSign, TrendingUp, 
 import { DomainValueClient } from "@/components/tools/domain-value-client";
 
 export const metadata: Metadata = {
-  title: "도메인 가치 평가 — 내 도메인 얼마일까? 무료 감정",
+  title: "도메인 가치 평가 — 무료 도메인 가격 확인 · 가치 분석 | 도메인체커",
   description:
-    "도메인의 예상 가치를 무료로 확인하세요. 도메인 길이, 확장자, 검색 점수, 백링크를 종합 분석하여 시장 가치를 추정합니다. 도메인 매매 전 필수 확인 도구.",
+    "도메인의 시장 가치를 무료로 평가합니다. SEO 지표, 도메인 나이, TLD, 백링크를 종합 분석하여 예상 가격을 산출합니다.",
   keywords: [
-    "도메인 가치 평가", "도메인 가격 조회", "도메인 시세 조회", "도메인 감정",
+    "도메인 가치 분석", "도메인 가치 확인", "도메인 가격 확인", "도메인 평가", "도메인 가치 평가", "도메인 가격 조회", "도메인 시세 조회", "도메인 감정",
     "도메인 appraisal", "도메인 가격 측정", "도메인 가치 계산", "도메인 얼마인지 확인",
     "이 도메인 얼마일까", "도메인 판매가 예측", "프리미엄 도메인 조회",
     "도메인 투자 가치", "도메인 매매 시세", "도메인 resale value",

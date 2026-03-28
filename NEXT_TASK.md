@@ -1,6 +1,6 @@
 # NEXT_TASK.md
 
-> 마지막 업데이트: 2026-03-27
+> 마지막 업데이트: 2026-03-28
 
 ---
 
@@ -98,6 +98,7 @@
 | /tools 메인 페이지 SEO 가이드 콘텐츠 (6개 섹션 카드) | ✅ |
 | /tools/bulk-analysis SEO 콘텐츠 + FAQ (4개) | ✅ |
 | /tools/domain-compare SEO 콘텐츠 + FAQ (3개) | ✅ |
+| 기존 페이지 SEO 키워드 최적화 (8개 페이지 metadata + 텍스트) | ✅ |
 | **이메일** | |
 | Brevo 이메일 헬퍼 (`src/lib/email.ts`) | ✅ |
 | 경매 대행 문의 접수 확인 이메일 | ✅ |

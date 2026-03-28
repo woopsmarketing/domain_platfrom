@@ -9,21 +9,20 @@ import { createServiceClient } from "@/lib/supabase";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "프리미엄 도메인 판매 — 검증된 도메인을 합리적 가격에",
+  title: "프리미엄 도메인 구매 — 검증된 도메인 판매 · 도메인 매매 | 도메인체커",
   description:
-    "SEO 점수가 검증된 프리미엄 도메인을 합리적인 가격에 구매하세요. 도메인 점수, 등급 확인 후 안전하게 거래할 수 있습니다.",
+    "SEO 지표가 검증된 프리미엄 도메인을 합리적 가격에 구매하세요. DA, DR, 백링크가 확인된 도메인 매매 플랫폼.",
   keywords: [
-    "프리미엄 도메인 판매",
-    "도메인 구매",
-    "도메인 거래",
+    "프리미엄 도메인 구매",
+    "도메인 판매",
     "도메인 매매",
-    "고품질 도메인",
-    "SEO 도메인 구매",
+    "도메인 구매",
+    "프리미엄 도메인",
   ],
   openGraph: {
-    title: "프리미엄 도메인 판매 — 검증된 도메인을 합리적 가격에",
+    title: "프리미엄 도메인 구매 — 검증된 도메인 매매 | 도메인체커",
     description:
-      "SEO 점수가 검증된 프리미엄 도메인을 합리적인 가격에 구매하세요.",
+      "SEO 지표가 검증된 프리미엄 도메인을 합리적 가격에 구매하세요.",
     type: "website",
     siteName: "도메인체커",
   },
@@ -106,12 +105,12 @@ export default async function MarketplacePage() {
             <ShoppingBag className="h-6 w-6 text-primary" />
           </div>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            프리미엄 도메인 판매
+            프리미엄 도메인 구매
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-            SEO 점수가 검증된 프리미엄 도메인을 합리적인 가격에 만나보세요.
+            SEO 지표가 검증된 프리미엄 도메인을 합리적 가격에 만나보세요.
             <br />
-            모든 도메인은 점수, 이력, 백링크를 사전 분석하여 엄선했습니다.
+            모든 도메인은 점수, 이력, 백링크를 사전 분석한 도메인 매매 플랫폼입니다.
           </p>
         </div>
       </section>
