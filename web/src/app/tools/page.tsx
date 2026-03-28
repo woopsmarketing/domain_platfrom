@@ -4,7 +4,7 @@ import Script from "next/script";
 import { ServiceCta } from "@/components/shared/service-cta";
 import {
   Search, Sparkles, ArrowRight, Network, FileSearch, DollarSign,
-  Calendar, Shield, Activity, BarChart3, GitCompare, Star, Link2,
+  Calendar, Shield, Activity, BarChart3, GitCompare, Star, Link2, TrendingUp,
 } from "lucide-react";
 
 interface ToolCard {
@@ -35,6 +35,13 @@ const TOOL_CARDS: ToolCard[] = [
     icon: Link2,
     title: "백링크 확인",
     desc: "도메인의 백링크 수, DoFollow/NoFollow, 참조 도메인을 분석",
+    popular: true,
+  },
+  {
+    href: "/tools/serp-checker",
+    icon: TrendingUp,
+    title: "구글 검색 순위",
+    desc: "키워드별 구글 검색 결과 순위를 실시간 확인",
     popular: true,
   },
   {

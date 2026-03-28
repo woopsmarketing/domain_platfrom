@@ -33,6 +33,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${base}/tools/domain-compare`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/tools/bulk-analysis`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
     { url: `${base}/tools/backlink-checker`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
+    { url: `${base}/tools/serp-checker`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.8 },
     { url: `${base}/tools/domain-expiry`, lastModified: new Date(), changeFrequency: "weekly", priority: 0.7 },
 
     // 블로그 (자동)

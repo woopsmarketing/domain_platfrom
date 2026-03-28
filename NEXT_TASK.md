@@ -68,6 +68,7 @@
 | DNS 조회 (`/tools/dns-checker`) | ✅ |
 | Whois 조회 (`/tools/whois-lookup`) | ✅ |
 | 도메인 가치 평가 (`/tools/domain-value`) | ✅ |
+| 구글 검색 순위 확인 (`/tools/serp-checker`) | ✅ |
 | **인증 / 결제** | |
 | Supabase Auth (1단계) — 로그인/회원가입/AuthProvider | ✅ |
 | LemonSqueezy 결제 연동 (2단계) — 체크아웃/웹훅/tier 동기화 | ✅ |
