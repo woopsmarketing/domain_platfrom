@@ -99,6 +99,7 @@
 | /tools/bulk-analysis SEO 콘텐츠 + FAQ (4개) | ✅ |
 | /tools/domain-compare SEO 콘텐츠 + FAQ (3개) | ✅ |
 | 기존 페이지 SEO 키워드 최적화 (8개 페이지 metadata + 텍스트) | ✅ |
+| 5개 페이지 본문 SEO 콘텐츠 보강 (메인/낙찰이력/경매/마켓/요금제) | ✅ |
 | **이메일** | |
 | Brevo 이메일 헬퍼 (`src/lib/email.ts`) | ✅ |
 | 경매 대행 문의 접수 확인 이메일 | ✅ |

@@ -61,8 +61,8 @@ export function AuctionPageClient() {
           <h1 className="text-2xl font-bold sm:text-3xl">실시간 경매 도메인</h1>
         </div>
         <p className="text-muted-foreground max-w-2xl">
-          현재 활발하게 입찰 경쟁이 진행 중인 도메인입니다.
-          30초마다 최신 데이터로 자동 갱신됩니다.
+          현재 진행 중인 도메인 경매를 실시간으로 확인하세요.
+          경매 도메인의 입찰가와 남은 시간을 30초마다 자동 갱신합니다.
         </p>
       </div>
 

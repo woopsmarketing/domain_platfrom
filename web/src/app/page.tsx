@@ -225,7 +225,7 @@ export default async function HomePage() {
               도메인, 왜 신중하게 골라야 할까요?
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
-              도메인은 사업의 첫인상이자, 검색 순위를 결정하는 핵심 요소입니다. 좋은 도메인 하나가 브랜드 신뢰도와 매출을 좌우합니다.
+              도메인은 사업의 첫인상이자, SEO의 시작점입니다. 도메인 분석을 통해 점수와 백링크를 확인하고, 사이트 SEO 분석 결과를 바탕으로 신중하게 선택하세요. 좋은 도메인 하나가 브랜드 신뢰도와 매출을 좌우합니다.
             </p>
           </div>
 
@@ -236,7 +236,7 @@ export default async function HomePage() {
               </div>
               <h3 className="mt-5 text-lg font-semibold">검색 노출에 직접 영향</h3>
               <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                검색엔진은 도메인의 나이, 평판, 백링크 수를 신뢰 지표로 봅니다. 점수가 높은 도메인은 같은 글을 올려도 더 빨리 상위에 노출됩니다.
+                검색엔진은 도메인의 나이, 평판, 백링크 수를 신뢰 지표로 봅니다. 무료 도메인 분석으로 점수를 확인하면, 같은 콘텐츠를 올려도 어떤 도메인이 더 빨리 상위에 노출되는지 판단할 수 있습니다.
               </p>
             </div>
             <div className="relative rounded-2xl border border-border/60 bg-card p-8 transition-shadow hover:shadow-lg hover:shadow-primary/5">
@@ -276,7 +276,7 @@ export default async function HomePage() {
               도메인 분석, 이제 한 곳에서
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-              도메인 점수, 신뢰도, 백링크 수를 각각 확인하려면 여러 유료 도구가 필요합니다. 도메인체커는 이 모든 핵심 지표를 <strong className="text-foreground">완전 무료</strong>로 제공합니다.
+              도메인 점수 확인, 백링크 확인, 사이트 SEO 분석을 따로 하려면 여러 유료 도구가 필요합니다. 도메인체커는 이 모든 핵심 지표를 <strong className="text-foreground">완전 무료</strong>로 제공하는 도메인 분석 도구입니다.
             </p>
           </div>
 
@@ -478,10 +478,10 @@ export default async function HomePage() {
                 <span className="text-primary">좋은 도메인이 사업의 절반</span>
               </h2>
               <p className="mt-4 text-muted-foreground leading-relaxed">
-                온라인 사업에서 도메인은 가장 먼저 결정하는 것이자, 가장 오래 유지되는 자산입니다. 점수 높은 도메인 위에 콘텐츠를 쌓으면 검색 노출이 빨라지고, 기억하기 쉬운 도메인은 직접 유입 트래픽을 만듭니다.
+                온라인 사업에서 도메인은 가장 먼저 결정하는 것이자, 가장 오래 유지되는 자산입니다. 도메인 점수 확인 후 점수가 높은 도메인 위에 콘텐츠를 쌓으면 검색 노출이 빨라지고, 기억하기 쉬운 도메인은 직접 유입 트래픽을 만듭니다.
               </p>
               <p className="mt-4 text-muted-foreground leading-relaxed">
-                도메인체커를 통해 구매 전 반드시 도메인 점수, 신뢰도, 스팸 점수, 과거 이력을 확인하세요. 데이터 기반 판단이 실패 확률을 줄여줍니다.
+                도메인체커의 무료 도메인 분석을 통해 구매 전 반드시 도메인 점수, 백링크, 신뢰도, 스팸 점수, 과거 이력을 확인하세요. 데이터 기반의 사이트 SEO 분석이 실패 확률을 줄여줍니다.
               </p>
               <div className="mt-8">
                 <Link

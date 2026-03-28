@@ -272,7 +272,7 @@ function PricingContent() {
           {[
             {
               q: "무료로 어떤 기능을 사용할 수 있나요?",
-              a: "도메인 분석(1일 5회), AI 도메인 생성기(1일 3회), 대량 분석(5개, 1일 1회), 기본 SEO 지표(DA/PA/DR/TF/CF), 백링크 수, 참조 도메인, Wayback 스냅샷, DNS/WHOIS/SSL/HTTP 도구를 무료로 사용할 수 있습니다.",
+              a: "무료 도메인 분석으로 도메인 점수(DA/PA), 백링크 등급(DR/TF/CF), 백링크 수, 참조 도메인, Wayback 스냅샷을 확인할 수 있습니다. AI 도메인 생성기(1일 3회), 대량 분석(5개, 1일 1회), DNS/WHOIS/SSL/HTTP 도구도 무료로 제공됩니다.",
             },
             {
               q: "연간 결제 할인이 있나요?",
@@ -285,6 +285,14 @@ function PricingContent() {
             {
               q: "구독을 취소하면 어떻게 되나요?",
               a: "구독을 취소해도 현재 결제 기간이 끝날 때까지 Pro 기능을 계속 사용할 수 있습니다.",
+            },
+            {
+              q: "도메인 분석에서 어떤 지표를 확인할 수 있나요?",
+              a: "도메인 분석 툴에서 DA(Domain Authority), DR(Domain Rating), TF(Trust Flow), CF(Citation Flow), 백링크 수, 참조 도메인 수, 스팸 점수를 확인할 수 있습니다. Pro에서는 Ahrefs 트래픽, 키워드 수, Moz 스팸 점수 등 심화 지표도 제공합니다.",
+            },
+            {
+              q: "Pro와 무료 도메인 분석의 차이는 무엇인가요?",
+              a: "무료 도메인 분석은 기본 SEO 지표와 하루 5회 분석을 제공합니다. 도메인 분석 Pro는 분석 횟수 무제한, Ahrefs 트래픽/키워드, Moz 스팸 점수, 전체 낙찰 이력, 고도화 가치 평가 등 심화 데이터를 포함합니다.",
             },
           ].map((item, i) => (
             <details key={i} className="group">

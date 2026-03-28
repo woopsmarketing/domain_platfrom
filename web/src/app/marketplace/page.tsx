@@ -202,18 +202,49 @@ export default async function MarketplacePage() {
         </div>
       </section>
 
-      {/* SEO Content + FAQ */}
+      {/* SEO Content: 프리미엄 도메인 설명 */}
+      <section className="border-t px-4 py-12 sm:py-16">
+        <div className="mx-auto max-w-4xl">
+          <h2 className="text-2xl font-bold mb-4">프리미엄 도메인이란?</h2>
+          <div className="space-y-4 text-muted-foreground leading-relaxed">
+            <p>
+              프리미엄 도메인은 검색엔진에서 이미 높은 신뢰도를 확보한 도메인입니다.
+              DA(Domain Authority), DR(Domain Rating) 등 SEO 지표가 검증되어 있어
+              새 도메인 대비 검색 상위 노출까지 걸리는 시간을 크게 단축할 수 있습니다.
+            </p>
+
+            <h3 className="text-lg font-semibold text-foreground mt-6">도메인 매매 시 확인할 점</h3>
+            <ul className="list-disc pl-6 space-y-1">
+              <li><strong>도메인 점수(DA/DR)</strong> — 검색엔진이 부여한 권위도를 확인하세요</li>
+              <li><strong>스팸 점수</strong> — 과거 스팸 이력이 있으면 페널티 위험이 있습니다</li>
+              <li><strong>백링크 품질</strong> — 양질의 참조 도메인에서 오는 링크인지 확인하세요</li>
+              <li><strong>Wayback 이력</strong> — 과거에 어떤 콘텐츠가 있었는지 반드시 조회하세요</li>
+            </ul>
+
+            <p className="mt-4">
+              도메인체커에서 관심 도메인을 무료로 분석하면 이 모든 지표를 한눈에 확인할 수 있습니다.
+              데이터 기반으로 도메인 판매 가격의 적정성을 직접 판단해 보세요.
+            </p>
+
+            <div className="mt-6 flex flex-wrap gap-4 text-sm">
+              <Link href="/tools/domain-value" className="text-primary hover:underline">
+                도메인 가치 평가 →
+              </Link>
+              <Link href="/blog/how-to-choose-domain" className="text-primary hover:underline">
+                도메인 고르는 법 →
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
       <section className="border-t bg-muted/30 px-4 py-16 sm:py-20">
         <div className="mx-auto max-w-3xl">
           <div className="text-center mb-12">
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              왜 프리미엄 도메인인가?
+              자주 묻는 질문
             </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-              새 도메인으로 시작하면 검색엔진 신뢰를 쌓는 데 수개월이 걸립니다.
-              이미 점수가 높은 도메인은 콘텐츠를 올리는 즉시 상위 노출 가능성이
-              높아집니다.
-            </p>
           </div>
 
           <div className="space-y-4">
