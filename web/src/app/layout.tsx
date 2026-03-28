@@ -22,7 +22,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://domainchecker.co.kr"),
   title: {
-    default: "도메인체커 — 무료 도메인 조회 · 점수 확인 · 도메인 분석 도구",
+    default: "도메인체커 · 무료 도메인 분석 사이트 · 도메인 점수 확인 · SEO 분석 도구",
     template: "%s | 도메인체커",
   },
   description:

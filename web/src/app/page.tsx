@@ -30,7 +30,7 @@ import { ActiveAuctionsSection } from "@/components/home/active-auctions-section
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "도메인 분석 사이트 — 무료 도메인 점수 확인 · SEO 분석 도구 | 도메인체커",
+  title: "도메인 분석 사이트 · 무료 도메인 점수 확인 · SEO 분석 도구 | 도메인체커",
   description:
     "도메인 이름만 입력하면 도메인 점수, 권한(DA/DR), 백링크, 신뢰도를 즉시 확인할 수 있는 무료 분석 사이트입니다. SEO 분석, 백링크 조회를 한 곳에서.",
   keywords: [
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     "도메인 등급 확인", "도메인 신뢰도 확인", "도메인 품질 확인", "웹사이트 분석",
   ],
   openGraph: {
-    title: "도메인 분석 사이트 — 무료 도메인 점수 확인 | 도메인체커",
+    title: "도메인 분석 사이트 · 무료 도메인 점수 확인 | 도메인체커",
     description: "도메인 이름만 입력하면 점수, 권한, 백링크, 신뢰도를 즉시 무료 분석",
     type: "website",
     siteName: "도메인체커",

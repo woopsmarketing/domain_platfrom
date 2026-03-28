@@ -9,7 +9,7 @@ import { createServiceClient } from "@/lib/supabase";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "프리미엄 도메인 구매 — 검증된 도메인 판매 · 도메인 매매 | 도메인체커",
+  title: "프리미엄 도메인 구매 · 검증된 도메인 판매 · 도메인 매매 | 도메인체커",
   description:
     "SEO 지표가 검증된 프리미엄 도메인을 합리적 가격에 구매하세요. DA, DR, 백링크가 확인된 도메인 매매 플랫폼.",
   keywords: [
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     "프리미엄 도메인",
   ],
   openGraph: {
-    title: "프리미엄 도메인 구매 — 검증된 도메인 매매 | 도메인체커",
+    title: "프리미엄 도메인 구매 · 검증된 도메인 매매 | 도메인체커",
     description:
       "SEO 지표가 검증된 프리미엄 도메인을 합리적 가격에 구매하세요.",
     type: "website",

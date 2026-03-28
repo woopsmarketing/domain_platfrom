@@ -8,7 +8,7 @@ import { ServiceCta } from "@/components/shared/service-cta";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "도메인 경매 시세 — 실제 낙찰가 · 경매 도메인 거래 이력 | 도메인체커",
+  title: "도메인 경매 시세 · 실제 낙찰가 · 경매 도메인 거래 이력 | 도메인체커",
   description:
     "경매 도메인이 실제로 얼마에 낙찰되는지 확인하세요. 경매 도메인 낙찰 이력, 낙찰가, 입찰 수를 무료로 조회할 수 있습니다.",
   keywords: [
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     "도메인 경매 결과", "도메인 매매 이력", "도메인 거래 가격",
   ],
   openGraph: {
-    title: "도메인 경매 시세 — 실제 낙찰가 · 거래 이력 | 도메인체커",
+    title: "도메인 경매 시세 · 실제 낙찰가 · 거래 이력 | 도메인체커",
     description: "경매 도메인이 실제로 얼마에 낙찰되는지 확인하세요. 낙찰 이력 무료 조회.",
     type: "website",
     siteName: "도메인체커",

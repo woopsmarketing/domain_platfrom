@@ -5,7 +5,7 @@ import { AuctionPageClient } from "@/components/home/auction-page-client";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "실시간 도메인 경매 — 진행 중인 경매 도메인 목록 | 도메인체커",
+  title: "실시간 도메인 경매 · 진행 중인 경매 도메인 목록 | 도메인체커",
   description:
     "현재 진행 중인 도메인 경매를 실시간으로 확인하세요. 경매 도메인 입찰가, 남은 시간, 입찰 수를 한눈에 파악합니다.",
   keywords: [
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
     "만료도메인 검색", "만료도메인 찾기", "드롭도메인 조회",
   ],
   openGraph: {
-    title: "실시간 도메인 경매 — 진행 중인 경매 도메인 목록 | 도메인체커",
+    title: "실시간 도메인 경매 · 진행 중인 경매 도메인 목록 | 도메인체커",
     description: "현재 진행 중인 도메인 경매를 실시간으로 확인하세요.",
     type: "website",
     siteName: "도메인체커",
