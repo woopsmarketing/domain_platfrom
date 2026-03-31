@@ -19,7 +19,7 @@ interface BlogLayoutProps {
   readTime: string;
   toc: TocItem[];
   faqs: FaqItem[];
-  cta: {
+  cta?: {
     title: string;
     description: string;
     buttonText: string;
@@ -27,6 +27,15 @@ interface BlogLayoutProps {
   };
   children: React.ReactNode;
 }
+
+/* ── 기본 CTA (모든 블로그 글 공통) ── */
+const DEFAULT_CTA = {
+  title: "도메인의 SEO 점수를 확인해 보세요",
+  description:
+    "도메인을 입력하면 DA·DR·TF·백링크·스팸 점수까지 한눈에 분석됩니다. 회원가입 없이 완전 무료.",
+  buttonText: "무료로 도메인 분석하기",
+  href: "/",
+};
 
 export function BlogLayout({
   slug,
@@ -38,6 +47,9 @@ export function BlogLayout({
   cta,
   children,
 }: BlogLayoutProps) {
+  /* ── CTA: 기본값 사용, props로 override 가능 ── */
+  const finalCta = cta ?? DEFAULT_CTA;
+
   /* ── 관련 글: 같은 카테고리 우선, 최대 3개 ── */
   const currentCategory = articles.find((a) => a.slug === slug)?.category;
   const sameCategory = articles.filter(
@@ -48,15 +60,17 @@ export function BlogLayout({
   );
   const relatedArticles = [...sameCategory, ...otherCategory].slice(0, 3);
 
-  /* ── 최신 글: 관련글에 없는 나머지, 최대 3개 ── */
-  const relatedSlugs = new Set(relatedArticles.map((a) => a.slug));
+  /* ── 최신 글: 단순 최신 3개 (현재 글 제외) ── */
   const latestArticles = articles
-    .filter((a) => a.slug !== slug && !relatedSlugs.has(a.slug))
+    .filter((a) => a.slug !== slug)
     .slice(0, 3);
 
   /* ── 한국어 날짜 포맷 ── */
   const d = new Date(date);
   const dateKR = `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
+
+  /* ── Canonical URL ── */
+  const canonicalUrl = `https://domainchecker.co.kr/blog/${slug}`;
 
   /* ── JSON-LD ── */
   const jsonLd = [
@@ -74,7 +88,7 @@ export function BlogLayout({
           url: "https://domainchecker.co.kr/icon.svg",
         },
       },
-      mainEntityOfPage: `https://domainchecker.co.kr/blog/${slug}`,
+      mainEntityOfPage: canonicalUrl,
       datePublished: date,
       dateModified: date,
     },
@@ -91,6 +105,9 @@ export function BlogLayout({
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-16">
+      {/* Canonical URL — 각 블로그 글의 고유 URL */}
+      <link rel="canonical" href={canonicalUrl} />
+
       {/* JSON-LD */}
       <script
         type="application/ld+json"
@@ -154,25 +171,27 @@ export function BlogLayout({
       </div>
 
       {/* 관련 글 */}
-      <div className="blog-related">
-        <h3 className="text-lg font-semibold mb-4">관련 글</h3>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {relatedArticles.map((a) => (
-            <Link
-              key={a.slug}
-              href={`/blog/${a.slug}`}
-              className="blog-related-card"
-            >
-              <p className="font-medium text-sm">{a.title}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                {a.description}
-              </p>
-            </Link>
-          ))}
+      {relatedArticles.length > 0 && (
+        <div className="blog-related">
+          <h3 className="text-lg font-semibold mb-4">관련 글</h3>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {relatedArticles.map((a) => (
+              <Link
+                key={a.slug}
+                href={`/blog/${a.slug}`}
+                className="blog-related-card"
+              >
+                <p className="font-medium text-sm">{a.title}</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {a.description}
+                </p>
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 최신 글 (관련 글과 겹치지 않는 나머지) */}
+      {/* 최신 글 */}
       {latestArticles.length > 0 && (
         <div className="blog-related">
           <h3 className="text-lg font-semibold mb-4">최신 글</h3>
@@ -193,15 +212,17 @@ export function BlogLayout({
         </div>
       )}
 
-      {/* CTA */}
+      {/* CTA — 기본값 고정, 필요시만 override */}
       <div className="blog-cta">
-        <p className="text-lg font-semibold">{cta.title}</p>
-        <p className="mt-1 text-sm text-muted-foreground">{cta.description}</p>
+        <p className="text-lg font-semibold">{finalCta.title}</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          {finalCta.description}
+        </p>
         <Link
-          href={cta.href}
+          href={finalCta.href}
           className="mt-4 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
         >
-          {cta.buttonText}
+          {finalCta.buttonText}
         </Link>
       </div>
     </article>
