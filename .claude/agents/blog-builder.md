@@ -29,11 +29,22 @@ export const metadata: Metadata = {
   title: "{제목} | 도메인체커",
   description: "{메타 설명 150자}",
   keywords: [{키워드 배열}],
+  alternates: {
+    canonical: "https://domainchecker.co.kr/blog/{slug}",
+  },
   openGraph: {
     title: "{제목} | 도메인체커",
     description: "{메타 설명}",
     type: "article",
     siteName: "도메인체커",
+    publishedTime: "{YYYY-MM-DD}",
+    modifiedTime: "{YYYY-MM-DD}",
+    tags: [{태그 배열}],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "{제목} | 도메인체커",
+    description: "{메타 설명}",
   },
 };
 
