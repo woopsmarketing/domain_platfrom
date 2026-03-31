@@ -93,11 +93,26 @@ const faqItems = [
   },
 ];
 
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqItems.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
 export default async function MarketplacePage() {
   const listings = await getListings();
 
   return (
     <div className="flex flex-col">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+
       {/* Hero */}
       <section className="border-b px-4 py-16 sm:py-20">
         <div className="mx-auto max-w-5xl text-center">

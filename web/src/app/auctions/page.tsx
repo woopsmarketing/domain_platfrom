@@ -22,9 +22,44 @@ export const metadata: Metadata = {
   },
 };
 
+
+const faqItems = [
+  {
+    q: "도메인 경매란 무엇인가요?",
+    a: "도메인 경매는 만료되었거나 소유자가 판매를 결정한 도메인을 입찰 방식으로 거래하는 시장입니다. 검색엔진에서 이미 평판을 쌓은 도메인을 합리적 가격에 확보할 수 있어 SEO에 유리합니다.",
+  },
+  {
+    q: "경매 입찰은 어떻게 하나요?",
+    a: "경매 플랫폼에서 관심 도메인을 찾고 입찰가를 제시합니다. 입찰 전 도메인 점수(DA/DR)와 백링크를 반드시 확인하여 실제 가치를 파악한 뒤 예산 범위 내에서 입찰하세요.",
+  },
+  {
+    q: "경매 도메인의 낙찰 결과는 어디서 확인하나요?",
+    a: "도메인체커의 낙찰 이력 페이지에서 경매가 종료된 도메인의 낙찰가, 입찰 수, 낙찰일을 무료로 확인할 수 있습니다.",
+  },
+  {
+    q: "경매 도메인을 대신 구매해줄 수 있나요?",
+    a: "네, 도메인체커에서 경매 도메인 대행 구매 서비스를 제공하고 있습니다. 원하는 도메인을 알려주시면 입찰부터 이전까지 전 과정을 대행해 드립니다.",
+  },
+];
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqItems.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
 export default function AuctionsPage() {
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+
       <AuctionPageClient />
 
       {/* SEO 하단 콘텐츠 */}

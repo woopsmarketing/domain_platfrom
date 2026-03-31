@@ -54,8 +54,43 @@ export default async function MarketHistoryPage() {
     bidCount: row.bid_count,
   }));
 
+
+const faqItems = [
+  {
+    q: "경매 도메인 낙찰 이력은 어떻게 활용하나요?",
+    a: "낙찰 이력을 통해 특정 도메인이나 TLD의 시장 시세를 파악할 수 있습니다. 비슷한 도메인의 실제 거래 가격을 참고하여 입찰 예산을 설정하거나 도메인 투자 결정에 활용하세요.",
+  },
+  {
+    q: "낙찰 데이터는 실시간으로 업데이트되나요?",
+    a: "네, 경매가 종료되면 낙찰 데이터가 자동으로 수집되어 업데이트됩니다. 최신 낙찰 결과를 빠르게 확인할 수 있습니다.",
+  },
+  {
+    q: "24시간 이전 낙찰 데이터는 왜 잠겨있나요?",
+    a: "최근 24시간 이내의 낙찰 데이터는 무료로 공개됩니다. 그 이전 데이터는 Pro 구독 회원에게 전체 이력이 제공됩니다.",
+  },
+  {
+    q: "도메인 경매 시세는 어떻게 파악하나요?",
+    a: "낙찰 이력 페이지에서 TLD별, 가격대별 필터를 활용하여 관심 도메인과 유사한 거래 내역을 비교해 보세요. 입찰 수가 많을수록 수요가 높은 도메인입니다.",
+  },
+];
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqItems.map((item) => ({
+    "@type": "Question",
+    name: item.q,
+    acceptedAnswer: { "@type": "Answer", text: item.a },
+  })),
+};
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
+
       {/* SEO 상단 설명 */}
       <section className="mx-auto max-w-5xl px-4 pt-8">
         <p className="text-muted-foreground leading-relaxed">

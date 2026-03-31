@@ -21,8 +21,25 @@ export const metadata: Metadata = {
 export default function BlogIndexPage() {
   const categories = ["전체", ...Array.from(new Set(articles.map((a) => a.category)))];
 
+
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: articles.map((article, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      url: `https://domainchecker.co.kr/blog/${article.slug}`,
+      name: article.title,
+    })),
+  };
+
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
+      />
+
       <h1 className="text-3xl font-bold tracking-tight">블로그</h1>
       <p className="mt-2 text-muted-foreground">
         도메인 투자와 SEO 분석에 대한 실전 가이드
