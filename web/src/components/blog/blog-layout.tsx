@@ -303,19 +303,19 @@ export function BlogLayout({
 
           {/* 사이드바 TOC — 데스크탑에서만 표시 */}
           {tocItems.length > 0 && (
-            <aside className="hidden lg:block w-56 shrink-0">
-              <nav className="sticky top-20">
-                <p className="mb-3 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            <aside className="hidden lg:block w-64 shrink-0">
+              <nav className="sticky top-20 rounded-xl border border-border/60 bg-card p-5">
+                <p className="mb-4 text-sm font-bold text-foreground">
                   목차
                 </p>
-                <ol className="space-y-2 border-l border-border pl-4">
+                <ol className="space-y-3 border-l-2 border-primary/20 pl-4">
                   {tocItems.map((item, i) => (
                     <li key={item.id}>
                       <a
                         href={`#${item.id}`}
-                        className="block text-xs text-muted-foreground transition-colors hover:text-primary leading-relaxed"
+                        className="block text-sm text-muted-foreground transition-colors hover:text-primary leading-relaxed"
                       >
-                        <span className="mr-1.5 text-primary font-medium">{i + 1}.</span>
+                        <span className="mr-2 text-primary font-semibold">{i + 1}.</span>
                         {item.title}
                       </a>
                     </li>
