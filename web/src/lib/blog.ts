@@ -27,6 +27,16 @@ export const CATEGORY_COLORS: Record<BlogCategory, string> = {
 // 최신순 정렬 — 새 글은 맨 위에 추가
 export const articles: BlogArticle[] = [
   {
+    slug: "how-to-check-domain-score",
+    title:
+      "도메인 점수 확인하는 법 — DA·DR·TF 지수를 무료로 조회하는 3가지 방법",
+    description:
+      "도메인 점수(DA, DR, TF)를 무료로 확인하는 방법을 단계별로 안내합니다. 각 지수의 의미와 해석 기준, 실전 활용법까지 한 번에 정리했습니다.",
+    category: "SEO 기초",
+    date: "2026-03-31",
+    readTime: "8분",
+  },
+  {
     slug: "domain-spam-score-check",
     title: "도메인 스팸 점수 확인 방법 — 내 도메인이 스팸으로 분류되고 있는지 점검하기",
     description:
