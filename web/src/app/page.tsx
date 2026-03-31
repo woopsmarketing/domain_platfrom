@@ -210,8 +210,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <ServiceCta />
-
       {/* ────────────────────────────────────────────────
           Section 1: 도메인이 왜 중요한가
           ──────────────────────────────────────────────── */}
@@ -615,6 +613,8 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      <ServiceCta />
 
       {/* ────────────────────────────────────────────────
           Section 7: FAQ (SEO rich)
