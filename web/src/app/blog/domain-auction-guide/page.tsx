@@ -18,6 +18,9 @@ export const metadata: Metadata = {
     "경매 플랫폼 비교",
     "낙찰 후 절차",
   ],
+  alternates: {
+    canonical: "https://domainchecker.co.kr/blog/domain-auction-guide",
+  },
 };
 
 export default function DomainAuctionGuidePage() {

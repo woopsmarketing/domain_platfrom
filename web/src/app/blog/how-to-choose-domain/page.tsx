@@ -18,6 +18,9 @@ export const metadata: Metadata = {
     "도메인 구매 체크리스트",
     "TLD별 가치 비교",
   ],
+  alternates: {
+    canonical: "https://domainchecker.co.kr/blog/how-to-choose-domain",
+  },
 };
 
 export default function HowToChooseDomainPage() {

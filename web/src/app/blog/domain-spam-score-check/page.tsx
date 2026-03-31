@@ -18,6 +18,9 @@ export const metadata: Metadata = {
     "중고 도메인 스팸",
     "도메인 품질 확인",
   ],
+  alternates: {
+    canonical: "https://domainchecker.co.kr/blog/domain-spam-score-check",
+  },
 };
 
 export default function DomainSpamScoreCheckPage() {

@@ -19,6 +19,9 @@ export const metadata: Metadata = {
     "무료 도메인 점수 확인하는 방법",
     "도메인 DA DR 점수 무료 조회",
   ],
+  alternates: {
+    canonical: "https://domainchecker.co.kr/blog/how-to-check-domain-score",
+  },
   openGraph: {
     title:
       "도메인 점수 확인하는 법 — DA·DR·TF 지수를 무료로 조회하는 3가지 방법 · 도메인체커",

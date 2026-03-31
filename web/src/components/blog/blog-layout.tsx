@@ -105,9 +105,6 @@ export function BlogLayout({
 
   return (
     <article className="mx-auto max-w-3xl px-4 py-16">
-      {/* Canonical URL — 각 블로그 글의 고유 URL */}
-      <link rel="canonical" href={canonicalUrl} />
-
       {/* JSON-LD */}
       <script
         type="application/ld+json"

@@ -21,6 +21,9 @@ export const metadata: Metadata = {
     "만료 도메인 백링크 확인",
     "SEO 좋은 만료 도메인 고르는 기준",
   ],
+  alternates: {
+    canonical: "https://domainchecker.co.kr/blog/how-to-find-expired-domains",
+  },
   openGraph: {
     title:
       "만료 도메인 찾는 법 — SEO 가치 높은 도메인을 발굴하는 5단계 실전 가이드 · 도메인체커",

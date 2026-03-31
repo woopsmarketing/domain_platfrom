@@ -18,6 +18,9 @@ export const metadata: Metadata = {
     "DA 점수 등급",
     "DA 높이는 방법",
   ],
+  alternates: {
+    canonical: "https://domainchecker.co.kr/blog/what-is-da",
+  },
 };
 
 export default function WhatIsDaPage() {
