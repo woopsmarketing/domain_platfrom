@@ -15,6 +15,7 @@ const navItems = [
   { href: "/auctions", label: "실시간 경매" },
   { href: "/market-history", label: "낙찰 이력" },
   { href: "/tools", label: "분석 도구", hasDropdown: true },
+  { href: "/pricing", label: "가격" },
   { href: "/blog", label: "블로그" },
   { href: "/marketplace", label: "프리미엄 도메인" },
 ];
