@@ -1,45 +1,24 @@
-import ReactMarkdown from "react-markdown";
+import { unified } from "unified";
+import remarkParse from "remark-parse";
 import remarkGfm from "remark-gfm";
-import Link from "next/link";
+import remarkRehype from "remark-rehype";
+import rehypeStringify from "rehype-stringify";
+import rehypeSlug from "rehype-slug";
 
 interface MarkdownRendererProps {
   content: string;
 }
 
-export function MarkdownRenderer({ content }: MarkdownRendererProps) {
+export async function MarkdownRenderer({ content }: MarkdownRendererProps) {
+  const result = await unified()
+    .use(remarkParse)
+    .use(remarkGfm)
+    .use(remarkRehype)
+    .use(rehypeSlug)
+    .use(rehypeStringify)
+    .process(content);
+
   return (
-    <ReactMarkdown
-      remarkPlugins={[remarkGfm]}
-      components={{
-        h2: ({ children, ...props }) => {
-          const text = String(children);
-          const id = text
-            .toLowerCase()
-            .replace(/[^a-z0-9가-힣]/g, "-")
-            .replace(/-+/g, "-")
-            .replace(/^-|-$/g, "");
-          return (
-            <h2 id={id} {...props}>
-              {children}
-            </h2>
-          );
-        },
-        a: ({ href, children, ...props }) => {
-          if (href?.startsWith("/")) {
-            return <Link href={href}>{children}</Link>;
-          }
-          return (
-            <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
-              {children}
-            </a>
-          );
-        },
-        table: ({ children, ...props }) => (
-          <div className="overflow-x-auto">
-            <table {...props}>{children}</table>
-          </div>
-        ),
-      }}
-    />
+    <div dangerouslySetInnerHTML={{ __html: String(result) }} />
   );
 }
