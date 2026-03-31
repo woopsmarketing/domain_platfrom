@@ -1,13 +1,14 @@
 import type { MetadataRoute } from "next";
-import { articles } from "@/lib/blog";
+import { getPublishedPosts } from "@/lib/db/posts";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = "https://domainchecker.co.kr";
 
-  // 블로그 글 자동 생성 — lib/blog.ts에 추가하면 자동 등록
-  const blogEntries: MetadataRoute.Sitemap = articles.map((article) => ({
-    url: `${base}/blog/${article.slug}`,
-    lastModified: new Date(article.date),
+  // 블로그 글 DB 기반 자동 생성
+  const posts = await getPublishedPosts();
+  const blogEntries: MetadataRoute.Sitemap = posts.map((p) => ({
+    url: `${base}/blog/${p.slug}`,
+    lastModified: new Date(p.updated_at || p.published_at),
     changeFrequency: "monthly",
     priority: 0.7,
   }));

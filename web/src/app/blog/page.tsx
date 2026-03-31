@@ -1,9 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Clock, Calendar } from "lucide-react";
-import { articles, CATEGORY_COLORS } from "@/lib/blog";
+import { getPublishedPosts } from "@/lib/db/posts";
 import { ServiceCta } from "@/components/shared/service-cta";
 import { formatDateKR } from "@/lib/utils";
+
+const CATEGORY_COLORS: Record<string, string> = {
+  "SEO 분석": "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+  "도메인 투자": "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+  "SEO 기초": "bg-purple-500/10 text-purple-600 dark:text-purple-400",
+};
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "블로그 · 도메인체커 | 도메인 투자 & SEO 가이드",
@@ -18,18 +26,21 @@ export const metadata: Metadata = {
   ],
 };
 
-export default function BlogIndexPage() {
-  const categories = ["전체", ...Array.from(new Set(articles.map((a) => a.category)))];
-
+export default async function BlogIndexPage() {
+  const posts = await getPublishedPosts();
+  const categories = [
+    "전체",
+    ...Array.from(new Set(posts.map((p) => p.category))),
+  ];
 
   const itemListJsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    itemListElement: articles.map((article, index) => ({
+    itemListElement: posts.map((post, index) => ({
       "@type": "ListItem",
       position: index + 1,
-      url: `https://domainchecker.co.kr/blog/${article.slug}`,
-      name: article.title,
+      url: `https://domainchecker.co.kr/blog/${post.slug}`,
+      name: post.title,
     })),
   };
 
@@ -53,7 +64,7 @@ export default function BlogIndexPage() {
             className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ${
               cat === "전체"
                 ? "bg-foreground/10 text-foreground"
-                : CATEGORY_COLORS[cat as keyof typeof CATEGORY_COLORS] || "bg-muted text-muted-foreground"
+                : CATEGORY_COLORS[cat] || "bg-muted text-muted-foreground"
             }`}
           >
             {cat}
@@ -62,28 +73,29 @@ export default function BlogIndexPage() {
       </div>
 
       <div className="mt-10 grid gap-4">
-        {articles.map((article, index) => (
-          <Link key={article.slug} href={`/blog/${article.slug}`} className="group">
+        {posts.map((post, index) => (
+          <Link key={post.slug} href={`/blog/${post.slug}`} className="group">
             <div className="blog-card">
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        CATEGORY_COLORS[article.category] || "bg-muted text-muted-foreground"
+                        CATEGORY_COLORS[post.category] ||
+                        "bg-muted text-muted-foreground"
                       }`}
                     >
-                      {article.category}
+                      {post.category}
                     </span>
                     {index === 0 && (
                       <span className="blog-badge-new">NEW</span>
                     )}
                   </div>
 
-                  <h2 className="blog-card-title">{article.title}</h2>
+                  <h2 className="blog-card-title">{post.title}</h2>
 
                   <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">
-                    {article.description}
+                    {post.excerpt}
                   </p>
 
                   <span className="blog-card-arrow mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary">
@@ -94,11 +106,11 @@ export default function BlogIndexPage() {
                 <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1.5 text-xs text-muted-foreground shrink-0">
                   <span className="inline-flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5" />
-                    {formatDateKR(article.date)}
+                    {formatDateKR(post.published_at)}
                   </span>
                   <span className="inline-flex items-center gap-1">
                     <Clock className="h-3.5 w-3.5" />
-                    {article.readTime}
+                    {post.read_time}
                   </span>
                 </div>
               </div>
