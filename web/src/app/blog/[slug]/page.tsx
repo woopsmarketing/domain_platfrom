@@ -13,8 +13,9 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
-// ISR: 1시간 캐시
+// ISR: 1시간 캐시 + 새 slug도 동적 생성 허용
 export const revalidate = 3600;
+export const dynamicParams = true;
 
 export async function generateMetadata({
   params,
