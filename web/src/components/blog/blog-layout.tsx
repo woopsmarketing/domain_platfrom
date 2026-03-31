@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, ChevronRight, Home } from "lucide-react";
-import { MarkdownRenderer } from "./markdown-renderer";
 import type { Post } from "@/lib/db/posts";
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -44,16 +43,15 @@ export function BlogLayout({
   const dateKR = `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
   const canonicalUrl = `https://domainchecker.co.kr/blog/${post.slug}`;
 
-  /* TOC: 마크다운에서 h2 추출 */
-  const tocItems = (post.content.match(/^## .+$/gm) || []).map((line) => {
-    const title = line.replace(/^## /, "");
-    const id = title
-      .toLowerCase()
-      .replace(/[^a-z0-9가-힣]/g, "-")
-      .replace(/-+/g, "-")
-      .replace(/^-|-$/g, "");
-    return { id, title };
-  });
+  /* TOC: HTML에서 h2 추출 */
+  const tocItems = (post.content.match(/<h2[^>]*id="([^"]*)"[^>]*>([^<]*)<\/h2>/g) || []).map((match) => {
+    const idMatch = match.match(/id="([^"]*)"/);
+    const textMatch = match.match(/>([^<]*)<\/h2>/);
+    return {
+      id: idMatch?.[1] || "",
+      title: textMatch?.[1] || "",
+    };
+  }).filter(item => item.id && item.title);
   if (faqs.length > 0) {
     tocItems.push({ id: "faq", title: "자주 묻는 질문" });
   }
@@ -189,7 +187,7 @@ export function BlogLayout({
 
             {/* 본문 */}
             <div className="blog-prose mt-10">
-              <MarkdownRenderer content={post.content} />
+              <div dangerouslySetInnerHTML={{ __html: post.content }} />
 
               {/* FAQ */}
               {faqs.length > 0 && (
