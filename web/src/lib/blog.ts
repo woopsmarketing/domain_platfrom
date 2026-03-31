@@ -27,6 +27,16 @@ export const CATEGORY_COLORS: Record<BlogCategory, string> = {
 // 최신순 정렬 — 새 글은 맨 위에 추가
 export const articles: BlogArticle[] = [
   {
+    slug: "how-to-find-expired-domains",
+    title:
+      "만료 도메인 찾는 법 — SEO 가치 높은 도메인을 발굴하는 5단계 실전 가이드",
+    description:
+      "만료 도메인을 찾고, 선별하고, 활용하는 전 과정을 5단계로 안내합니다. SEO 가치가 높은 도메인을 발굴하는 실전 방법을 확인하세요.",
+    category: "도메인 투자",
+    date: "2026-03-31",
+    readTime: "8분",
+  },
+  {
     slug: "how-to-check-domain-score",
     title:
       "도메인 점수 확인하는 법 — DA·DR·TF 지수를 무료로 조회하는 3가지 방법",
