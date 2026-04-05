@@ -297,7 +297,9 @@ export async function POST(request: NextRequest) {
         niche: row.niche,
         domain_age_years: row.ageYears,
         registrant: row.registrant,
-        backlinks_from: row.backlinksFrom,
+        backlinks_from: row.backlinksFrom
+          ? row.backlinksFrom.split(",").map((s) => s.trim()).filter(Boolean)
+          : null,
         pa: row.pa !== null ? Math.round(row.pa) : null,
         rd: row.rd !== null ? Math.round(row.rd) : null,
         source: "csv_import",
@@ -320,7 +322,10 @@ export async function POST(request: NextRequest) {
         .from("marketplace_listings")
         .insert(toInsert);
       if (insertErr) {
-        console.error("Batch listing insert error:", insertErr);
+        // 첫 에러 메시지 보존
+        if (!(summary as Record<string, unknown>).firstError) {
+          (summary as Record<string, unknown>).firstError = insertErr.message;
+        }
         summary.errors += toInsert.length;
       } else {
         summary.inserted += toInsert.length;
