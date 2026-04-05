@@ -36,7 +36,7 @@ interface ListingDetail {
   niche: string | null;
   domain_age_years: number | null;
   registrant: string | null;
-  backlinks_from: string | null;
+  backlinks_from: string[] | string | null;
   pa: number | null;
   rd: number | null;
   listed_at: string;
@@ -199,12 +199,11 @@ export default async function MarketplaceDetailPage({ params }: PageProps) {
       ? `${Math.floor(krw / 10000).toLocaleString()}만원`
       : krw.toLocaleString("ko-KR") + "원";
 
-  // 백링크 출처 파싱 (콤마 구분 문자열 → 배열)
+  // 백링크 출처 파싱 (TEXT[] 배열 또는 콤마 구분 문자열)
   const backlinksFromArr: string[] = listing.backlinks_from
-    ? listing.backlinks_from
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean)
+    ? Array.isArray(listing.backlinks_from)
+      ? listing.backlinks_from.filter(Boolean)
+      : listing.backlinks_from.split(",").map((s) => s.trim()).filter(Boolean)
     : [];
 
   return (
