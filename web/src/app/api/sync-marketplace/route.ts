@@ -197,17 +197,46 @@ export async function POST(request: NextRequest) {
     });
 
   if (newDomains.length > 0) {
-    const { data: created, error: createErr } = await client
-      .from("domains")
-      .upsert(newDomains, { onConflict: "name" })
-      .select("id, name");
+    // 대량 upsert 시 100개 제한 방지 — 50개씩 청크
+    for (let i = 0; i < newDomains.length; i += 50) {
+      const batch = newDomains.slice(i, i + 50);
+      const { data: created, error: createErr } = await client
+        .from("domains")
+        .upsert(batch, { onConflict: "name" })
+        .select("id, name");
 
-    if (createErr) {
-      console.error("Batch domain insert error:", createErr);
+      if (createErr) {
+        // 배치 실패 시 개별 insert fallback
+        for (const d of batch) {
+          const { data: single, error: singleErr } = await client
+            .from("domains")
+            .upsert(d, { onConflict: "name" })
+            .select("id, name")
+            .single();
+          if (!singleErr && single) {
+            domainMap.set(single.name, single.id);
+          }
+        }
+      } else if (created) {
+        for (const d of created) {
+          domainMap.set(d.name, d.id);
+        }
+      }
     }
-    if (created) {
-      for (const d of created) {
-        domainMap.set(d.name, d.id);
+
+    // upsert 후에도 맵에 없으면 기존 데이터 재조회
+    if (domainMap.size < sheetDomainNames.size) {
+      const missing = Array.from(sheetDomainNames).filter((n) => !domainMap.has(n));
+      if (missing.length > 0) {
+        const { data: refetch } = await client
+          .from("domains")
+          .select("id, name")
+          .in("name", missing);
+        if (refetch) {
+          for (const d of refetch) {
+            domainMap.set(d.name, d.id);
+          }
+        }
       }
     }
   }
@@ -345,5 +374,14 @@ export async function POST(request: NextRequest) {
     // 비활성화 실패는 전체 실패로 처리하지 않음
   }
 
-  return NextResponse.json({ ok: true, summary });
+  return NextResponse.json({
+    ok: summary.errors === 0,
+    summary,
+    debug: {
+      domainMapSize: domainMap.size,
+      sheetDomainCount: sheetDomainNames.size,
+      newDomainsCount: newDomains.length,
+      sampleDomains: Array.from(sheetDomainNames).slice(0, 3),
+    },
+  });
 }
