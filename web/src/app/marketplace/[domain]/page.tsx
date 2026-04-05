@@ -11,6 +11,7 @@ import {
   Tag,
   User,
   History,
+  Eye,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +46,7 @@ interface ListingDetail {
   pa: number | null;
   rd: number | null;
   listed_at: string;
+  view_count: number;
   domains: {
     name: string;
     tld: string;
@@ -107,7 +109,8 @@ async function getListing(domainName: string): Promise<ListingDetail | null> {
         backlinks_from,
         pa,
         rd,
-        listed_at
+        listed_at,
+        view_count
       `
       )
       .eq("domain_id", domainRow.id)
@@ -115,6 +118,9 @@ async function getListing(domainName: string): Promise<ListingDetail | null> {
       .maybeSingle();
 
     if (error || !data) return null;
+
+    // 조회수 증가 (fire-and-forget)
+    client.rpc("increment_listing_view", { listing_id_input: data.id }).then(() => {});
 
     // Step 3: domain_metrics 별도 조회 (cost_price_usd 절대 select 하지 않음)
     const { data: metrics } = await client
@@ -364,6 +370,21 @@ export default async function MarketplaceDetailPage({ params }: PageProps) {
             {listing.description}
           </p>
         )}
+
+        {/* 인기도 + 손실 회피 */}
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          {listing.view_count >= 5 && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
+              <Eye className="h-3.5 w-3.5" />
+              이번 주 {listing.view_count}회 조회
+            </span>
+          )}
+          {listing.view_count >= 10 && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-800 dark:bg-red-900/30 dark:text-red-400">
+              🔥 인기 도메인
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
@@ -548,6 +569,13 @@ export default async function MarketplaceDetailPage({ params }: PageProps) {
               </p>
             </CardContent>
           </Card>
+
+          {/* 긴급감 표시 */}
+          {listing.view_count >= 5 && (
+            <p className="text-center text-xs text-orange-600 dark:text-orange-400 font-medium">
+              ⚡ 다른 고객들도 이 도메인을 보고 있습니다
+            </p>
+          )}
 
           {/* 구매 신청 폼 */}
           <PurchaseRequestForm

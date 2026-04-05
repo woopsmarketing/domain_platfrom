@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { ArrowLeft, ExternalLink, Server } from "lucide-react";
+import { ArrowLeft, ExternalLink, Server, Gem, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -219,6 +219,44 @@ export default async function DomainDetailPage({ params }: PageProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Marketplace Recommendation Banner */}
+      <Card className="mt-6 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
+        <CardContent className="py-6 px-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <Gem className="h-5 w-5 text-primary shrink-0" />
+                <p className="font-semibold text-base">
+                  더 높은 DA의 프리미엄 도메인을 찾고 계신가요?
+                </p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                SEO 지표가 검증된 100개 이상의 프리미엄 도메인을 합리적 가격에 만나보세요.
+              </p>
+              <ul className="flex flex-col gap-1">
+                {[
+                  "DA 25~50 검증 도메인",
+                  "10년+ 이력 보유",
+                  "백링크 프로필 사전 분석 완료",
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="shrink-0">
+              <Link href="/marketplace">
+                <Button variant="default" className="w-full sm:w-auto whitespace-nowrap">
+                  프리미엄 도메인 둘러보기 →
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

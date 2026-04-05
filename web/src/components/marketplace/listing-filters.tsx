@@ -26,6 +26,7 @@ const TLD_OPTIONS: FilterOption[] = [
 ];
 
 const SORT_OPTIONS: FilterOption[] = [
+  { label: "추천순", value: "" },
   { label: "최신순", value: "latest" },
   { label: "가격 낮은순", value: "price_asc" },
   { label: "가격 높은순", value: "price_desc" },
@@ -169,8 +170,8 @@ export default function ListingFilters({
             <FilterButton
               key={opt.value}
               label={opt.label}
-              isActive={currentSort === opt.value || (!currentSort && opt.value === "latest")}
-              onClick={() => updateParam("sort", opt.value === "latest" ? "" : opt.value)}
+              isActive={currentSort === opt.value || (!currentSort && opt.value === "")}
+              onClick={() => updateParam("sort", opt.value)}
             />
           ))}
         </div>

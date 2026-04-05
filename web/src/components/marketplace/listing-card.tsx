@@ -20,6 +20,7 @@ export interface ListingCardData {
   pa: number | null;
   rd: number | null;
   registrant: string | null;
+  view_count?: number;
   domains: {
     name: string;
     tld: string;
@@ -69,15 +70,22 @@ export default function ListingCard({ listing }: ListingCardProps) {
   return (
     <Card className="group flex flex-col border-border/60 transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
       <CardContent className="flex flex-1 flex-col p-5">
-        {/* DA 뱃지 + 도메인명 */}
+        {/* DA 뱃지 + 인기 뱃지 + 도메인명 */}
         <div className="mb-3">
-          {da != null && (
-            <span
-              className={`mb-2 inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold ${getDaColor(da)}`}
-            >
-              DA {da}
-            </span>
-          )}
+          <div className="mb-2 flex flex-wrap items-center gap-1.5">
+            {da != null && (
+              <span
+                className={`inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold ${getDaColor(da)}`}
+              >
+                DA {da}
+              </span>
+            )}
+            {(listing.view_count ?? 0) >= 10 && (
+              <span className="inline-flex items-center rounded-md bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700 dark:bg-red-900/30 dark:text-red-400">
+                🔥 인기
+              </span>
+            )}
+          </div>
           <h3 className="mt-1 truncate text-lg font-bold tracking-tight group-hover:text-primary transition-colors">
             {domainFull}
           </h3>
@@ -142,12 +150,24 @@ export default function ListingCard({ listing }: ListingCardProps) {
         {/* 가격 + CTA */}
         <div className="mt-auto border-t border-border/40 pt-4">
           <div className="mb-3">
-            <span className="text-2xl font-bold text-primary">
-              ${listing.asking_price.toLocaleString()}
-            </span>
-            <span className="ml-2 text-xs text-muted-foreground">
-              ≈ {formatKRW(listing.asking_price)}
-            </span>
+            {(() => {
+              const referencePrice = Math.round(listing.asking_price * 1.33);
+              return (
+                <>
+                  <p className="text-xs text-muted-foreground">
+                    <span className="line-through">시장가 ${referencePrice.toLocaleString()}</span>
+                  </p>
+                  <div>
+                    <span className="text-2xl font-bold text-primary">
+                      ${listing.asking_price.toLocaleString()}
+                    </span>
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      ≈ {formatKRW(listing.asking_price)}
+                    </span>
+                  </div>
+                </>
+              );
+            })()}
           </div>
           <Link
             href={`/marketplace/${encodeURIComponent(listing.domains?.name ?? listing.id)}`}

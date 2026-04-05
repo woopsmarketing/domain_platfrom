@@ -59,6 +59,7 @@ async function getListings(params: SearchParams): Promise<ListingCardData[]> {
         pa,
         rd,
         registrant,
+        view_count,
         domains(name, tld)
       `
       )
@@ -86,8 +87,11 @@ async function getListings(params: SearchParams): Promise<ListingCardData[]> {
           nullsFirst: false,
         });
         break;
-      default:
+      case "latest":
         query = query.order("listed_at", { ascending: false });
+        break;
+      default:
+        query = query.order("asking_price", { ascending: false });
     }
 
     const { data, error } = await query;
@@ -107,6 +111,7 @@ async function getListings(params: SearchParams): Promise<ListingCardData[]> {
       pa: number | null;
       rd: number | null;
       registrant: string | null;
+      view_count: number | null;
       domains: { name: string; tld: string } | { name: string; tld: string }[] | null;
     };
 
@@ -166,6 +171,7 @@ async function getListings(params: SearchParams): Promise<ListingCardData[]> {
       pa: l.pa,
       rd: l.rd,
       registrant: l.registrant,
+      view_count: l.view_count ?? undefined,
       domains: (Array.isArray(l.domains) ? null : l.domains),
       domain_metrics: metricsMap[l.domain_id] ?? null,
     }));
