@@ -42,6 +42,7 @@ async function getListings(params: SearchParams): Promise<ListingCardData[]> {
   try {
     const client = createServiceClient();
 
+    // Step 1: marketplace_listings + domains 조인 (domain_metrics 제외 — 직접 FK 없음)
     let query = client
       .from("marketplace_listings")
       .select(
@@ -55,8 +56,10 @@ async function getListings(params: SearchParams): Promise<ListingCardData[]> {
         listed_at,
         niche,
         domain_age_years,
-        domains(name, tld),
-        domain_metrics(moz_da, moz_pa, ahrefs_dr, ahrefs_ref_domains)
+        pa,
+        rd,
+        registrant,
+        domains(name, tld)
       `
       )
       .eq("is_active", true);
@@ -67,12 +70,6 @@ async function getListings(params: SearchParams): Promise<ListingCardData[]> {
     }
     if (params.max_price) {
       query = query.lte("asking_price", Number(params.max_price));
-    }
-
-    // TLD 필터
-    if (params.tld && params.tld !== "other") {
-      // domains 테이블을 통한 필터 — 관계 필터
-      query = query.eq("domains.tld", params.tld);
     }
 
     // 정렬
@@ -95,31 +92,82 @@ async function getListings(params: SearchParams): Promise<ListingCardData[]> {
 
     const { data, error } = await query;
 
-    if (error) {
-      // Fallback: 필터 없이 단순 조회
-      const { data: fallback } = await client
-        .from("marketplace_listings")
-        .select("id, domain_id, asking_price, description, is_negotiable, is_active, listed_at, niche, domain_age_years, domains(name, tld)")
-        .eq("is_active", true)
-        .order("listed_at", { ascending: false });
-      return (fallback as unknown as ListingCardData[]) ?? [];
-    }
+    if (error || !data) return [];
 
-    // "other" TLD — 클라이언트 사이드 필터링
-    let result = (data as unknown as ListingCardData[]) ?? [];
-    if (params.tld === "other") {
+    type RawListing = {
+      id: string;
+      domain_id: string;
+      asking_price: number;
+      description: string | null;
+      is_negotiable: boolean;
+      is_active: boolean;
+      listed_at: string;
+      niche: string | null;
+      domain_age_years: number | null;
+      pa: number | null;
+      rd: number | null;
+      registrant: string | null;
+      domains: { name: string; tld: string } | { name: string; tld: string }[] | null;
+    };
+
+    let rawListings = data as unknown as RawListing[];
+
+    // domains가 배열로 올 경우 첫 번째 항목으로 정규화
+    rawListings = rawListings.map((l) => ({
+      ...l,
+      domains: Array.isArray(l.domains) ? (l.domains[0] ?? null) : l.domains,
+    }));
+
+    // TLD 필터 — 서버 사이드 클라이언트 필터링 (관계 필터 미작동 회피)
+    if (params.tld && params.tld !== "other") {
+      rawListings = rawListings.filter(
+        (l) => l.domains && !Array.isArray(l.domains) && l.domains.tld === params.tld
+      );
+    } else if (params.tld === "other") {
       const knownTlds = ["com", "net", "org"];
-      result = result.filter(
-        (l) => l.domains && !knownTlds.includes(l.domains.tld)
+      rawListings = rawListings.filter(
+        (l) => l.domains && !Array.isArray(l.domains) && !knownTlds.includes(l.domains.tld)
       );
     }
 
-    // domain_metrics가 배열로 올 경우 첫 번째 항목으로 정규화
-    result = result.map((l) => ({
-      ...l,
-      domain_metrics: Array.isArray(l.domain_metrics)
-        ? (l.domain_metrics[0] ?? null)
-        : l.domain_metrics,
+    // Step 2: domain_ids 수집 → domain_metrics 일괄 조회
+    const domainIds = rawListings.map((l) => l.domain_id).filter(Boolean);
+    let metricsMap: Record<string, ListingCardData["domain_metrics"]> = {};
+
+    if (domainIds.length > 0) {
+      const { data: metricsRows } = await client
+        .from("domain_metrics")
+        .select("domain_id, moz_da, moz_pa, ahrefs_dr, ahrefs_ref_domains")
+        .in("domain_id", domainIds);
+
+      if (metricsRows) {
+        for (const m of metricsRows) {
+          metricsMap[m.domain_id] = {
+            moz_da: m.moz_da ?? null,
+            moz_pa: m.moz_pa ?? null,
+            ahrefs_dr: m.ahrefs_dr ?? null,
+            ahrefs_ref_domains: m.ahrefs_ref_domains ?? null,
+          };
+        }
+      }
+    }
+
+    // Step 3: listings에 domain_metrics 병합
+    const result: ListingCardData[] = rawListings.map((l) => ({
+      id: l.id,
+      domain_id: l.domain_id,
+      asking_price: l.asking_price,
+      description: l.description,
+      is_negotiable: l.is_negotiable,
+      is_active: l.is_active,
+      listed_at: l.listed_at,
+      niche: l.niche,
+      domain_age_years: l.domain_age_years,
+      pa: l.pa,
+      rd: l.rd,
+      registrant: l.registrant,
+      domains: (Array.isArray(l.domains) ? null : l.domains),
+      domain_metrics: metricsMap[l.domain_id] ?? null,
     }));
 
     return result;

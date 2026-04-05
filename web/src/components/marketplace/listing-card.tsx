@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ExternalLink, Clock, Globe } from "lucide-react";
+import { ExternalLink, Clock, Globe, User } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,10 +16,15 @@ export interface ListingCardData {
   listed_at: string;
   niche: string | null;
   domain_age_years: number | null;
+  // listing 자체 컬럼
+  pa: number | null;
+  rd: number | null;
+  registrant: string | null;
   domains: {
     name: string;
     tld: string;
   } | null;
+  // domain_metrics 배치 조회 결과 (없을 수 있음)
   domain_metrics: {
     moz_da: number | null;
     moz_pa: number | null;
@@ -55,9 +60,11 @@ export default function ListingCard({ listing }: ListingCardProps) {
 
   const metrics = listing.domain_metrics ?? null;
   const da = metrics?.moz_da ?? null;
-  const pa = metrics?.moz_pa ?? null;
+  // listing 자체 pa/rd 우선, 없으면 domain_metrics fallback
+  const pa = listing.pa ?? metrics?.moz_pa ?? null;
   const dr = metrics?.ahrefs_dr ?? null;
-  const rd = metrics?.ahrefs_ref_domains ?? null;
+  const rd = listing.rd ?? metrics?.ahrefs_ref_domains ?? null;
+  const registrant = listing.registrant ?? null;
 
   return (
     <Card className="group flex flex-col border-border/60 transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
@@ -103,7 +110,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
           )}
         </div>
 
-        {/* Niche + Age */}
+        {/* Niche + Age + Registrant */}
         <div className="mb-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
           {listing.niche && (
             <span className="flex items-center gap-1">
@@ -115,6 +122,12 @@ export default function ListingCard({ listing }: ListingCardProps) {
             <span className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
               {listing.domain_age_years}년
+            </span>
+          )}
+          {registrant && (
+            <span className="flex items-center gap-1">
+              <User className="h-3 w-3" />
+              {registrant}
             </span>
           )}
         </div>

@@ -61,7 +61,16 @@ async function getListing(domainName: string): Promise<ListingDetail | null> {
   try {
     const client = createServiceClient();
 
-    // marketplace_listings → domains → domain_metrics (JOIN)
+    // Step 1: domains 테이블에서 name으로 id 조회
+    const { data: domainRow, error: domainError } = await client
+      .from("domains")
+      .select("id, name, tld")
+      .eq("name", domainName)
+      .maybeSingle();
+
+    if (domainError || !domainRow) return null;
+
+    // Step 2: domain_id로 marketplace_listings 조회
     const { data, error } = await client
       .from("marketplace_listings")
       .select(
@@ -78,30 +87,27 @@ async function getListing(domainName: string): Promise<ListingDetail | null> {
         backlinks_from,
         pa,
         rd,
-        listed_at,
-        domains!inner (
-          name,
-          tld
-        )
+        listed_at
       `
       )
-      .eq("domains.name", domainName)
+      .eq("domain_id", domainRow.id)
       .eq("is_active", true)
       .maybeSingle();
 
     if (error || !data) return null;
 
-    // domain_metrics 별도 조회 (cost_price_usd 절대 select 하지 않음)
+    // Step 3: domain_metrics 별도 조회 (cost_price_usd 절대 select 하지 않음)
     const { data: metrics } = await client
       .from("domain_metrics")
       .select(
         "moz_da, moz_pa, ahrefs_backlinks, ahrefs_ref_domains, ahrefs_dr"
       )
-      .eq("domain_id", data.domain_id)
+      .eq("domain_id", domainRow.id)
       .maybeSingle();
 
     return {
-      ...(data as unknown as Omit<ListingDetail, "domain_metrics">),
+      ...(data as unknown as Omit<ListingDetail, "domains" | "domain_metrics">),
+      domains: { name: domainRow.name, tld: domainRow.tld },
       domain_metrics: metrics ?? null,
     };
   } catch {
