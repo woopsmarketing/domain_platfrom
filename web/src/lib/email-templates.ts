@@ -163,3 +163,50 @@ export function marketplaceAdminNotification(params: {
     ${button("어드민에서 확인", `${SITE_URL}/admin`)}
   `);
 }
+
+// ── 구매 신청: 사용자 확인 이메일 ──
+export function purchaseRequestConfirmation(params: {
+  domain: string;
+  price: number;
+}) {
+  return layout(`
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="display:inline-block;width:56px;height:56px;background:#ecfdf5;border-radius:50%;line-height:56px;font-size:28px;">✅</div>
+    </div>
+    <h1 style="margin:0 0 8px;font-size:22px;font-weight:700;color:#18181b;text-align:center;">구매 신청이 접수되었습니다</h1>
+    <p style="margin:0 0 24px;font-size:15px;color:#71717a;text-align:center;line-height:1.6;">
+      <strong style="color:#18181b;">${params.domain}</strong> 도메인의 구매 신청이 정상적으로 접수되었습니다.<br>
+      가용 여부를 확인한 후 이메일 또는 텔레그램으로 안내 드리겠습니다.
+    </p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;border:1px solid #e4e4e7;margin-bottom:24px;">
+      ${infoRow("도메인", `<strong>${params.domain}</strong>`)}
+      ${infoRow("가격", `$${params.price.toLocaleString()}`)}
+    </table>
+    <div style="text-align:center;">
+      ${button("다른 도메인 둘러보기", `${SITE_URL}/marketplace`)}
+    </div>
+  `);
+}
+
+// ── 구매 신청: 어드민 알림 이메일 ──
+export function purchaseRequestAdminNotification(params: {
+  email: string;
+  telegramId?: string;
+  domain: string;
+  price: number;
+}) {
+  return layout(`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+      <span style="display:inline-block;padding:4px 10px;background:#fef2f2;color:#dc2626;font-size:12px;font-weight:600;border-radius:4px;">새 구매 신청</span>
+      <span style="display:inline-block;padding:4px 10px;background:#eff6ff;color:#2563eb;font-size:12px;font-weight:600;border-radius:4px;">마켓플레이스</span>
+    </div>
+    <h1 style="margin:0 0 16px;font-size:20px;font-weight:700;color:#18181b;">새 도메인 구매 신청이 접수되었습니다</h1>
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f9fafb;border-radius:8px;border:1px solid #e4e4e7;margin-bottom:24px;">
+      ${infoRow("도메인", `<strong>${params.domain}</strong>`)}
+      ${infoRow("가격", `$${params.price.toLocaleString()}`)}
+      ${infoRow("이메일", `<a href="mailto:${params.email}" style="color:${BRAND_COLOR};text-decoration:none;">${params.email}</a>`)}
+      ${params.telegramId ? infoRow("텔레그램", "@" + params.telegramId) : ""}
+    </table>
+    ${button("어드민에서 확인", `${SITE_URL}/admin`)}
+  `);
+}

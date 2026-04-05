@@ -21,6 +21,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { ShieldCheck, Plus, X } from "lucide-react";
+import { PurchaseRequestsTab } from "@/components/admin/purchase-requests-tab";
 
 const ADMIN_USER_ID = process.env.NEXT_PUBLIC_ADMIN_USER_ID;
 
@@ -91,11 +92,15 @@ export default function AdminPage() {
       <Tabs defaultValue="listings">
         <TabsList className="mb-6">
           <TabsTrigger value="listings">도메인 판매 관리</TabsTrigger>
+          <TabsTrigger value="purchase-requests">구매 신청</TabsTrigger>
           <TabsTrigger value="inquiries">문의 관리</TabsTrigger>
         </TabsList>
 
         <TabsContent value="listings">
           <ListingsTab />
+        </TabsContent>
+        <TabsContent value="purchase-requests">
+          <PurchaseRequestsTab />
         </TabsContent>
         <TabsContent value="inquiries">
           <InquiriesTab />

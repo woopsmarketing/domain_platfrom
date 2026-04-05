@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ShoppingBag, ChevronDown } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { createServiceClient } from "@/lib/supabase";
+import { Suspense } from "react";
+import ListingCard, {
+  type ListingCardData,
+} from "@/components/marketplace/listing-card";
+import ListingFilters from "@/components/marketplace/listing-filters";
 
 export const dynamic = "force-dynamic";
 
@@ -28,54 +31,101 @@ export const metadata: Metadata = {
   },
 };
 
-interface Listing {
-  id: string;
-  domain_id: string;
-  asking_price: number;
-  description: string | null;
-  is_negotiable: boolean;
-  is_active: boolean;
-  listed_at: string;
-  domains: {
-    name: string;
-    tld: string;
-  } | null;
-  domain_metrics: {
-    moz_da: number | null;
-    ahrefs_dr: number | null;
-  }[] | null;
+interface SearchParams {
+  tld?: string;
+  min_price?: string;
+  max_price?: string;
+  sort?: string;
 }
 
-async function getListings(): Promise<Listing[]> {
+async function getListings(params: SearchParams): Promise<ListingCardData[]> {
   try {
     const client = createServiceClient();
-    const { data, error } = await client
-      .from("marketplace_listings")
-      .select("*, domains(name, tld), domain_metrics:domains!inner(domain_metrics(moz_da, ahrefs_dr))")
-      .eq("is_active", true)
-      .order("listed_at", { ascending: false });
 
-    if (error) {
-      // Fallback: simpler query without metrics join
-      const { data: simpleData } = await client
-        .from("marketplace_listings")
-        .select("*, domains(name, tld)")
-        .eq("is_active", true)
-        .order("listed_at", { ascending: false });
-      return (simpleData as unknown as Listing[]) ?? [];
+    let query = client
+      .from("marketplace_listings")
+      .select(
+        `
+        id,
+        domain_id,
+        asking_price,
+        description,
+        is_negotiable,
+        is_active,
+        listed_at,
+        niche,
+        domain_age_years,
+        domains(name, tld),
+        domain_metrics(moz_da, moz_pa, ahrefs_dr, ahrefs_ref_domains)
+      `
+      )
+      .eq("is_active", true);
+
+    // 가격 필터
+    if (params.min_price) {
+      query = query.gte("asking_price", Number(params.min_price));
+    }
+    if (params.max_price) {
+      query = query.lte("asking_price", Number(params.max_price));
     }
 
-    return (data as unknown as Listing[]) ?? [];
+    // TLD 필터
+    if (params.tld && params.tld !== "other") {
+      // domains 테이블을 통한 필터 — 관계 필터
+      query = query.eq("domains.tld", params.tld);
+    }
+
+    // 정렬
+    switch (params.sort) {
+      case "price_asc":
+        query = query.order("asking_price", { ascending: true });
+        break;
+      case "price_desc":
+        query = query.order("asking_price", { ascending: false });
+        break;
+      case "age_desc":
+        query = query.order("domain_age_years", {
+          ascending: false,
+          nullsFirst: false,
+        });
+        break;
+      default:
+        query = query.order("listed_at", { ascending: false });
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      // Fallback: 필터 없이 단순 조회
+      const { data: fallback } = await client
+        .from("marketplace_listings")
+        .select("id, domain_id, asking_price, description, is_negotiable, is_active, listed_at, niche, domain_age_years, domains(name, tld)")
+        .eq("is_active", true)
+        .order("listed_at", { ascending: false });
+      return (fallback as unknown as ListingCardData[]) ?? [];
+    }
+
+    // "other" TLD — 클라이언트 사이드 필터링
+    let result = (data as unknown as ListingCardData[]) ?? [];
+    if (params.tld === "other") {
+      const knownTlds = ["com", "net", "org"];
+      result = result.filter(
+        (l) => l.domains && !knownTlds.includes(l.domains.tld)
+      );
+    }
+
+    // domain_metrics가 배열로 올 경우 첫 번째 항목으로 정규화
+    result = result.map((l) => ({
+      ...l,
+      domain_metrics: Array.isArray(l.domain_metrics)
+        ? (l.domain_metrics[0] ?? null)
+        : l.domain_metrics,
+    }));
+
+    return result;
   } catch {
     return [];
   }
-}
-
-function formatKRW(price: number): string {
-  if (price >= 10000) {
-    return `${Math.floor(price / 10000)}만원`;
-  }
-  return `${price.toLocaleString("ko-KR")}원`;
 }
 
 const faqItems = [
@@ -93,7 +143,6 @@ const faqItems = [
   },
 ];
 
-
 const faqJsonLd = {
   "@context": "https://schema.org",
   "@type": "FAQPage",
@@ -103,8 +152,25 @@ const faqJsonLd = {
     acceptedAnswer: { "@type": "Answer", text: item.a },
   })),
 };
-export default async function MarketplacePage() {
-  const listings = await getListings();
+
+interface MarketplacePageProps {
+  searchParams: Promise<SearchParams>;
+}
+
+export default async function MarketplacePage({
+  searchParams,
+}: MarketplacePageProps) {
+  const params = await searchParams;
+  const listings = await getListings(params);
+
+  const currentTld = params.tld ?? "";
+  const currentSort = params.sort ?? "";
+  const currentPrice = (() => {
+    const min = params.min_price ?? "";
+    const max = params.max_price ?? "";
+    if (!min && !max) return "";
+    return `${min}-${max}`;
+  })();
 
   return (
     <div className="flex flex-col">
@@ -131,85 +197,32 @@ export default async function MarketplacePage() {
       </section>
 
       {/* Listings */}
-      <section className="px-4 py-12">
+      <section className="px-4 py-10 sm:py-12">
         <div className="mx-auto max-w-5xl">
+          {/* 필터 — useSearchParams 사용으로 Suspense 필요 */}
+          <Suspense fallback={<div className="mb-8 h-40 animate-pulse rounded-xl bg-muted" />}>
+            <ListingFilters
+              currentTld={currentTld}
+              currentPrice={currentPrice}
+              currentSort={currentSort}
+              totalCount={listings.length}
+            />
+          </Suspense>
+
           {listings.length > 0 ? (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {listings.map((listing) => {
-                const domainName =
-                  listing.domains?.name ?? `도메인 #${listing.id}`;
-                // Extract metrics if available
-                const metrics = Array.isArray(listing.domain_metrics)
-                  ? listing.domain_metrics[0]
-                  : null;
-
-                return (
-                  <Card
-                    key={listing.id}
-                    className="group border-border/60 transition-all hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5"
-                  >
-                    <CardContent className="p-6">
-                      <div className="mb-4">
-                        <h3 className="text-xl font-bold group-hover:text-primary transition-colors">
-                          {domainName}
-                        </h3>
-                        <div className="mt-2 flex flex-wrap gap-1.5">
-                          {metrics?.moz_da != null && (
-                            <Badge
-                              variant="secondary"
-                              className="rounded-md text-xs font-normal"
-                            >
-                              DA {metrics.moz_da}
-                            </Badge>
-                          )}
-                          {metrics?.ahrefs_dr != null && (
-                            <Badge
-                              variant="secondary"
-                              className="rounded-md text-xs font-normal"
-                            >
-                              DR {metrics.ahrefs_dr}
-                            </Badge>
-                          )}
-                          {listing.is_negotiable && (
-                            <Badge
-                              variant="outline"
-                              className="rounded-md text-xs font-normal border-green-500/30 text-green-600 dark:text-green-400"
-                            >
-                              협의 가능
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-
-                      {listing.description && (
-                        <p className="mb-4 text-sm text-muted-foreground line-clamp-2">
-                          {listing.description}
-                        </p>
-                      )}
-
-                      <div className="flex items-center justify-between">
-                        <span className="text-2xl font-bold text-primary">
-                          {listing.asking_price >= 100
-                            ? `$${listing.asking_price.toLocaleString()}`
-                            : formatKRW(listing.asking_price)}
-                        </span>
-                        <Link
-                          href={`/marketplace/inquiry?domain=${encodeURIComponent(domainName)}&listing=${listing.id}`}
-                        >
-                          <Button size="sm" className="min-h-[44px]">문의하기</Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+              {listings.map((listing) => (
+                <ListingCard key={listing.id} listing={listing} />
+              ))}
             </div>
           ) : (
             <Card className="border-border/60 border-dashed">
               <CardContent className="py-16 text-center">
-                <ShoppingBag className="mx-auto h-8 w-8 text-muted-foreground/50 mb-3" />
+                <ShoppingBag className="mx-auto mb-3 h-8 w-8 text-muted-foreground/50" />
                 <p className="text-muted-foreground">
-                  현재 판매 중인 도메인이 없습니다. 곧 업데이트 예정입니다.
+                  {currentTld || currentPrice
+                    ? "해당 조건의 도메인이 없습니다. 필터를 변경해 보세요."
+                    : "현재 판매 중인 도메인이 없습니다. 곧 업데이트 예정입니다."}
                 </p>
               </CardContent>
             </Card>
@@ -220,16 +233,16 @@ export default async function MarketplacePage() {
       {/* SEO Content: 프리미엄 도메인 설명 */}
       <section className="border-t px-4 py-12 sm:py-16">
         <div className="mx-auto max-w-4xl">
-          <h2 className="text-2xl font-bold mb-4">프리미엄 도메인이란?</h2>
-          <div className="space-y-4 text-muted-foreground leading-relaxed">
+          <h2 className="mb-4 text-2xl font-bold">프리미엄 도메인이란?</h2>
+          <div className="space-y-4 leading-relaxed text-muted-foreground">
             <p>
               프리미엄 도메인은 검색엔진에서 이미 높은 신뢰도를 확보한 도메인입니다.
               DA(Domain Authority), DR(Domain Rating) 등 SEO 지표가 검증되어 있어
               새 도메인 대비 검색 상위 노출까지 걸리는 시간을 크게 단축할 수 있습니다.
             </p>
 
-            <h3 className="text-lg font-semibold text-foreground mt-6">도메인 매매 시 확인할 점</h3>
-            <ul className="list-disc pl-6 space-y-1">
+            <h3 className="mt-6 text-lg font-semibold text-foreground">도메인 매매 시 확인할 점</h3>
+            <ul className="list-disc space-y-1 pl-6">
               <li><strong>도메인 점수(DA/DR)</strong> — 검색엔진이 부여한 권위도를 확인하세요</li>
               <li><strong>스팸 점수</strong> — 과거 스팸 이력이 있으면 페널티 위험이 있습니다</li>
               <li><strong>백링크 품질</strong> — 양질의 참조 도메인에서 오는 링크인지 확인하세요</li>
@@ -256,7 +269,7 @@ export default async function MarketplacePage() {
       {/* FAQ */}
       <section className="border-t bg-muted/30 px-4 py-16 sm:py-20">
         <div className="mx-auto max-w-3xl">
-          <div className="text-center mb-12">
+          <div className="mb-12 text-center">
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
               자주 묻는 질문
             </h2>
