@@ -34,28 +34,21 @@ interface SyncSummary {
 }
 
 // ---------------------------------------------------------------------------
-// CSV 파싱 (외부 패키지 미사용 — 따옴표·쉼표 처리 포함)
+// CSV 파싱
 // ---------------------------------------------------------------------------
-
-/**
- * CSV 한 줄을 컬럼 배열로 파싱한다.
- * RFC 4180 준수: 따옴표로 감싸진 필드 내 쉼표/줄바꿈 처리.
- */
 function parseCsvLine(line: string): string[] {
   const result: string[] = [];
   let i = 0;
   while (i < line.length) {
     if (line[i] === '"') {
-      // 따옴표로 시작하는 필드
       let field = "";
-      i++; // 여는 따옴표 건너뜀
+      i++;
       while (i < line.length) {
         if (line[i] === '"' && line[i + 1] === '"') {
-          // 이스케이프된 따옴표
           field += '"';
           i += 2;
         } else if (line[i] === '"') {
-          i++; // 닫는 따옴표 건너뜀
+          i++;
           break;
         } else {
           field += line[i];
@@ -63,10 +56,8 @@ function parseCsvLine(line: string): string[] {
         }
       }
       result.push(field.trim());
-      // 다음 쉼표 건너뜀
       if (line[i] === ",") i++;
     } else {
-      // 따옴표 없는 일반 필드
       const end = line.indexOf(",", i);
       if (end === -1) {
         result.push(line.slice(i).trim());
@@ -86,9 +77,6 @@ function parseNumber(raw: string | undefined): number | null {
   return isNaN(n) ? null : n;
 }
 
-/**
- * "18 Years" → 18, "2.5" → 2, "3" → 3
- */
 function parseAge(raw: string | undefined): number | null {
   if (!raw) return null;
   const match = raw.match(/(\d+(\.\d+)?)/);
@@ -96,9 +84,6 @@ function parseAge(raw: string | undefined): number | null {
   return Math.floor(parseFloat(match[1]));
 }
 
-/**
- * "$1,500" → 1500
- */
 function parsePrice(raw: string | undefined): number | null {
   if (!raw) return null;
   const cleaned = raw.replace(/[$,]/g, "").trim();
@@ -106,51 +91,18 @@ function parsePrice(raw: string | undefined): number | null {
   return isNaN(n) ? null : n;
 }
 
-/**
- * CSV 전체 텍스트를 파싱하여 유효한 행만 반환한다.
- *
- * 규칙:
- * - 행 0: 헤더 → 스킵
- * - 행 1: "Note:" 텍스트 → 스킵
- * - 행 2~4: 빈 행 가능 → 도메인명 없으면 스킵
- * - 이후: 도메인명이 없는 행은 스킵
- *
- * 컬럼 인덱스 (0-based):
- *   0: 도메인명
- *   1: DA
- *   2: PA
- *   3: RD
- *   4: Price
- *   5: Age
- *   6: Niche
- *   7: Registrant
- *   8+: Backlinks From (콤마 구분 여러 컬럼)
- */
 function parseCsv(csvText: string): ParsedRow[] {
-  const lines = csvText
-    .split(/\r?\n/)
-    .filter((line) => line.trim() !== "");
-
+  const lines = csvText.split(/\r?\n/).filter((line) => line.trim() !== "");
   const rows: ParsedRow[] = [];
 
   for (let idx = 0; idx < lines.length; idx++) {
-    // 헤더 행 스킵
     if (idx === 0) continue;
-
     const cols = parseCsvLine(lines[idx]);
     const domainRaw = cols[0]?.trim() ?? "";
-
-    // 빈 행 또는 Note: 텍스트 행 스킵
     if (!domainRaw || domainRaw.toLowerCase().startsWith("note:")) continue;
-
-    // 도메인 형식 최소 검증 (점이 하나 이상 있어야 함)
     if (!domainRaw.includes(".")) continue;
 
-    // Backlinks From: 8번 이후 컬럼을 모두 합쳐 콤마로 연결
     const backlinkParts = cols.slice(8).filter((c) => c.trim() !== "");
-    const backlinksFrom =
-      backlinkParts.length > 0 ? backlinkParts.join(", ") : null;
-
     rows.push({
       domain: domainRaw.toLowerCase(),
       da: parseNumber(cols[1]),
@@ -160,30 +112,27 @@ function parseCsv(csvText: string): ParsedRow[] {
       ageYears: parseAge(cols[5]),
       niche: cols[6]?.trim() || null,
       registrant: cols[7]?.trim() || null,
-      backlinksFrom,
+      backlinksFrom: backlinkParts.length > 0 ? backlinkParts.join(", ") : null,
     });
   }
-
   return rows;
 }
 
 // ---------------------------------------------------------------------------
-// CRON_SECRET 인증 확인 (requireAdmin의 보완)
+// CRON_SECRET 인증
 // ---------------------------------------------------------------------------
 function isCronAuthenticated(request: NextRequest): boolean {
   const cronSecret = process.env.CRON_SECRET;
   if (!cronSecret) return false;
-
   const authHeader = request.headers.get("authorization") ?? "";
   const token = authHeader.replace(/^Bearer\s+/i, "");
   return token === cronSecret;
 }
 
 // ---------------------------------------------------------------------------
-// POST /api/sync-marketplace
+// POST /api/sync-marketplace — 배치 처리 최적화
 // ---------------------------------------------------------------------------
 export async function POST(request: NextRequest) {
-  // 인증: CRON_SECRET Bearer 토큰 또는 어드민 세션
   const cronOk = isCronAuthenticated(request);
   if (!cronOk) {
     const { error: authError } = await requireAdmin();
@@ -200,110 +149,119 @@ export async function POST(request: NextRequest) {
     errors: 0,
   };
 
-  // ------------------------------------------------------------------
   // 1. Google Sheet CSV 다운로드
-  // ------------------------------------------------------------------
   let csvText: string;
   try {
     const res = await fetch(SHEET_CSV_URL, {
       headers: { "User-Agent": "DomainChecker-Sync/1.0" },
-      // Next.js 캐시 비활성화 — 항상 최신 데이터
       cache: "no-store",
     });
-
     if (!res.ok) {
-      return NextResponse.json(
-        { error: "Google Sheet 다운로드 실패" },
-        { status: 502 }
-      );
+      return NextResponse.json({ error: "Google Sheet 다운로드 실패" }, { status: 502 });
     }
     csvText = await res.text();
   } catch {
-    return NextResponse.json(
-      { error: "Google Sheet 접근 중 오류" },
-      { status: 502 }
-    );
+    return NextResponse.json({ error: "Google Sheet 접근 중 오류" }, { status: 502 });
   }
 
-  // ------------------------------------------------------------------
   // 2. CSV 파싱
-  // ------------------------------------------------------------------
   const rows = parseCsv(csvText);
   summary.total = rows.length;
-
   if (rows.length === 0) {
-    return NextResponse.json(
-      { error: "파싱된 행이 없습니다. CSV 형식을 확인하세요." },
-      { status: 422 }
-    );
+    return NextResponse.json({ error: "파싱된 행이 없습니다." }, { status: 422 });
   }
 
   const client = getServiceClient();
-  const sheetDomainNames = new Set<string>();
+  const sheetDomainNames = new Set(rows.map((r) => r.domain));
 
-  // ------------------------------------------------------------------
-  // 3. 각 행을 DB에 upsert
-  // ------------------------------------------------------------------
-  for (const row of rows) {
-    try {
-      const { domain } = row;
-      sheetDomainNames.add(domain);
+  // 3. 기존 도메인 일괄 조회 (1회 쿼리)
+  const { data: existingDomains } = await client
+    .from("domains")
+    .select("id, name")
+    .in("name", Array.from(sheetDomainNames));
 
-      const parts = domain.split(".");
+  const domainMap = new Map<string, string>();
+  if (existingDomains) {
+    for (const d of existingDomains) {
+      domainMap.set(d.name, d.id);
+    }
+  }
+
+  // 4. 새 도메인 일괄 생성 (1회 쿼리)
+  const newDomains = rows
+    .filter((r) => !domainMap.has(r.domain))
+    .map((r) => {
+      const parts = r.domain.split(".");
       const tld = parts.length >= 2 ? parts[parts.length - 1] : "";
+      return { name: r.domain, tld, status: "active" as const, source: "other" as const };
+    });
 
-      // --- 3-1. domains 테이블 upsert ---
-      let { data: domainRow } = await client
-        .from("domains")
-        .select("id")
-        .eq("name", domain)
-        .maybeSingle();
+  if (newDomains.length > 0) {
+    const { data: created, error: createErr } = await client
+      .from("domains")
+      .upsert(newDomains, { onConflict: "name" })
+      .select("id, name");
 
-      let isNew = false;
-
-      if (!domainRow) {
-        const { data: created, error: createErr } = await client
-          .from("domains")
-          .insert({ name: domain, tld, status: "active", source: "other" })
-          .select("id")
-          .single();
-
-        if (createErr || !created) {
-          summary.errors++;
-          continue;
-        }
-        domainRow = created;
-        isNew = true;
+    if (createErr) {
+      console.error("Batch domain insert error:", createErr);
+    }
+    if (created) {
+      for (const d of created) {
+        domainMap.set(d.name, d.id);
       }
+    }
+  }
 
-      const domainId = domainRow.id as string;
+  // 5. 기존 csv_import 리스팅 일괄 조회 (1회 쿼리)
+  const { data: existingListings } = await client
+    .from("marketplace_listings")
+    .select("id, domain_id")
+    .eq("source", "csv_import");
 
-      // --- 3-2. domain_metrics 테이블 upsert ---
-      const metricsPayload: Record<string, unknown> = {
-        domain_id: domainId,
+  const listingByDomainId = new Map<string, string>();
+  if (existingListings) {
+    for (const l of existingListings) {
+      listingByDomainId.set(l.domain_id, l.id);
+    }
+  }
+
+  // 6. metrics + listings 배치 생성 (10개씩 청크)
+  const CHUNK_SIZE = 10;
+  for (let i = 0; i < rows.length; i += CHUNK_SIZE) {
+    const chunk = rows.slice(i, i + CHUNK_SIZE);
+
+    // 6-1. domain_metrics 배치 upsert
+    const metricsPayloads = chunk
+      .filter((r) => domainMap.has(r.domain))
+      .map((r) => ({
+        domain_id: domainMap.get(r.domain)!,
+        moz_da: r.da,
+        moz_pa: r.pa,
+        ahrefs_ref_domains: r.rd,
         updated_at: importBatchId,
-      };
-      if (row.da !== null) metricsPayload.moz_da = row.da;
-      if (row.pa !== null) metricsPayload.moz_pa = row.pa;
-      if (row.rd !== null) metricsPayload.ahrefs_ref_domains = row.rd;
+      }));
 
+    if (metricsPayloads.length > 0) {
       await client
         .from("domain_metrics")
-        .upsert(metricsPayload, { onConflict: "domain_id" });
+        .upsert(metricsPayloads, { onConflict: "domain_id" });
+    }
 
-      // --- 3-3. marketplace_listings 테이블 upsert ---
-      // 기존 source='csv_import' 리스팅 조회
-      const { data: existingListing } = await client
-        .from("marketplace_listings")
-        .select("id")
-        .eq("domain_id", domainId)
-        .eq("source", "csv_import")
-        .maybeSingle();
+    // 6-2. marketplace_listings 배치 처리
+    const toInsert: Record<string, unknown>[] = [];
+    const toUpdate: { id: string; payload: Record<string, unknown> }[] = [];
+
+    for (const row of chunk) {
+      const domainId = domainMap.get(row.domain);
+      if (!domainId) {
+        summary.skipped++;
+        continue;
+      }
 
       const costPrice = row.price ?? 0;
       const askingPrice = Math.round(costPrice * MARGIN_RATE);
 
-      const listingPayload: Record<string, unknown> = {
+      const payload: Record<string, unknown> = {
         domain_id: domainId,
         cost_price_usd: costPrice > 0 ? costPrice : null,
         asking_price: askingPrice > 0 ? askingPrice : null,
@@ -311,51 +269,51 @@ export async function POST(request: NextRequest) {
         domain_age_years: row.ageYears,
         registrant: row.registrant,
         backlinks_from: row.backlinksFrom,
-        pa: row.pa,
-        rd: row.rd,
+        pa: row.pa !== null ? Math.round(row.pa) : null,
+        rd: row.rd !== null ? Math.round(row.rd) : null,
         source: "csv_import",
         is_active: true,
         import_batch_id: importBatchId,
         updated_at: importBatchId,
       };
 
-      if (existingListing) {
-        const { error: updateErr } = await client
-          .from("marketplace_listings")
-          .update(listingPayload)
-          .eq("id", existingListing.id);
-
-        if (updateErr) {
-          summary.errors++;
-          continue;
-        }
-        summary.updated++;
+      const existingId = listingByDomainId.get(domainId);
+      if (existingId) {
+        toUpdate.push({ id: existingId, payload });
       } else {
-        const { error: insertErr } = await client
-          .from("marketplace_listings")
-          .insert({ ...listingPayload, listed_at: importBatchId });
-
-        if (insertErr) {
-          summary.errors++;
-          continue;
-        }
-        if (isNew) {
-          summary.inserted++;
-        } else {
-          // 도메인은 기존 것이지만 listing은 새로 추가
-          summary.inserted++;
-        }
+        toInsert.push({ ...payload, listed_at: importBatchId });
       }
-    } catch {
-      summary.errors++;
+    }
+
+    // 배치 insert
+    if (toInsert.length > 0) {
+      const { error: insertErr } = await client
+        .from("marketplace_listings")
+        .insert(toInsert);
+      if (insertErr) {
+        console.error("Batch listing insert error:", insertErr);
+        summary.errors += toInsert.length;
+      } else {
+        summary.inserted += toInsert.length;
+      }
+    }
+
+    // update는 개별 처리 (Supabase는 배치 update를 지원하지 않음)
+    for (const item of toUpdate) {
+      const { error: updateErr } = await client
+        .from("marketplace_listings")
+        .update(item.payload)
+        .eq("id", item.id);
+      if (updateErr) {
+        summary.errors++;
+      } else {
+        summary.updated++;
+      }
     }
   }
 
-  // ------------------------------------------------------------------
-  // 4. 시트에 없는 csv_import 리스팅 비활성화
-  // ------------------------------------------------------------------
+  // 7. 시트에 없는 csv_import 리스팅 비활성화 (1회 쿼리)
   try {
-    // source='csv_import'이고 is_active=true인 모든 리스팅 조회
     const { data: activeListings } = await client
       .from("marketplace_listings")
       .select("id, domains!inner(name)")
@@ -363,14 +321,11 @@ export async function POST(request: NextRequest) {
       .eq("is_active", true);
 
     const toDeactivate: string[] = [];
-
     if (activeListings) {
       for (const listing of activeListings) {
         const domainsRaw = listing.domains as unknown;
-        const domainEntry =
-          Array.isArray(domainsRaw) ? domainsRaw[0] : domainsRaw;
-        const domainName =
-          (domainEntry as { name: string } | null)?.name ?? "";
+        const domainEntry = Array.isArray(domainsRaw) ? domainsRaw[0] : domainsRaw;
+        const domainName = (domainEntry as { name: string } | null)?.name ?? "";
         if (domainName && !sheetDomainNames.has(domainName.toLowerCase())) {
           toDeactivate.push(listing.id as string);
         }
@@ -382,7 +337,6 @@ export async function POST(request: NextRequest) {
         .from("marketplace_listings")
         .update({ is_active: false, updated_at: new Date().toISOString() })
         .in("id", toDeactivate);
-
       if (!deactivateErr) {
         summary.deactivated = toDeactivate.length;
       }
