@@ -10,11 +10,16 @@ import {
   Calendar,
   Tag,
   User,
+  History,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { createServiceClient } from "@/lib/supabase";
 import { PurchaseRequestForm } from "@/components/marketplace/purchase-request-form";
+import { fetchDomainMetrics } from "@/lib/external/rapidapi";
+import { fetchWayback } from "@/lib/external/wayback";
+import { saveWaybackToDb } from "@/lib/db/wayback";
+import { isStale } from "@/lib/cache";
 
 export const dynamic = "force-dynamic";
 
@@ -47,9 +52,24 @@ interface ListingDetail {
   domain_metrics: {
     moz_da: number | null;
     moz_pa: number | null;
+    moz_links: number | null;
+    moz_spam: number | null;
+    majestic_tf: number | null;
+    majestic_cf: number | null;
+    majestic_links: number | null;
+    majestic_ref_domains: number | null;
+    ahrefs_dr: number | null;
     ahrefs_backlinks: number | null;
     ahrefs_ref_domains: number | null;
-    ahrefs_dr: number | null;
+    ahrefs_traffic: number | null;
+    ahrefs_traffic_value: number | null;
+    ahrefs_organic_keywords: number | null;
+    updated_at: string;
+  } | null;
+  wayback: {
+    first_snapshot_at: string | null;
+    last_snapshot_at: string | null;
+    total_snapshots: number;
   } | null;
 }
 
@@ -100,15 +120,73 @@ async function getListing(domainName: string): Promise<ListingDetail | null> {
     const { data: metrics } = await client
       .from("domain_metrics")
       .select(
-        "moz_da, moz_pa, ahrefs_backlinks, ahrefs_ref_domains, ahrefs_dr"
+        "moz_da, moz_pa, moz_links, moz_spam, majestic_tf, majestic_cf, majestic_links, majestic_ref_domains, ahrefs_dr, ahrefs_backlinks, ahrefs_ref_domains, ahrefs_traffic, ahrefs_traffic_value, ahrefs_organic_keywords, updated_at"
       )
       .eq("domain_id", domainRow.id)
       .maybeSingle();
 
+    // Step 3.5: wayback_summary 조회
+    const { data: wayback } = await client
+      .from("wayback_summary")
+      .select("first_snapshot_at, last_snapshot_at, total_snapshots")
+      .eq("domain_id", domainRow.id)
+      .maybeSingle();
+
+    // Step 4: 캐시 판단 — 필요시 외부 API 호출 (병렬)
+    const needsMetrics = !metrics || isStale(metrics.updated_at);
+    const needsWayback = !wayback;
+
+    if (needsMetrics || needsWayback) {
+      await Promise.all([
+        needsMetrics
+          ? fetchDomainMetrics(domainRow.id, domainName).catch(() => null)
+          : null,
+        needsWayback
+          ? fetchWayback(domainRow.id, domainName)
+              .then((wb) => wb && saveWaybackToDb(domainRow.id, wb))
+              .catch(() => null)
+          : null,
+      ]);
+
+      // 갱신된 데이터 재조회
+      const [freshMetrics, freshWayback] = await Promise.all([
+        needsMetrics
+          ? client
+              .from("domain_metrics")
+              .select(
+                "moz_da, moz_pa, moz_links, moz_spam, majestic_tf, majestic_cf, majestic_links, majestic_ref_domains, ahrefs_dr, ahrefs_backlinks, ahrefs_ref_domains, ahrefs_traffic, ahrefs_traffic_value, ahrefs_organic_keywords, updated_at"
+              )
+              .eq("domain_id", domainRow.id)
+              .maybeSingle()
+          : { data: metrics },
+        needsWayback
+          ? client
+              .from("wayback_summary")
+              .select("first_snapshot_at, last_snapshot_at, total_snapshots")
+              .eq("domain_id", domainRow.id)
+              .maybeSingle()
+          : { data: wayback },
+      ]);
+
+      return {
+        ...(data as unknown as Omit<
+          ListingDetail,
+          "domains" | "domain_metrics" | "wayback"
+        >),
+        domains: { name: domainRow.name, tld: domainRow.tld },
+        domain_metrics: freshMetrics.data ?? metrics ?? null,
+        wayback: freshWayback.data ?? wayback ?? null,
+      };
+    }
+
     return {
-      ...(data as unknown as Omit<ListingDetail, "domains" | "domain_metrics">),
+      ...(data as unknown as Omit<
+        ListingDetail,
+        "domains" | "domain_metrics" | "wayback"
+      >),
       domains: { name: domainRow.name, tld: domainRow.tld },
       domain_metrics: metrics ?? null,
+      wayback: wayback ?? null,
     };
   } catch {
     return null;
@@ -173,6 +251,32 @@ function StatCard({ icon, label, value }: StatCardProps) {
 }
 
 // ---------------------------------------------------------------------------
+// SEO 상세 지표 행
+// ---------------------------------------------------------------------------
+
+function MetricRow({ label, value }: { label: string; value: number | null }) {
+  return (
+    <div className="flex items-center justify-between py-1.5">
+      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="text-sm font-semibold tabular-nums">
+        {value !== null && value !== undefined ? value.toLocaleString() : "—"}
+      </span>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 날짜 포맷 유틸
+// ---------------------------------------------------------------------------
+
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return "—";
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return "—";
+  return `${d.getFullYear()}. ${String(d.getMonth() + 1).padStart(2, "0")}. ${String(d.getDate()).padStart(2, "0")}.`;
+}
+
+// ---------------------------------------------------------------------------
 // 페이지
 // ---------------------------------------------------------------------------
 
@@ -187,6 +291,7 @@ export default async function MarketplaceDetailPage({ params }: PageProps) {
   }
 
   const metrics = listing.domain_metrics;
+  const wayback = listing.wayback;
   const da = metrics?.moz_da ?? null;
   const pa = listing.pa ?? metrics?.moz_pa ?? null;
   const rd = listing.rd ?? metrics?.ahrefs_ref_domains ?? null;
@@ -262,7 +367,7 @@ export default async function MarketplaceDetailPage({ params }: PageProps) {
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-        {/* 왼쪽: 통계 + 백링크 출처 + 상세 분석 링크 */}
+        {/* 왼쪽: 통계 + SEO 상세 + Wayback + 백링크 출처 */}
         <div className="space-y-8">
           {/* 통계 카드 4개 */}
           <div>
@@ -293,6 +398,119 @@ export default async function MarketplaceDetailPage({ params }: PageProps) {
             </div>
           </div>
 
+          {/* SEO 상세 지표 3열 카드 */}
+          <div>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                SEO 상세 지표
+              </h2>
+              {metrics?.updated_at && (
+                <span className="text-xs text-muted-foreground">
+                  마지막 업데이트: {formatDate(metrics.updated_at)}
+                </span>
+              )}
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {/* Moz */}
+              <Card className="border-border/60">
+                <CardContent className="p-4">
+                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Moz
+                  </h3>
+                  <div className="divide-y divide-border/40">
+                    <MetricRow label="DA" value={metrics?.moz_da ?? null} />
+                    <MetricRow label="PA" value={metrics?.moz_pa ?? null} />
+                    <MetricRow label="Links" value={metrics?.moz_links ?? null} />
+                    <MetricRow label="Spam Score" value={metrics?.moz_spam ?? null} />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Majestic */}
+              <Card className="border-border/60">
+                <CardContent className="p-4">
+                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Majestic
+                  </h3>
+                  <div className="divide-y divide-border/40">
+                    <MetricRow label="TF" value={metrics?.majestic_tf ?? null} />
+                    <MetricRow label="CF" value={metrics?.majestic_cf ?? null} />
+                    <MetricRow label="Links" value={metrics?.majestic_links ?? null} />
+                    <MetricRow label="Ref Domains" value={metrics?.majestic_ref_domains ?? null} />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Ahrefs */}
+              <Card className="border-border/60">
+                <CardContent className="p-4">
+                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    Ahrefs
+                  </h3>
+                  <div className="divide-y divide-border/40">
+                    <MetricRow label="DR" value={metrics?.ahrefs_dr ?? null} />
+                    <MetricRow label="Backlinks" value={metrics?.ahrefs_backlinks ?? null} />
+                    <MetricRow label="Ref Domains" value={metrics?.ahrefs_ref_domains ?? null} />
+                    <MetricRow label="Traffic" value={metrics?.ahrefs_traffic ?? null} />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Wayback Machine 히스토리 */}
+          {wayback && (
+            <div>
+              <h2 className="mb-4 text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                Wayback Machine 히스토리
+              </h2>
+              <Card className="border-border/60">
+                <CardContent className="p-5">
+                  <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">
+                        총 스냅샷
+                      </p>
+                      <p className="mt-1 text-xl font-bold tabular-nums">
+                        {wayback.total_snapshots >= 0
+                          ? wayback.total_snapshots.toLocaleString()
+                          : "10,000+"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">
+                        첫 크롤일
+                      </p>
+                      <p className="mt-1 text-sm font-semibold">
+                        {formatDate(wayback.first_snapshot_at)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground">
+                        마지막 크롤일
+                      </p>
+                      <p className="mt-1 text-sm font-semibold">
+                        {formatDate(wayback.last_snapshot_at)}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 border-t border-border/40 pt-3">
+                    <a
+                      href={`https://web.archive.org/web/*/${listing.domains?.name ?? domainName}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
+                    >
+                      <History className="h-3.5 w-3.5" />
+                      Wayback에서 보기
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           {/* 주요 백링크 출처 */}
           {backlinksFromArr.length > 0 && (
             <div>
@@ -312,21 +530,6 @@ export default async function MarketplaceDetailPage({ params }: PageProps) {
               </div>
             </div>
           )}
-
-          {/* 상세 분석 링크 */}
-          <div className="rounded-xl border border-border/60 bg-muted/30 px-5 py-4">
-            <p className="text-sm text-muted-foreground">
-              이 도메인의 Whois, Wayback, 거래 이력 등 전체 분석 데이터를
-              확인하고 싶으신가요?
-            </p>
-            <Link
-              href={`/domain/${listing.domains?.name ?? domainName}`}
-              className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-primary hover:underline"
-            >
-              이 도메인 상세 분석 보기
-              <ExternalLink className="h-3.5 w-3.5" />
-            </Link>
-          </div>
         </div>
 
         {/* 오른쪽: 가격 + 구매 신청 폼 */}
