@@ -148,6 +148,7 @@ export async function POST(request: NextRequest) {
     skipped: 0,
     errors: 0,
   };
+  let firstError = "";
 
   // 1. Google Sheet CSV 다운로드
   let csvText: string;
@@ -271,9 +272,12 @@ export async function POST(request: NextRequest) {
       }));
 
     if (metricsPayloads.length > 0) {
-      await client
+      const { error: metricsErr } = await client
         .from("domain_metrics")
         .upsert(metricsPayloads, { onConflict: "domain_id" });
+      if (metricsErr && !firstError) {
+        firstError = `metrics_upsert: ${metricsErr.message}`;
+      }
     }
 
     // 6-2. marketplace_listings 배치 처리
@@ -322,10 +326,7 @@ export async function POST(request: NextRequest) {
         .from("marketplace_listings")
         .insert(toInsert);
       if (insertErr) {
-        // 첫 에러 메시지 보존
-        if (!(summary as Record<string, unknown>).firstError) {
-          (summary as Record<string, unknown>).firstError = insertErr.message;
-        }
+        if (!firstError) firstError = `listing_insert: ${insertErr.message}`;
         summary.errors += toInsert.length;
       } else {
         summary.inserted += toInsert.length;
@@ -339,6 +340,7 @@ export async function POST(request: NextRequest) {
         .update(item.payload)
         .eq("id", item.id);
       if (updateErr) {
+        if (!firstError) firstError = `listing_update: ${updateErr.message}`;
         summary.errors++;
       } else {
         summary.updated++;
@@ -386,6 +388,8 @@ export async function POST(request: NextRequest) {
       domainMapSize: domainMap.size,
       sheetDomainCount: sheetDomainNames.size,
       newDomainsCount: newDomains.length,
+      existingListingsCount: existingListings?.length ?? 0,
+      firstError: firstError || null,
       sampleDomains: Array.from(sheetDomainNames).slice(0, 3),
     },
   });
