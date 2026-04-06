@@ -242,6 +242,20 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // 5-0. 기존 domain_metrics 일괄 조회 (RapidAPI 데이터 보호용)
+  const allDomainIds = Array.from(domainMap.values());
+  const { data: existingMetrics } = await client
+    .from("domain_metrics")
+    .select("domain_id")
+    .in("domain_id", allDomainIds);
+
+  const existingMetricsSet = new Set<string>();
+  if (existingMetrics) {
+    for (const m of existingMetrics) {
+      existingMetricsSet.add(m.domain_id);
+    }
+  }
+
   // 5. 기존 csv_import 리스팅 일괄 조회 (1회 쿼리)
   const { data: existingListings } = await client
     .from("marketplace_listings")
@@ -260,23 +274,28 @@ export async function POST(request: NextRequest) {
   for (let i = 0; i < rows.length; i += CHUNK_SIZE) {
     const chunk = rows.slice(i, i + CHUNK_SIZE);
 
-    // 6-1. domain_metrics 배치 upsert
-    const metricsPayloads = chunk
-      .filter((r) => domainMap.has(r.domain))
+    // 6-1. domain_metrics: 기존 RapidAPI 데이터가 없는 도메인만 CSV 값으로 초기화
+    // 이미 RapidAPI 데이터가 있으면 덮어쓰지 않음 (updated_at 유지 → 캐시 판단 정상 작동)
+    const metricsToInsert = chunk
+      .filter((r) => {
+        const domainId = domainMap.get(r.domain);
+        return domainId && !existingMetricsSet.has(domainId);
+      })
       .map((r) => ({
         domain_id: domainMap.get(r.domain)!,
         moz_da: r.da,
         moz_pa: r.pa,
         ahrefs_ref_domains: r.rd,
-        updated_at: importBatchId,
+        // updated_at을 오래된 값으로 설정 → 상세 페이지 접속 시 RapidAPI 호출 유도
+        updated_at: "2020-01-01T00:00:00.000Z",
       }));
 
-    if (metricsPayloads.length > 0) {
+    if (metricsToInsert.length > 0) {
       const { error: metricsErr } = await client
         .from("domain_metrics")
-        .upsert(metricsPayloads, { onConflict: "domain_id" });
+        .upsert(metricsToInsert, { onConflict: "domain_id", ignoreDuplicates: true });
       if (metricsErr && !firstError) {
-        firstError = `metrics_upsert: ${metricsErr.message}`;
+        firstError = `metrics_insert: ${metricsErr.message}`;
       }
     }
 
