@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, getServiceClient } from "@/lib/api-helpers";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+
+/** 블로그 관련 페이지 캐시 무효화 */
+function revalidateBlog(slug?: string) {
+  revalidatePath("/blog", "page");
+  revalidatePath("/blog", "layout");
+  if (slug) {
+    revalidatePath(`/blog/${slug}`, "page");
+  }
+  revalidatePath("/sitemap.xml", "page");
+}
 
 // GET: 모든 글 목록 (draft 포함)
 export async function GET() {
@@ -47,9 +57,7 @@ export async function POST(request: NextRequest) {
 
   // On-Demand Revalidation
   if (status === "published") {
-    revalidatePath("/blog");
-    revalidatePath(`/blog/${slug}`);
-    revalidatePath("/sitemap.xml");
+    revalidateBlog(slug);
   }
 
   return NextResponse.json({ post: data }, { status: 201 });
@@ -81,9 +89,8 @@ export async function PATCH(request: NextRequest) {
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // Revalidation
-  revalidatePath("/blog");
-  if (data?.slug) revalidatePath(`/blog/${data.slug}`);
+  // Revalidation — 상태 변경뿐 아니라 모든 수정 시 캐시 무효화
+  revalidateBlog(data?.slug);
 
   return NextResponse.json({ post: data });
 }
@@ -105,8 +112,7 @@ export async function DELETE(request: NextRequest) {
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
 
-  revalidatePath("/blog");
-  if (post?.slug) revalidatePath(`/blog/${post.slug}`);
+  revalidateBlog(post?.slug);
 
   return NextResponse.json({ success: true });
 }
