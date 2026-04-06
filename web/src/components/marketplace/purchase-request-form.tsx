@@ -56,18 +56,13 @@ export function PurchaseRequestForm({
 
       setSuccess(true);
 
-      // Google Ads 전환 추적
+      // GA4 전환 이벤트 (Google Ads에서 가져오기로 연결)
       if (typeof window !== "undefined" && window.gtag) {
-        window.gtag("event", "conversion", {
-          send_to: "AW-CONVERSION_ID/CONVERSION_LABEL",
-          value: askingPrice,
-          currency: "USD",
-          transaction_id: listingId,
-        });
         window.gtag("event", "purchase_request", {
           event_category: "marketplace",
           event_label: domainName,
           value: askingPrice,
+          currency: "USD",
         });
       }
     } catch {
