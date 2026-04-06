@@ -55,6 +55,21 @@ export function PurchaseRequestForm({
       }
 
       setSuccess(true);
+
+      // Google Ads 전환 추적
+      if (typeof window !== "undefined" && window.gtag) {
+        window.gtag("event", "conversion", {
+          send_to: "AW-CONVERSION_ID/CONVERSION_LABEL",
+          value: askingPrice,
+          currency: "USD",
+          transaction_id: listingId,
+        });
+        window.gtag("event", "purchase_request", {
+          event_category: "marketplace",
+          event_label: domainName,
+          value: askingPrice,
+        });
+      }
     } catch {
       setError("네트워크 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
     } finally {
