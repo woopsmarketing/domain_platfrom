@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/table";
 import { ShieldCheck, Plus, X } from "lucide-react";
 import { PurchaseRequestsTab } from "@/components/admin/purchase-requests-tab";
+import { BlogPostsTab } from "@/components/admin/blog-posts-tab";
 
 const ADMIN_USER_ID = process.env.NEXT_PUBLIC_ADMIN_USER_ID;
 
@@ -56,13 +57,7 @@ interface Inquiry {
 
 export default function AdminPage() {
   const { user, loading } = useAuth();
-  const [authorized, setAuthorized] = useState(false);
-
-  useEffect(() => {
-    if (!loading) {
-      setAuthorized(!!user && user.id === ADMIN_USER_ID);
-    }
-  }, [user, loading]);
+  const authorized = !loading && !!user && user.id === ADMIN_USER_ID;
 
   if (loading) {
     return (
@@ -94,6 +89,7 @@ export default function AdminPage() {
           <TabsTrigger value="listings">도메인 판매 관리</TabsTrigger>
           <TabsTrigger value="purchase-requests">구매 신청</TabsTrigger>
           <TabsTrigger value="inquiries">문의 관리</TabsTrigger>
+          <TabsTrigger value="blog">블로그 관리</TabsTrigger>
         </TabsList>
 
         <TabsContent value="listings">
@@ -104,6 +100,9 @@ export default function AdminPage() {
         </TabsContent>
         <TabsContent value="inquiries">
           <InquiriesTab />
+        </TabsContent>
+        <TabsContent value="blog">
+          <BlogPostsTab />
         </TabsContent>
       </Tabs>
     </div>

@@ -1,162 +1,86 @@
 ---
 name: blog-builder
-description: 블로그 아웃라인과 콘텐츠를 Next.js TSX 페이지로 변환. BlogLayout 컴포넌트를 사용하여 100% 일관된 구조를 보장한다. /write-blog 파이프라인의 Step 4에서 호출.
+description: 블로그 아웃라인(JSON)과 HTML 콘텐츠를 Supabase posts 테이블 형식의 JSON으로 변환. /write-blog 파이프라인의 Stage 4에서 호출.
 tools: Read, Write, Edit, Glob, Grep
 ---
 
-You are a blog page builder for domainchecker.co.kr. You convert blog outlines and content into Next.js TSX pages.
+You are a blog data builder for domainchecker.co.kr. You convert blog outlines and HTML content into a database-ready JSON object.
 
-## CRITICAL: Use BlogLayout Component
+## IMPORTANT: No more TSX file generation
 
-**절대 직접 article/JSON-LD/TOC/관련글/CTA를 작성하지 마.** `BlogLayout` 컴포넌트가 전부 자동 처리한다.
+This agent does NOT create TSX files. Blog posts are stored in the Supabase `posts` table and rendered dynamically by the existing `[slug]/page.tsx` and `BlogLayout` component.
 
 ## Input Files
-- `/tmp/blog-outline.md` — 아웃라인 (slug, title, date, toc, faqs, cta, keywords)
-- `/tmp/blog-content.md` — 본문 콘텐츠 (마크다운)
+- `/tmp/blog-outline.json` — content structure (title, slug, category, tags, faqs, etc.)
+- `/tmp/blog-content.html` — HTML body content
 
-## Output Files
-1. `web/src/app/blog/{slug}/page.tsx` — 블로그 페이지
-2. `web/src/lib/blog.ts` — articles 배열에 새 항목 추가
+## Output File
+- `/tmp/blog-post.json` — database-ready JSON for `posts` table INSERT
 
-## Page Template (MUST follow exactly)
+## Process
 
-```tsx
-import type { Metadata } from "next";
-import Link from "next/link";
-import { BlogLayout } from "@/components/blog/blog-layout";
+### 1. Read both input files
 
-export const metadata: Metadata = {
-  title: "{제목} | 도메인체커",
-  description: "{메타 설명 150자}",
-  keywords: [{키워드 배열}],
-  alternates: {
-    canonical: "https://domainchecker.co.kr/blog/{slug}",
-  },
-  openGraph: {
-    title: "{제목} | 도메인체커",
-    description: "{메타 설명}",
-    type: "article",
-    siteName: "도메인체커",
-    publishedTime: "{YYYY-MM-DD}",
-    modifiedTime: "{YYYY-MM-DD}",
-    tags: [{태그 배열}],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "{제목} | 도메인체커",
-    description: "{메타 설명}",
-  },
-};
+### 2. Validate
+- slug is kebab-case English
+- category is one of: "SEO 분석", "도메인 투자", "SEO 기초"
+- content HTML is non-empty
+- faqs have both q and a fields
+- tags is a non-empty array
 
-export default function {PascalCase}Page() {
-  return (
-    <BlogLayout
-      slug="{slug}"
-      title="{제목}"
-      date="{YYYY-MM-DD}"
-      readTime="{N분}"
-      toc={[
-        { id: "section-id", title: "섹션 제목" },
-        // ... 아웃라인의 H2 목차에서 추출
-        { id: "faq", title: "자주 묻는 질문" },
-      ]}
-      faqs={[
-        { q: "질문?", a: "답변 2~3문장" },
-        // ... 아웃라인의 FAQ에서 추출
-      ]}
-      cta={{
-        title: "{CTA 제목}",
-        description: "{CTA 설명}",
-        buttonText: "{버튼 텍스트}",
-        href: "{링크}",
-      }}
-    >
-      {/* ── 본문 콘텐츠만 여기에 ── */}
+### 3. Calculate read_time
+If not provided in outline, estimate:
+- Count Korean characters in HTML (strip tags)
+- Korean reading speed: ~500 chars/min
+- Round up to nearest minute, append "분"
 
-      <section>
-        <h2 id="section-id">섹션 제목</h2>
-        <p>본문 내용...</p>
-      </section>
+### 4. Generate excerpt
+If meta_description exists in outline, use it.
+Otherwise, extract first 150 characters from HTML content (strip tags).
 
-      <section>
-        <h2 id="next-section">다음 섹션</h2>
-        <p>...</p>
-      </section>
+### 5. Build JSON
 
-      {/* FAQ는 BlogLayout이 자동 생성하므로 여기에 넣지 마 */}
-    </BlogLayout>
-  );
+```json
+{
+  "title": "제목 (from outline)",
+  "slug": "kebab-case-slug (from outline)",
+  "excerpt": "150자 이내 요약 (from outline meta_description)",
+  "content": "전체 HTML 본문 (from blog-content.html)",
+  "category": "카테고리 (from outline)",
+  "tags": ["tag1", "tag2", "tag3"],
+  "status": "draft",
+  "read_time": "N분",
+  "faqs": [
+    {"q": "질문1?", "a": "답변1"},
+    {"q": "질문2?", "a": "답변2"}
+  ],
+  "author": "도메인체커"
 }
 ```
 
-## BlogLayout이 자동으로 처리하는 것 (절대 직접 작성 금지)
+### 6. Write to /tmp/blog-post.json
 
-| 요소 | BlogLayout 자동 | 직접 작성 |
-|------|---------------|----------|
-| JSON-LD (Article + FAQPage) | ✅ | ❌ 금지 |
-| 뒤로가기 링크 | ✅ | ❌ 금지 |
-| H1 제목 | ✅ | ❌ 금지 |
-| 날짜 + 읽기 시간 | ✅ | ❌ 금지 |
-| TOC 목차 | ✅ | ❌ 금지 |
-| FAQ 아코디언 | ✅ | ❌ 금지 |
-| 관련 글 | ✅ | ❌ 금지 |
-| 최신 글 | ✅ | ❌ 금지 |
-| CTA 카드 | ✅ | ❌ 금지 |
-| blog-prose CSS | ✅ (래퍼) | ❌ 금지 |
+## Field Mapping
 
-## 직접 작성하는 것 (children 안에만)
+| posts column | Source |
+|-------------|--------|
+| title | outline.title |
+| slug | outline.slug |
+| excerpt | outline.meta_description |
+| content | blog-content.html (full content) |
+| category | outline.category |
+| tags | outline.sub_keywords (first 5~8) |
+| status | always "draft" |
+| read_time | outline.read_time or calculated |
+| faqs | outline.faqs (filter empty q/a) |
+| author | always "도메인체커" |
+| published_at | NULL (draft) |
+| created_at | set by DB |
+| updated_at | set by DB |
 
-| 요소 | 직접 작성 |
-|------|----------|
-| `<section>` + `<h2 id="...">` | ✅ |
-| `<h3>` 소제목 | ✅ |
-| `<p>` 본문 | ✅ |
-| `<ul>/<ol>` 리스트 | ✅ |
-| `<table>` 표 | ✅ |
-| `<blockquote>` 인용 | ✅ |
-| `<Link>` 내부 링크 | ✅ |
-| `<strong>` 강조 | ✅ |
-
-## Content Conversion Rules
-
-마크다운 → TSX 변환 시:
-
-| 마크다운 | TSX |
-|---------|-----|
-| `## 제목` | `<section><h2 id="kebab-case">제목</h2>` |
-| `### 소제목` | `<h3>소제목</h3>` |
-| `- 항목` | `<ul><li>항목</li></ul>` |
-| `1. 항목` | `<ol><li>항목</li></ol>` |
-| `**굵게**` | `<strong>굵게</strong>` |
-| `[텍스트](url)` | `<Link href="url">텍스트</Link>` (내부) 또는 `<a href="url" target="_blank" rel="noopener noreferrer">` (외부) |
-| `> 인용` | `<blockquote>인용</blockquote>` |
-| 표 | `<div className="overflow-x-auto"><table>...</table></div>` |
-
-## lib/blog.ts 수정
-
-articles 배열 **맨 위**에 추가:
-
-```typescript
-{
-  slug: "{slug}",
-  title: "{제목}",
-  description: "{메타 설명}",
-  category: "{카테고리}" as BlogCategory,
-  date: "{YYYY-MM-DD}",
-  readTime: "{N분}",
-},
-```
-
-## Checklist
-
-- [ ] BlogLayout import 했는가?
-- [ ] metadata export 있는가? (title, description, keywords, openGraph)
-- [ ] toc 배열에 모든 h2 + "faq"이 포함되는가?
-- [ ] faqs 배열이 아웃라인과 일치하는가?
-- [ ] children 안에 section > h2#id 구조인가?
-- [ ] h2 id가 toc의 id와 일치하는가?
-- [ ] FAQ를 children 안에 직접 작성하지 않았는가?
-- [ ] JSON-LD를 직접 작성하지 않았는가?
-- [ ] 관련글/CTA를 직접 작성하지 않았는가?
-- [ ] lib/blog.ts에 새 항목 추가했는가?
-- [ ] 서드파티 API 이름 노출 없는가?
+## Rules
+- author is ALWAYS "도메인체커"
+- status is ALWAYS "draft" — user publishes manually from admin UI
+- Content must be the raw HTML string (properly escaped for JSON)
+- faqs must be valid JSON array (filter out items where q or a is empty)
+- No third-party API names in any field

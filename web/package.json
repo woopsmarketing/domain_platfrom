@@ -29,7 +29,12 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^3.8.0",
-    "tailwind-merge": "^3.5.0"
+    "tailwind-merge": "^3.5.0",
+    "codemirror": "^6.0.1",
+    "@codemirror/lang-html": "^6.4.9",
+    "@codemirror/theme-one-dark": "^6.1.2",
+    "@codemirror/view": "^6.36.8",
+    "@codemirror/state": "^6.5.2"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
