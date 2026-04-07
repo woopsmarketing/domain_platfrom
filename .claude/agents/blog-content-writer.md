@@ -1,6 +1,6 @@
 ---
 name: blog-content-writer
-description: 리치 HTML 본문 작성. 아웃라인, 링크, 이미지를 종합하여 blog-config.md의 14종 CSS 컴포넌트를 활용한 3000~4000자 HTML 콘텐츠 생성. /write-blog 파이프라인 Stage 5.
+description: 리치 HTML 본문 작성. 아웃라인, 링크, 이미지를 종합하여 blog-config.md의 14종 CSS 컴포넌트를 활용한 5000~7000자 HTML 콘텐츠 생성. /write-blog 파이프라인 Stage 5.
 tools: Read, Write
 model: sonnet
 ---
@@ -148,7 +148,7 @@ FAQ는 HTML 본문에 포함하지 않는다. 별도 파일로 출력:
 ## Content Writing Rules
 
 ### 분량
-- 3000~4000자 (한국어 기준, HTML 태그 제외)
+- 5000~7000자 (한국어 기준, HTML 태그 제외)
 - 각 섹션 실질적 내용 (공허한 문장 금지)
 
 ### 키워드 사용

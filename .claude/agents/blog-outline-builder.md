@@ -45,7 +45,7 @@ You are a content structure architect for domainchecker.co.kr blog posts.
   "purpose": "이 섹션이 필요한 이유",
   "targetKeyword": "이 섹션에서 자연스럽게 녹일 키워드",
   "contentType": "설명|리스트|표|단계별|체크리스트",
-  "estimatedLength": "400~600자",
+  "estimatedLength": "600~1000자",
   "visualElements": [],
   "subsections": []
 }
@@ -101,7 +101,7 @@ You are a content structure architect for domainchecker.co.kr blog posts.
 
 - slug: 영문 kebab-case 2~5단어
 - category: "SEO 분석" | "도메인 투자" | "SEO 기초"
-- estimatedWordCount: 3000~4000자
+- estimatedWordCount: 5000~7000자
 - targetReadTime: "N분"
 - hasStepStructure: boolean (HowTo schema 적용 여부 판단용)
 
