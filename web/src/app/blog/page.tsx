@@ -76,42 +76,55 @@ export default async function BlogIndexPage() {
         {posts.map((post, index) => (
           <Link key={post.slug} href={`/blog/${post.slug}`} className="group">
             <div className="blog-card">
-              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                        CATEGORY_COLORS[post.category] ||
-                        "bg-muted text-muted-foreground"
-                      }`}
-                    >
-                      {post.category}
+              <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+                {/* 썸네일 */}
+                {post.cover_image_url && (
+                  <div className="sm:w-40 sm:h-24 shrink-0 overflow-hidden rounded-lg">
+                    <img
+                      src={post.cover_image_url}
+                      alt={post.title}
+                      className="w-full h-40 sm:h-full object-cover rounded-lg"
+                    />
+                  </div>
+                )}
+
+                <div className="flex flex-1 min-w-0 flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          CATEGORY_COLORS[post.category] ||
+                          "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        {post.category}
+                      </span>
+                      {index === 0 && (
+                        <span className="blog-badge-new">NEW</span>
+                      )}
+                    </div>
+
+                    <h2 className="blog-card-title">{post.title}</h2>
+
+                    <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">
+                      {post.excerpt}
+                    </p>
+
+                    <span className="blog-card-arrow mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary">
+                      읽어보기 <ArrowRight className="h-3.5 w-3.5" />
                     </span>
-                    {index === 0 && (
-                      <span className="blog-badge-new">NEW</span>
-                    )}
                   </div>
 
-                  <h2 className="blog-card-title">{post.title}</h2>
-
-                  <p className="mt-1.5 text-sm text-muted-foreground line-clamp-2">
-                    {post.excerpt}
-                  </p>
-
-                  <span className="blog-card-arrow mt-3 inline-flex items-center gap-1 text-sm font-medium text-primary">
-                    읽어보기 <ArrowRight className="h-3.5 w-3.5" />
-                  </span>
-                </div>
-
-                <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1.5 text-xs text-muted-foreground shrink-0">
-                  <span className="inline-flex items-center gap-1">
-                    <Calendar className="h-3.5 w-3.5" />
-                    {formatDateKR(post.published_at)}
-                  </span>
-                  <span className="inline-flex items-center gap-1">
-                    <Clock className="h-3.5 w-3.5" />
-                    {post.read_time}
-                  </span>
+                  <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1.5 text-xs text-muted-foreground shrink-0">
+                    <span className="inline-flex items-center gap-1">
+                      <Calendar className="h-3.5 w-3.5" />
+                      {formatDateKR(post.published_at)}
+                    </span>
+                    <span className="inline-flex items-center gap-1">
+                      <Clock className="h-3.5 w-3.5" />
+                      {post.read_time}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

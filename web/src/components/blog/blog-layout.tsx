@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, ChevronRight, Home } from "lucide-react";
 import type { Post } from "@/lib/db/posts";
+import { ReadingProgress } from "./reading-progress";
 
 const CATEGORY_COLORS: Record<string, string> = {
   "SEO 분석": "bg-blue-500/10 text-blue-600 dark:text-blue-400",
@@ -43,6 +44,18 @@ export function BlogLayout({
   const dateKR = `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
   const canonicalUrl = `https://domainchecker.co.kr/blog/${post.slug}`;
 
+  /* 최종수정일 표시: updated_at이 published_at보다 1일 이상 차이나면 표시 */
+  let updatedDateKR: string | null = null;
+  if (post.updated_at) {
+    const pubDate = new Date(post.published_at).getTime();
+    const updDate = new Date(post.updated_at).getTime();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    if (updDate - pubDate >= oneDayMs) {
+      const ud = new Date(post.updated_at);
+      updatedDateKR = `${ud.getFullYear()}년 ${ud.getMonth() + 1}월 ${ud.getDate()}일`;
+    }
+  }
+
   /* TOC: HTML에서 h2 추출 */
   const tocItems = (post.content.match(/<h2[^>]*id="([^"]*)"[^>]*>([^<]*)<\/h2>/g) || []).map((match) => {
     const idMatch = match.match(/id="([^"]*)"/);
@@ -63,6 +76,7 @@ export function BlogLayout({
       "@type": "Article",
       headline: post.title,
       description: post.excerpt,
+      ...(post.cover_image_url && { image: post.cover_image_url }),
       author: { "@type": "Organization", name: "도메인체커" },
       publisher: {
         "@type": "Organization",
@@ -99,6 +113,8 @@ export function BlogLayout({
         { "@type": "ListItem", position: 3, name: post.title, item: canonicalUrl },
       ],
     },
+    // TODO: HowTo JSON-LD — Post 인터페이스에 howToSteps 필드 추가 후 구현
+    // post.howToSteps가 있으면 HowTo schema 추가 예정
   ];
 
   return (
@@ -140,6 +156,12 @@ export function BlogLayout({
             {/* 메타 */}
             <div className="blog-meta mt-3">
               <time dateTime={post.published_at}>{dateKR}</time>
+              {updatedDateKR && (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <span className="text-xs text-muted-foreground/70">수정: {updatedDateKR}</span>
+                </>
+              )}
               <span aria-hidden="true">·</span>
               <span>{post.read_time} 읽기</span>
               {post.category && (
@@ -165,6 +187,17 @@ export function BlogLayout({
                     #{tag}
                   </span>
                 ))}
+              </div>
+            )}
+
+            {/* 커버 이미지 */}
+            {post.cover_image_url && (
+              <div className="mt-6 overflow-hidden rounded-xl">
+                <img
+                  src={post.cover_image_url}
+                  alt={post.title}
+                  className="w-full h-auto rounded-xl"
+                />
               </div>
             )}
 
@@ -319,6 +352,7 @@ export function BlogLayout({
                     </li>
                   ))}
                 </ol>
+                <ReadingProgress />
               </nav>
             </aside>
           )}

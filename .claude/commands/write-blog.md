@@ -1,111 +1,96 @@
 ---
-description: SEO 블로그 글 작성 파이프라인. 키워드를 입력하면 분석→구조설계→작성→검증→DB저장까지 자동 실행. 사용법: /write-blog [키워드]
+description: SEO 블로그 글 작성 파이프라인. 키워드를 입력하면 분석→구조설계→작성→페이지생성→배포까지 자동 실행. 사용법: /write-blog [키워드]
 ---
 
-# /write-blog 파이프라인
+# /write-blog 파이프라인 (8단계)
 
 입력 키워드: $ARGUMENTS
+프로젝트 경로: /mnt/d/Documents/domain_platform
+설정 파일: /mnt/d/Documents/domain_platform/.claude/blog-config.md
 
-아래 5단계를 순차적으로 실행한다. 각 단계에서 Agent 도구를 사용하여 서브에이전트를 호출한다.
+아래 8단계를 순차적으로 실행한다. 각 단계에서 Agent 도구를 사용하여 서브에이전트를 호출한다.
+각 단계의 출력은 `/tmp/` 디렉토리에 JSON/HTML 파일로 저장되며, 다음 단계의 입력으로 전달된다.
 
 ---
 
-## Stage 1: 키워드 리서치 + 콘텐츠 구조 설계
+## Stage 1: 키워드 분석
 
-`blog-planner` 서브에이전트를 호출한다.
+`blog-keyword-analyst` 서브에이전트를 호출한다.
 
 프롬프트:
 ```
 키워드: $ARGUMENTS
-프로젝트: domainchecker.co.kr (도메인 분석 SaaS)
+설정 파일: /mnt/d/Documents/domain_platform/.claude/blog-config.md
 
-아래 작업을 수행하세요:
+blog-config.md를 읽고, 해당 키워드에 대해 아래를 수행하세요:
+1. WebSearch로 한국어 검색 상위 5~10개 경쟁 콘텐츠 분석
+2. 검색 의도 분류 (정보형/방법형/비교형/문제해결형/전환형)
+3. 메인 키워드 1개, 서브 키워드 5~8개, LSI 키워드 5~8개 추출
+4. 타겟 독자 수준 및 콘텐츠 앵글 결정
+5. blog-config.md의 내부 도구/서비스에서 관련 항목 선정
 
-1. 웹 검색으로 해당 키워드의 상위 경쟁 콘텐츠 5~10개 분석
-   - 어떤 구조로 쓰여있는지, 어떤 서브토픽을 다루는지 파악
-   - 경쟁글에서 빠진 내용(콘텐츠 갭) 식별
-
-2. 기존 블로그 중복 확인
-   - DB에서 기존 발행글 확인 (Supabase posts 테이블)
-   - 중복 키워드가 있으면 차별화 포인트 명시
-
-3. 검색 의도 분석 (정보형/방법형/비교형/문제해결형/전환형)
-
-4. 키워드 추출
-   - 핵심 키워드 1개
-   - 서브 키워드 5~8개
-   - 롱테일 키워드 3~5개 (실제 검색될 만한 자연어 형태)
-
-5. H2/H3 목차 설계
-   - 각 H2 섹션의 목적, 배치 키워드, 콘텐츠 타입 명시
-   - 경쟁글 대비 차별점 1~2개 명시
-   - 비교표(table) 배치 위치 1곳 이상
-
-6. FAQ 7~10개 설계 (People Also Ask 기반)
-   - 실제 사용자가 검색할 만한 질문
-   - 답변은 2~3문장
-
-7. 내부 링크 맵 (기존 블로그 + 도구 페이지)
-   도구: /, /tools/domain-availability, /tools/domain-generator, /tools/dns-checker,
-         /tools/whois-lookup, /tools/domain-value, /tools/domain-compare,
-         /tools/bulk-analysis, /tools/backlink-checker, /tools/serp-checker,
-         /tools/domain-expiry, /tools/ssl-checker, /tools/http-status
-   블로그: /blog/what-is-da, /blog/how-to-choose-domain, /blog/domain-auction-guide,
-           /blog/domain-spam-score-check, /blog/how-to-check-domain-score,
-           /blog/how-to-find-expired-domains
-
-8. CTA 설계 (가장 관련있는 도구/페이지 연결)
-
-9. 카테고리 선택: "SEO 분석" | "도메인 투자" | "SEO 기초"
-
-결과를 /tmp/blog-outline.json에 아래 JSON 형식으로 저장:
-{
-  "keyword": "핵심 키워드",
-  "sub_keywords": ["서브1", "서브2"],
-  "longtail_keywords": ["롱테일1"],
-  "search_intent": "방법/가이드형",
-  "reader_level": "초보자",
-  "slug": "english-kebab-case",
-  "title": "한국어 제목 60자 이내",
-  "meta_description": "150자 이내 메타 설명",
-  "category": "SEO 기초",
-  "estimated_length": "3500자",
-  "read_time": "7분",
-  "sections": [
-    {
-      "type": "h2",
-      "id": "section-id",
-      "title": "섹션 제목",
-      "purpose": "이 섹션의 목적",
-      "target_keyword": "배치할 키워드",
-      "content_type": "설명|리스트|표|단계별|체크리스트",
-      "subsections": [
-        { "type": "h3", "title": "소제목", "purpose": "..." }
-      ]
-    }
-  ],
-  "faqs": [
-    { "q": "질문?", "a": "답변 2~3문장" }
-  ],
-  "cta": {
-    "title": "CTA 제목",
-    "description": "CTA 설명",
-    "buttonText": "버튼 텍스트",
-    "href": "/링크"
-  },
-  "internal_links": [
-    { "url": "/blog/what-is-da", "anchor": "DA란?", "context": "본문 어디에 배치" }
-  ],
-  "competition_gap": "경쟁글 대비 이 글의 차별점"
-}
+결과를 /tmp/blog-keyword-analysis.json에 저장하세요.
 ```
 
-## Stage 1.5: 사용자 확인
+출력: `/tmp/blog-keyword-analysis.json`
 
-/tmp/blog-outline.json을 읽어서 사용자에게 요약 표시:
+---
+
+## Stage 2: 링크 큐레이션
+
+`blog-link-curator` 서브에이전트를 호출한다.
+
+프롬프트:
+```
+키워드 분석: /tmp/blog-keyword-analysis.json
+설정 파일: /mnt/d/Documents/domain_platform/.claude/blog-config.md
+
+키워드 분석 결과와 blog-config.md를 읽고 아래를 수행하세요:
+1. 내부 도구 링크 2~4개 선정 (앵커 텍스트 + 배치 맥락)
+2. 기존 블로그 클러스터 링크 1~3개 선정
+3. 외부 링크 3단계 검증:
+   - WebSearch로 후보 검색 (blog-config.md 권위 도메인만)
+   - WebFetch로 접속 확인 (200 응답, 콘텐츠 관련성)
+   - 최종 선별 (최대 3개, 0개도 허용)
+4. 서비스 링크 0~1개 선정
+
+결과를 /tmp/blog-links.json에 저장하세요.
+```
+
+출력: `/tmp/blog-links.json`
+
+---
+
+## Stage 3: 아웃라인 설계
+
+`blog-outline-builder` 서브에이전트를 호출한다.
+
+프롬프트:
+```
+키워드 분석: /tmp/blog-keyword-analysis.json
+링크 큐레이션: /tmp/blog-links.json
+설정 파일: /mnt/d/Documents/domain_platform/.claude/blog-config.md
+
+두 입력 파일과 blog-config.md를 읽고 아래를 설계하세요:
+1. H1 (title) — 30~40자 한국어
+2. H2 섹션 5~8개 (id, 목적, 키워드, 콘텐츠 타입, 시각요소)
+3. H3 소제목 (필요 시)
+4. 시각요소 배치 (info-box, tip-box, warning-box, comparison-table 등 최소 4개)
+5. FAQ 7~10개 (보충 정보, 본문 반복 금지)
+6. CTA 배치 1~2곳
+7. 메타 정보 (slug, category, 분량, read_time, hasStepStructure)
+
+결과를 /tmp/blog-outline.json에 저장하세요.
+```
+
+출력: `/tmp/blog-outline.json`
+
+**Stage 3.5: 사용자 확인**
+
+/tmp/blog-outline.json을 읽어서 요약 표시:
 
 ```
-📋 블로그 아웃라인 요약
+블로그 아웃라인 요약
 
 | 항목 | 내용 |
 |------|------|
@@ -116,108 +101,169 @@ description: SEO 블로그 글 작성 파이프라인. 키워드를 입력하면
 | 카테고리 | ... |
 | 예상 분량 | ... |
 
-📑 목차:
+목차:
 1. H2: ...
 2. H2: ...
+...
 
-❓ FAQ (N개):
+FAQ (N개):
 1. ...
 2. ...
 
-🔗 내부 링크: N개
-🎯 CTA: ...
+내부 링크: N개
+외부 링크: N개
+시각요소: N개
+CTA: ...
 
 이 구조로 진행할까요?
 ```
 
-**사용자가 승인하면 Stage 2로, 수정 요청하면 해당 부분 수정 후 재확인.**
+**사용자가 승인하면 Stage 4로, 수정 요청하면 해당 부분 수정 후 재확인.**
 
 ---
 
-## Stage 2: SEO 본문 작성
+## Stage 4: 이미지 생성
 
-`seo-blog-writer` 서브에이전트를 호출한다.
+`blog-image-generator` 서브에이전트를 호출한다.
 
 프롬프트:
 ```
-/tmp/blog-outline.json의 아웃라인을 읽고, 해당 구조에 맞춰 전체 본문을 HTML로 작성하세요.
+아웃라인: /tmp/blog-outline.json
+설정 파일: /mnt/d/Documents/domain_platform/.claude/blog-config.md
+환경변수: /mnt/d/Documents/domain_platform/web/.env.local
 
-중요 규칙:
-- 분량: 3000~5000자
-- 출력: 순수 HTML (h2, h3, p, ul, ol, table, blockquote 등)
-- h2에 반드시 id 속성 (아웃라인의 id와 일치, 영문 kebab-case)
-- 비교표(table) 최소 1개 포함
-- 체크리스트 또는 단계별 리스트(ol) 최소 1개 포함
-- 내부 링크(a href)를 아웃라인의 internal_links에 따라 배치
-- 키워드 자연 배치 (1.5~2% 밀도, 스터핑 금지)
-- 서드파티 API 이름(RapidAPI, VebAPI 등) 절대 노출 금지
-- 도메인체커 도구는 자연스럽게 언급 (광고 느낌 금지)
-- 금지 요소: div, span, style, script, class 속성
-- FAQ는 본문에 포함하지 않음 (BlogLayout이 자동 처리)
+아웃라인을 읽고 아래를 수행하세요:
+1. GPT Image 1로 커버 이미지 생성 (Isometric 3D, 브랜드 컬러)
+2. 섹션 이미지 최대 2개 생성 (Flat vector)
+3. Supabase Storage blog-images 버킷에 업로드
+4. 실패 시 빈 객체로 진행 (파이프라인 중단 금지)
 
-결과를 /tmp/blog-content.html에 저장하세요. (순수 HTML 본문만, head/body 태그 없이)
+결과를 /tmp/blog-images.json에 저장하세요.
 ```
+
+출력: `/tmp/blog-images.json`
 
 ---
 
-## Stage 3: 콘텐츠 품질 검증
+## Stage 5: 본문 작성
 
-Orchestrator가 직접 수행한다. Bash로 아래 항목을 검증:
-
-### 3-1. 키워드 밀도 체크
-```bash
-KEYWORD=$(python3 -c "import json; print(json.load(open('/tmp/blog-outline.json'))['keyword'])")
-COUNT=$(grep -oi "$KEYWORD" /tmp/blog-content.html | wc -l)
-TOTAL=$(sed 's/<[^>]*>//g' /tmp/blog-content.html | wc -m)
-echo "키워드: $KEYWORD / 출현: ${COUNT}회 / 글자수: $TOTAL"
-```
-
-### 3-2. H2 목차 일치 검증
-아웃라인의 sections[].id와 HTML의 h2 id가 모두 매칭되는지 확인.
-
-### 3-3. 내부 링크 URL 검증
-HTML에서 href로 참조하는 내부 URL이 실제 존재하는 페이지인지 확인.
-
-### 3-4. 서드파티 API명 노출 스캔
-```bash
-grep -iE "(rapidapi|vebapi|moz\.com/api|ahrefs\.com/api|majestic|semrush)" /tmp/blog-content.html
-```
-결과가 있으면 Stage 2로 돌아가 수정 요청.
-
-### 3-5. HTML 태그 유효성
-닫히지 않은 태그, 잘못된 중첩 확인.
-
-**문제 발견 시**: 구체적 피드백과 함께 Stage 2 재실행. 최대 2회 반복.
-
----
-
-## Stage 4: DB 저장
-
-`blog-builder` 서브에이전트를 호출한다.
+`blog-content-writer` 서브에이전트를 호출한다.
 
 프롬프트:
 ```
-/tmp/blog-outline.json과 /tmp/blog-content.html을 읽어서
-/tmp/blog-post.json에 posts 테이블 형식의 JSON을 생성하세요.
-규칙은 /mnt/d/Documents/domain_platform/.claude/agents/blog-builder.md를 따르세요.
+아웃라인: /tmp/blog-outline.json
+링크 큐레이션: /tmp/blog-links.json
+이미지: /tmp/blog-images.json
+설정 파일: /mnt/d/Documents/domain_platform/.claude/blog-config.md
+
+모든 입력 파일과 blog-config.md를 읽고 리치 HTML 본문을 작성하세요:
+1. blog-config.md의 14종 CSS 컴포넌트 적극 활용
+2. 3000~4000자, 모든 H2에 id 속성 필수
+3. 링크 큐레이션의 내부/외부 링크 자연스럽게 삽입
+4. 이미지 URL을 blog-figure로 삽입 (이미지 없으면 생략)
+5. 시각요소 아웃라인에 따라 배치
+6. FAQ는 본문에 포함하지 않음 — 별도 JSON 출력
+
+결과 파일:
+- /tmp/blog-content.html (리치 HTML 본문)
+- /tmp/blog-faqs.json (FAQ JSON 배열)
 ```
 
-blog-builder가 /tmp/blog-post.json을 생성하면, mcp__supabase__execute_sql로 직접 INSERT:
-
-```sql
-INSERT INTO posts (title, slug, excerpt, content, category, tags, status, read_time, faqs, author, created_at, updated_at)
-VALUES (
-  '{title}', '{slug}', '{excerpt}', '{content}', '{category}',
-  ARRAY['{tag1}', '{tag2}'],
-  'draft', '{read_time}',
-  '{faqs_json}'::jsonb,
-  '도메인체커', NOW(), NOW()
-);
-```
+출력: `/tmp/blog-content.html`, `/tmp/blog-faqs.json`
 
 ---
 
-## Stage 5: 완료 보고
+## Stage 6: 품질 검수 (자동 수정 루프)
+
+`blog-quality-reviewer` 서브에이전트를 호출한다.
+
+프롬프트:
+```
+HTML 본문: /tmp/blog-content.html
+FAQ: /tmp/blog-faqs.json
+아웃라인: /tmp/blog-outline.json
+링크 큐레이션: /tmp/blog-links.json
+설정 파일: /mnt/d/Documents/domain_platform/.claude/blog-config.md
+
+모든 파일을 읽고 100점 만점으로 채점하세요:
+- 필수 7항목 (각 10점 = 70점): H2 id, 키워드 밀도, 내부 링크, 비교표, 분량, 서드파티 노출, FAQ
+- 권장 5항목 (각 6점 = 30점): 시각요소, 외부 링크, CTA, 첫 문단, 결론
+
+70점 미만이면:
+1. requiredFixes 작성
+2. /tmp/blog-content.html 직접 수정 (1회만)
+3. 재채점
+
+결과를 /tmp/blog-quality-review.json에 저장하세요.
+```
+
+출력: `/tmp/blog-quality-review.json`
+
+**70점 미만 + 자동 수정 실패 시**: 사용자에게 에스컬레이션 (구체적 문제점 보고).
+
+---
+
+## Stage 7: SEO 패키징
+
+`blog-seo-packager` 서브에이전트를 호출한다.
+
+프롬프트:
+```
+아웃라인: /tmp/blog-outline.json
+HTML 본문: /tmp/blog-content.html
+FAQ: /tmp/blog-faqs.json
+품질 검수: /tmp/blog-quality-review.json
+키워드 분석: /tmp/blog-keyword-analysis.json
+설정 파일: /mnt/d/Documents/domain_platform/.claude/blog-config.md
+
+모든 파일을 읽고 SEO 메타데이터를 확정하세요:
+1. title 후보 3개 (다른 앵글, 30~40자)
+2. description 60~80자
+3. slug 영문 kebab-case
+4. tags 5~8개 한국어
+5. 카테고리: "SEO 분석" | "도메인 투자" | "SEO 기초"
+6. HowTo schema 적용 여부 판단
+7. read_time 확정
+
+결과를 /tmp/blog-seo-package.json에 저장하세요.
+```
+
+출력: `/tmp/blog-seo-package.json`
+
+---
+
+## Stage 8: DB 저장 + 발행
+
+`blog-publisher` 서브에이전트를 호출한다.
+
+프롬프트:
+```
+아웃라인: /tmp/blog-outline.json
+HTML 본문: /tmp/blog-content.html
+FAQ: /tmp/blog-faqs.json
+SEO 패키지: /tmp/blog-seo-package.json
+이미지: /tmp/blog-images.json
+품질 검수: /tmp/blog-quality-review.json
+프로젝트 경로: /mnt/d/Documents/domain_platform
+
+모든 파일을 종합하여 아래를 수행하세요:
+1. posts 테이블에 draft 상태로 upsert (slug 기준)
+   - mcp__supabase__execute_sql 사용 권장
+   - 실패 시 Bash curl 대안
+2. 저장 확인 (SELECT로 검증)
+3. Google sitemap ping
+4. 최종 보고서 생성
+
+결과를 /tmp/blog-publish-report.json에 저장하세요.
+```
+
+출력: `/tmp/blog-publish-report.json`
+
+---
+
+## Stage 9: 완료 보고
+
+`/tmp/blog-publish-report.json`을 읽어서 최종 보고:
 
 ```
 ## 블로그 작성 완료
@@ -225,12 +271,27 @@ VALUES (
 | 항목 | 내용 |
 |------|------|
 | 제목 | ... |
-| URL | /blog/{slug} |
+| URL | https://domainchecker.co.kr/blog/{slug} |
 | 핵심 키워드 | ... |
 | 분량 | N자 / N분 |
 | FAQ | N개 |
 | 카테고리 | ... |
+| 품질 점수 | N점/100점 |
+| 커버 이미지 | 있음/없음 |
 | 상태 | 초안 (draft) |
 
-📌 어드민 페이지(/admin → 블로그 관리 탭)에서 확인 후 발행하세요.
+### 파이프라인 실행 요약
+
+| 단계 | 에이전트 | 상태 |
+|------|---------|------|
+| 1 | blog-keyword-analyst | 완료 |
+| 2 | blog-link-curator | 완료 |
+| 3 | blog-outline-builder | 완료 |
+| 4 | blog-image-generator | 완료/스킵 |
+| 5 | blog-content-writer | 완료 |
+| 6 | blog-quality-reviewer | 완료 (N점) |
+| 7 | blog-seo-packager | 완료 |
+| 8 | blog-publisher | 완료 |
+
+어드민 페이지에서 확인 후 발행하세요.
 ```

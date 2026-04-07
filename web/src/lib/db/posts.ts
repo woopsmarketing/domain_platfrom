@@ -14,6 +14,7 @@ export interface Post {
   updated_at: string;
   read_time: string;
   author: string;
+  cover_image_url: string | null;
   faqs: { q: string; a: string }[] | null;
 }
 
