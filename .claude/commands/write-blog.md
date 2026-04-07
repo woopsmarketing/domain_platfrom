@@ -135,8 +135,9 @@ CTA: ...
 아웃라인을 읽고 아래를 수행하세요:
 1. GPT Image 1로 커버 이미지 생성 (Isometric 3D, 브랜드 컬러)
 2. 섹션 이미지 최대 2개 생성 (Flat vector)
-3. Supabase Storage blog-images 버킷에 업로드
-4. 실패 시 빈 객체로 진행 (파이프라인 중단 금지)
+3. sharp로 WebP 변환 + 800px 리사이즈 (1.3MB PNG → ~30KB WebP, LCP 성능 필수)
+4. 압축된 WebP를 Supabase Storage blog-images 버킷에 업로드
+5. 실패 시 빈 객체로 진행 (파이프라인 중단 금지)
 
 결과를 /tmp/blog-images.json에 저장하세요.
 ```

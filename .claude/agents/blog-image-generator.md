@@ -86,27 +86,60 @@ No text, no watermarks.
 Aspect ratio: 1:1, 1024x1024px.
 ```
 
-### 4. Supabase Storage 업로드
+### 4. 이미지 압축 (WebP 변환)
 
-각 이미지를 `blog-images` 버킷에 업로드:
+생성된 PNG를 WebP로 변환하여 용량을 대폭 줄인다 (1.3MB → ~30KB, 97%+ 감소).
+이 단계는 LCP 성능에 직접 영향을 주므로 반드시 수행한다.
+
+```bash
+# 커버 이미지 압축: 800px 리사이즈 + WebP 품질 80
+node -e "
+const sharp = require('/mnt/d/Documents/domain_platform/web/node_modules/sharp');
+sharp('/tmp/blog-cover.png')
+  .resize(800)
+  .webp({ quality: 80 })
+  .toFile('/tmp/blog-cover.webp')
+  .then(info => console.log('Compressed:', info.size, 'bytes'))
+  .catch(err => console.error('COMPRESS_FAIL:', err.message));
+"
+
+# 섹션 이미지도 동일하게 압축
+# sharp('/tmp/blog-section-1.png').resize(800).webp({quality:80}).toFile('/tmp/blog-section-1.webp')
+```
+
+압축 실패 시 원본 PNG로 폴백하여 진행한다.
+
+### 5. Supabase Storage 업로드
+
+압축된 WebP 이미지를 `blog-images` 버킷에 업로드:
 
 ```bash
 source /mnt/d/Documents/domain_platform/web/.env.local
 
 SLUG="아웃라인의-slug"
-FILENAME="${SLUG}-cover.png"
+
+# WebP 압축본이 있으면 WebP 업로드, 없으면 PNG 폴백
+if [ -f /tmp/blog-cover.webp ]; then
+  FILENAME="${SLUG}-cover.webp"
+  CONTENT_TYPE="image/webp"
+  FILE_PATH="/tmp/blog-cover.webp"
+else
+  FILENAME="${SLUG}-cover.png"
+  CONTENT_TYPE="image/png"
+  FILE_PATH="/tmp/blog-cover.png"
+fi
 
 curl -s -X POST \
   "${NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/blog-images/${FILENAME}" \
   -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
-  -H "Content-Type: image/png" \
+  -H "Content-Type: ${CONTENT_TYPE}" \
   -H "x-upsert: true" \
-  --data-binary @/tmp/blog-cover.png
+  --data-binary @${FILE_PATH}
 
 echo "URL: ${NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/blog-images/${FILENAME}"
 ```
 
-### 5. 실패 처리
+### 6. 실패 처리
 
 - OPENAI_API_KEY가 없으면 → 이미지 생성 전체 스킵, 빈 객체 반환
 - API 호출 실패 → 해당 이미지 스킵, 나머지 계속 진행
@@ -120,18 +153,18 @@ echo "URL: ${NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/blog-images/${FI
 ```json
 {
   "coverImage": {
-    "url": "https://xxx.supabase.co/storage/v1/object/public/blog-images/slug-cover.png",
+    "url": "https://xxx.supabase.co/storage/v1/object/public/blog-images/slug-cover.webp",
     "alt": "커버 이미지 대체 텍스트 (한국어)",
-    "width": 1024,
-    "height": 1024
+    "width": 800,
+    "height": 800
   },
   "sectionImages": [
     {
       "sectionId": "h2-section-id",
-      "url": "https://xxx.supabase.co/storage/v1/object/public/blog-images/slug-section-1.png",
+      "url": "https://xxx.supabase.co/storage/v1/object/public/blog-images/slug-section-1.webp",
       "alt": "섹션 이미지 대체 텍스트 (한국어)",
-      "width": 1024,
-      "height": 1024
+      "width": 800,
+      "height": 800
     }
   ]
 }
@@ -149,7 +182,7 @@ echo "URL: ${NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/blog-images/${FI
 
 - 프롬프트는 반드시 영문으로 작성 (이미지 생성 품질)
 - alt 텍스트는 한국어로 작성 (SEO, 접근성)
-- 파일명: `{slug}-cover.png`, `{slug}-section-{n}.png`
+- 파일명: `{slug}-cover.webp`, `{slug}-section-{n}.webp` (압축 실패 시 .png 폴백)
 - 이미지에 텍스트, 워터마크, 사람 포함 금지
 - 브랜드 컬러 준수: #2563eb (파랑), #10b981 (초록), #f8fafc (배경)
 - 실패 시 절대 파이프라인을 중단하지 않음 — 빈 객체로 계속 진행
