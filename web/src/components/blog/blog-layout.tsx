@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, ChevronRight, Home } from "lucide-react";
 import type { Post } from "@/lib/db/posts";
@@ -149,7 +150,7 @@ export function BlogLayout({
             </nav>
 
             {/* 제목 */}
-            <h1 className="text-3xl font-bold tracking-tight leading-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-tight">
               {post.title}
             </h1>
 
@@ -193,11 +194,16 @@ export function BlogLayout({
             {/* 커버 이미지 */}
             {post.cover_image_url && (
               <div className="mt-6 overflow-hidden rounded-xl">
-                <img
-                  src={post.cover_image_url}
-                  alt={post.title}
-                  className="w-full h-auto rounded-xl"
-                />
+                <div className="relative aspect-[2/1]">
+                  <Image
+                    src={post.cover_image_url}
+                    alt={post.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 768px"
+                    className="rounded-xl object-cover"
+                    priority
+                  />
+                </div>
               </div>
             )}
 
@@ -286,7 +292,7 @@ export function BlogLayout({
             )}
 
             {/* 이전/다음글 */}
-            <div className="mt-8 grid grid-cols-2 gap-4">
+            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
               {prevPost ? (
                 <Link
                   href={`/blog/${prevPost.slug}`}
@@ -325,7 +331,7 @@ export function BlogLayout({
               <p className="mt-1 text-sm text-muted-foreground">{finalCta.description}</p>
               <Link
                 href={finalCta.href}
-                className="mt-4 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                className="mt-4 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
               >
                 {finalCta.buttonText}
               </Link>

@@ -2,6 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, getServiceClient } from "@/lib/api-helpers";
 import { revalidatePath, revalidateTag } from "next/cache";
 
+/** IndexNow에 URL 제출 — 발행 성공 후 fire-and-forget */
+async function notifyIndexNow(slug: string) {
+  try {
+    const base = process.env.NEXT_PUBLIC_SITE_URL || "https://domainchecker.co.kr";
+    await fetch(`${base}/api/indexnow`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
+      },
+      body: JSON.stringify({ urls: [`/blog/${slug}`] }),
+    });
+  } catch {
+    // IndexNow 실패는 발행 결과에 영향 없음
+  }
+}
+
 /** 블로그 관련 페이지 캐시 무효화 */
 function revalidateBlog(slug?: string) {
   revalidatePath("/blog", "page");
@@ -55,9 +72,10 @@ export async function POST(request: NextRequest) {
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // On-Demand Revalidation
-  if (status === "published") {
+  // On-Demand Revalidation + IndexNow 알림
+  if (status === "published" && slug) {
     revalidateBlog(slug);
+    void notifyIndexNow(slug);
   }
 
   return NextResponse.json({ post: data }, { status: 201 });
@@ -91,6 +109,11 @@ export async function PATCH(request: NextRequest) {
 
   // Revalidation — 상태 변경뿐 아니라 모든 수정 시 캐시 무효화
   revalidateBlog(data?.slug);
+
+  // published 상태로 변경되었을 때 IndexNow 알림
+  if (updates.status === "published" && data?.slug) {
+    void notifyIndexNow(data.slug);
+  }
 
   return NextResponse.json({ post: data });
 }

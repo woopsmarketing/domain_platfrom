@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Clock, Calendar } from "lucide-react";
 import { getPublishedPosts } from "@/lib/db/posts";
@@ -51,7 +52,7 @@ export default async function BlogIndexPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}
       />
 
-      <h1 className="text-3xl font-bold tracking-tight">블로그</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">블로그</h1>
       <p className="mt-2 text-muted-foreground">
         도메인 투자와 SEO 분석에 대한 실전 가이드
       </p>
@@ -79,11 +80,14 @@ export default async function BlogIndexPage() {
               <div className="flex flex-col sm:flex-row sm:items-start gap-4">
                 {/* 썸네일 */}
                 {post.cover_image_url && (
-                  <div className="sm:w-40 sm:h-24 shrink-0 overflow-hidden rounded-lg">
-                    <img
+                  <div className="relative h-40 sm:w-40 sm:h-24 shrink-0 overflow-hidden rounded-lg">
+                    <Image
                       src={post.cover_image_url}
                       alt={post.title}
-                      className="w-full h-40 sm:h-full object-cover rounded-lg"
+                      fill
+                      sizes="(max-width: 640px) 100vw, 160px"
+                      className="object-cover rounded-lg"
+                      {...(index === 0 ? { priority: true } : {})}
                     />
                   </div>
                 )}
