@@ -37,12 +37,15 @@ export async function generateMetadata({
       publishedTime: post.published_at,
       modifiedTime: post.updated_at || post.published_at,
       tags: post.tags,
+      authors: ["도메인체커"],
+      section: post.category,
     },
     twitter: {
       card: "summary_large_image",
       title: post.title,
       description: post.excerpt,
     },
+    authors: [{ name: "도메인체커", url: "https://domainchecker.co.kr" }],
   };
 }
 
