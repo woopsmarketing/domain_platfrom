@@ -241,50 +241,70 @@
    ══════════════════════════════════════════════════════ */
 
 /* ── 리치 컴포넌트: 안내 박스 공통 ── */
-.blog-prose .blog-box {
+/* HTML에 blog-box 클래스가 없는 경우도 있으므로 개별 클래스로 공통 스타일 적용 */
+.blog-prose .blog-box,
+.blog-prose .blog-box-summary,
+.blog-prose .blog-box-tip,
+.blog-prose .blog-box-info,
+.blog-prose .blog-box-warning {
   margin: 28px 0;
-  padding: 22px 28px;
+  padding: 24px 30px;
   border-radius: 16px;
   line-height: 1.7;
   position: relative;
   border: none;
 }
-.blog-prose .blog-box strong:first-child {
+.blog-prose .blog-box strong:first-child,
+.blog-prose .blog-box-summary > strong:first-child,
+.blog-prose .blog-box-tip > strong:first-child,
+.blog-prose .blog-box-info > strong:first-child,
+.blog-prose .blog-box-warning > strong:first-child {
   display: block;
   font-size: 0.88rem;
   font-weight: 800;
   margin-bottom: 10px;
-  padding-left: 2px;
 }
-.blog-prose .blog-box p { margin: 6px 0; padding-left: 2px; font-size: 0.92rem; }
-.blog-prose .blog-box ul { margin: 8px 0; padding-left: 1.5rem; }
-.blog-prose .blog-box li { margin-bottom: 5px; font-size: 0.92rem; }
+.blog-prose .blog-box p,
+.blog-prose .blog-box-summary > p,
+.blog-prose .blog-box-tip > p,
+.blog-prose .blog-box-info > p,
+.blog-prose .blog-box-warning > p { margin: 6px 0; font-size: 0.92rem; }
+.blog-prose .blog-box ul,
+.blog-prose .blog-box-summary ul,
+.blog-prose .blog-box-tip ul,
+.blog-prose .blog-box-info ul,
+.blog-prose .blog-box-warning ul { margin: 8px 0; padding-left: 1.5rem; }
+.blog-prose .blog-box li,
+.blog-prose .blog-box-summary li,
+.blog-prose .blog-box-tip li,
+.blog-prose .blog-box-info li,
+.blog-prose .blog-box-warning li { margin-bottom: 5px; font-size: 0.92rem; }
 
 /* 핵심 요약 (보라) */
 .blog-prose .blog-box-summary { background: #ede9fe; }
-.blog-prose .blog-box-summary strong:first-child { color: #5b21b6; }
-.blog-prose .blog-box-summary strong:first-child::before { content: "\1F4CC "; }
+.blog-prose .blog-box-summary > strong:first-child { color: #5b21b6; }
+.blog-prose .blog-box-summary > strong:first-child::before { content: "\1F4CC "; }
 .blog-prose .blog-box-summary p,
 .blog-prose .blog-box-summary li { color: #3b0764; }
 
 /* 팁 (초록) */
 .blog-prose .blog-box-tip { background: #d1fae5; }
-.blog-prose .blog-box-tip strong:first-child { color: #065f46; }
-.blog-prose .blog-box-tip strong:first-child::before { content: "\1F4A1 "; }
+.blog-prose .blog-box-tip > strong:first-child { color: #065f46; }
+.blog-prose .blog-box-tip > strong:first-child::before { content: "\1F4A1 "; }
 .blog-prose .blog-box-tip p,
 .blog-prose .blog-box-tip li { color: #064e3b; }
 
 /* 정보 (파랑) */
 .blog-prose .blog-box-info { background: #dbeafe; }
-.blog-prose .blog-box-info strong:first-child { color: #1e40af; }
-.blog-prose .blog-box-info strong:first-child::before { content: "\2139\FE0F "; }
+.blog-prose .blog-box-info > strong:first-child { color: #1e40af; }
+.blog-prose .blog-box-info > strong:first-child::before { content: "\2139\FE0F "; }
 .blog-prose .blog-box-info p,
 .blog-prose .blog-box-info li { color: #1e3a5f; }
 
 /* 경고 (주황) */
 .blog-prose .blog-box-warning { background: #fef3c7; }
-.blog-prose .blog-box-warning strong:first-child { color: #92400e; }
-.blog-prose .blog-box-warning strong:first-child::before { content: "\2757 "; }
+.blog-prose .blog-box-warning > strong:first-child { color: #92400e; }
+.blog-prose .blog-box-warning > strong:first-child::before { content: "\2757 "; }
 .blog-prose .blog-box-warning p,
 .blog-prose .blog-box-warning li { color: #78350f; }
 
@@ -302,9 +322,12 @@
 .blog-prose .blog-inline-cta a:hover::after,
 .blog-prose .blog-cta-button:hover::after { transform: translateX(4px); }
 
-/* 요약 카드 — 배경 + 좌측 보더 */
-.blog-prose .blog-summary-card { margin: 28px 0; padding: 20px 24px; background: #f1f5f9; border: 1px solid #dde4ed; border-left: 5px solid #64748b; border-radius: 12px; line-height: 1.75; }
-.blog-prose .blog-summary-card strong { display: block; margin-bottom: 8px; font-size: 0.85rem; font-weight: 800; color: #334155; }
+/* 요약 카드 */
+.blog-prose .blog-summary-card { margin: 28px 0; padding: 24px 30px; background: #f1f5f9; border: none; border-radius: 16px; line-height: 1.75; }
+.blog-prose .blog-summary-card > strong:first-child { display: block; margin-bottom: 10px; font-size: 0.88rem; font-weight: 800; color: #334155; }
+.blog-prose .blog-summary-card > strong:first-child::before { content: "\1F4CB "; }
+.blog-prose .blog-summary-card p { font-size: 0.92rem; }
+.blog-prose .blog-summary-card li { font-size: 0.92rem; }
 
 /* 이미지 + 캡션 */
 .blog-prose .blog-figure { margin: 28px 0; text-align: center; }
