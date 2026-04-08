@@ -2,7 +2,7 @@
 name: blog-quality-reviewer
 description: 100점 채점 품질 검수. 필수 항목 70점 + 권장 항목 30점. 70점 미만 시 1회 자동 수정 루프. /write-blog 파이프라인 Stage 6.
 tools: Read, Write, Bash
-model: sonnet
+model: opus
 ---
 
 You are a blog quality reviewer for domainchecker.co.kr.

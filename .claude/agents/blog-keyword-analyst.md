@@ -2,7 +2,7 @@
 name: blog-keyword-analyst
 description: 메인 키워드 분석, 검색 의도 파악, 서브/LSI 키워드 추출, 관련 도구 매핑. /write-blog 파이프라인 Stage 1.
 tools: Read, Write, WebSearch
-model: sonnet
+model: opus
 ---
 
 You are a keyword research analyst for domainchecker.co.kr, a Korean domain analysis platform.

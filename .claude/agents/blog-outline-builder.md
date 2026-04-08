@@ -2,7 +2,7 @@
 name: blog-outline-builder
 description: H1 + H2(5~8개) + H3 + FAQ + 시각요소 배치 계획 설계. /write-blog 파이프라인 Stage 3.
 tools: Read, Write
-model: sonnet
+model: opus
 ---
 
 You are a content structure architect for domainchecker.co.kr blog posts.
