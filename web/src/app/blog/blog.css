@@ -243,8 +243,8 @@
 /* ── 리치 컴포넌트: 안내 박스 공통 ── */
 .blog-prose .blog-box {
   margin: 28px 0;
-  padding: 20px 24px;
-  border-radius: 12px;
+  padding: 22px 28px;
+  border-radius: 16px;
   line-height: 1.7;
   position: relative;
   border: none;
@@ -254,17 +254,18 @@
   font-size: 0.88rem;
   font-weight: 800;
   margin-bottom: 10px;
+  padding-left: 2px;
 }
-.blog-prose .blog-box p { margin: 6px 0; font-size: 0.92rem; }
-.blog-prose .blog-box ul { margin: 8px 0; padding-left: 1.25rem; }
+.blog-prose .blog-box p { margin: 6px 0; padding-left: 2px; font-size: 0.92rem; }
+.blog-prose .blog-box ul { margin: 8px 0; padding-left: 1.5rem; }
 .blog-prose .blog-box li { margin-bottom: 5px; font-size: 0.92rem; }
 
-/* 핵심 요약 (파랑) */
-.blog-prose .blog-box-summary { background: #dbeafe; }
-.blog-prose .blog-box-summary strong:first-child { color: #1e40af; }
+/* 핵심 요약 (보라) */
+.blog-prose .blog-box-summary { background: #ede9fe; }
+.blog-prose .blog-box-summary strong:first-child { color: #5b21b6; }
 .blog-prose .blog-box-summary strong:first-child::before { content: "\1F4CC "; }
 .blog-prose .blog-box-summary p,
-.blog-prose .blog-box-summary li { color: #1e3a5f; }
+.blog-prose .blog-box-summary li { color: #3b0764; }
 
 /* 팁 (초록) */
 .blog-prose .blog-box-tip { background: #d1fae5; }
@@ -273,8 +274,8 @@
 .blog-prose .blog-box-tip p,
 .blog-prose .blog-box-tip li { color: #064e3b; }
 
-/* 정보 (파랑 밝은) */
-.blog-prose .blog-box-info { background: #e0ecff; }
+/* 정보 (파랑) */
+.blog-prose .blog-box-info { background: #dbeafe; }
 .blog-prose .blog-box-info strong:first-child { color: #1e40af; }
 .blog-prose .blog-box-info strong:first-child::before { content: "\2139\FE0F "; }
 .blog-prose .blog-box-info p,
