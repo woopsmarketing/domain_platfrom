@@ -70,13 +70,23 @@ export default async function BlogPostPage({ params }: PageProps) {
   const faqs: { q: string; a: string }[] = post.faqs ?? [];
 
   return (
-    <BlogLayout
-      post={post}
-      faqs={faqs}
-      relatedPosts={relatedPosts}
-      latestPosts={latestPosts}
-      prevPost={prev}
-      nextPost={next}
-    />
+    <>
+      {post.cover_image_url && (
+        <link
+          rel="preload"
+          as="image"
+          href={post.cover_image_url}
+          fetchPriority="high"
+        />
+      )}
+      <BlogLayout
+        post={post}
+        faqs={faqs}
+        relatedPosts={relatedPosts}
+        latestPosts={latestPosts}
+        prevPost={prev}
+        nextPost={next}
+      />
+    </>
   );
 }

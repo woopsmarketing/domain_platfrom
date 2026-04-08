@@ -202,6 +202,7 @@ export function BlogLayout({
                     sizes="(max-width: 768px) 100vw, 768px"
                     className="rounded-xl object-cover"
                     priority
+                    fetchPriority="high"
                   />
                 </div>
               </div>

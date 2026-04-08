@@ -84,6 +84,7 @@
 - 첫 문단: 핵심 질문에 2~4문장 내 답변 (장황한 서론 금지)
 - H2: 5~8개, 반드시 `id` 속성 (영문 kebab-case)
 - H3: 필요 시 H2 하위에 배치
+- **H4 사용 금지**: 소제목은 H2, H3만 사용. 박스 내 제목은 `<strong>` 사용 (접근성 제목 순서 위반 방지)
 - 비교표(`<table>`) 최소 1개
 - 체크리스트 또는 단계별 리스트(`<ol>` / `<ul>`) 최소 1개
 - 결론: 핵심 요약 3~5개 bullet + 다음 행동 제안
@@ -164,7 +165,7 @@
 ### 6-6. `blog-summary-card` — 요약 카드
 ```html
 <div class="blog-summary-card">
-  <h4>도메인 가치 평가 요약</h4>
+  <strong>도메인 가치 평가 요약</strong>
   <ul>
     <li><strong>DA:</strong> 도메인 권위 점수</li>
     <li><strong>DR:</strong> 도메인 등급</li>
@@ -370,6 +371,7 @@ Aspect ratio: 1:1, 1024x1024px.
 - **alt 누락**: 모든 `<img>`에 설명적 alt 텍스트 필수
 - **서드파티 API 노출**: RapidAPI, VebAPI, Moz API 등 구현 세부사항 언급 금지
 - **이모지 사용**: 본문, 제목, FAQ에 이모지 사용 금지
+- **H4 태그 사용 금지**: H2·H3·strong만 허용 (접근성 제목 순서 위반 방지)
 
 ---
 
