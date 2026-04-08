@@ -11,11 +11,11 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 const DEFAULT_CTA = {
-  title: "지금 이 순간에도 좋은 도메인이 경매에서 팔리고 있습니다",
+  title: "당신이 망설이는 사이, 누군가는 이 도메인을 가져갑니다",
   description:
-    "DA 50 이상, 백링크 수천 개의 프리미엄 도메인을 놓치고 계신 건 아닌가요? 실시간 경매 현황과 낙찰 이력을 확인해 보세요.",
-  buttonText: "경매 도메인 둘러보기",
-  href: "/auctions",
+    "DA 50+, 백링크 수천 개 — 이런 프리미엄 도메인은 하루에도 수십 개씩 팔립니다. 지금 확인하지 않으면 내일은 이미 늦습니다.",
+  buttonText: "프리미엄 도메인 보러 가기",
+  href: "/marketplace",
 };
 
 interface FaqItem {
@@ -232,13 +232,13 @@ export function BlogLayout({
               {faqs.length > 0 && (
                 <section>
                   <h2 id="faq">자주 묻는 질문</h2>
-                  <div className="divide-y rounded-lg border mt-4">
+                  <div className="mt-4 space-y-2">
                     {faqs.map((item, i) => (
                       <details key={i} className="group">
-                        <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-sm font-medium hover:bg-muted/50">
+                        <summary className="cursor-pointer text-sm font-medium">
                           {item.q}
                         </summary>
-                        <div className="px-5 pb-4 text-sm text-muted-foreground">
+                        <div className="text-sm">
                           {item.a}
                         </div>
                       </details>
@@ -251,12 +251,12 @@ export function BlogLayout({
             {/* CTA */}
             <div className="blog-cta">
               <p className="text-lg font-semibold">{finalCta.title}</p>
-              <p className="mt-1 text-sm text-muted-foreground">{finalCta.description}</p>
+              <p className="mt-2 text-sm">{finalCta.description}</p>
               <Link
                 href={finalCta.href}
-                className="mt-4 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                className="mt-5 inline-flex items-center justify-center rounded-full bg-white px-8 py-3 text-sm font-bold text-slate-900 transition-all hover:bg-slate-100 hover:shadow-lg"
               >
-                {finalCta.buttonText}
+                {finalCta.buttonText} →
               </Link>
             </div>
 
