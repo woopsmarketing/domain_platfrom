@@ -233,13 +233,14 @@
    ══════════════════════════════════════════════════════ */
 
 /* ── 리치 컴포넌트: 박스 공통 ── */
-.blog-prose .blog-box { margin: 28px 0; padding: 20px 24px; border-radius: 12px; }
+.blog-prose .blog-box { margin: 32px 0; padding: 24px 28px; border-radius: 20px; line-height: 1.75; }
 .blog-prose .blog-box h4 { margin: 0 0 12px; font-size: 0.95rem; font-weight: 700; }
-.blog-prose .blog-box ul { margin: 0; padding-left: 0; }
-.blog-prose .blog-box li { margin-bottom: 6px; }
+.blog-prose .blog-box p { margin: 8px 0; }
+.blog-prose .blog-box ul { margin: 8px 0; padding-left: 0; }
+.blog-prose .blog-box li { margin-bottom: 8px; }
 
 /* 핵심 요약 (파랑) */
-.blog-prose .blog-box-summary { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1px solid #bfdbfe; }
+.blog-prose .blog-box-summary { background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 1px solid #bfdbfe; border-radius: 20px; }
 .blog-prose .blog-box-summary h4 { color: #1e40af; }
 
 /* 팁 (초록) */
@@ -255,13 +256,16 @@
 .blog-prose .blog-box-warning strong { color: #92400e; }
 
 /* 인라인 CTA */
-.blog-prose .blog-inline-cta { margin: 32px 0; padding: 24px; background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%); border: 1px solid #bfdbfe; border-radius: 12px; text-align: center; }
-.blog-prose .blog-inline-cta p { margin: 0 0 12px; font-weight: 600; color: #1e3a5f; }
-.blog-prose .blog-cta-button { display: inline-flex; align-items: center; gap: 4px; padding: 10px 24px; background: #2563eb; color: white; font-weight: 600; font-size: 0.9rem; border-radius: 8px; text-decoration: none; border: none; transition: background 0.15s; }
-.blog-prose .blog-cta-button:hover { background: #1d4ed8; color: white; border-bottom: none; }
+.blog-prose .blog-inline-cta { margin: 40px 0; padding: 32px; background: linear-gradient(135deg, #eff6ff 0%, #e0eaff 100%); border: 1px solid #bfdbfe; border-radius: 20px; text-align: center; position: relative; overflow: hidden; }
+.blog-prose .blog-inline-cta::before { content: ""; position: absolute; top: 0; left: -100%; width: 200%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent); animation: shimmer 3s ease-in-out infinite; }
+@keyframes shimmer { 0% { left: -100%; } 100% { left: 100%; } }
+.blog-prose .blog-inline-cta p { margin: 0 0 16px; font-weight: 700; color: #1e3a5f; font-size: 1.05rem; position: relative; }
+.blog-prose .blog-cta-button { display: inline-flex; align-items: center; gap: 8px; padding: 14px 32px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: white; font-weight: 700; font-size: 0.95rem; border-radius: 12px; text-decoration: none; border: none; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3); position: relative; }
+.blog-prose .blog-cta-button:hover { background: linear-gradient(135deg, #1d4ed8, #1e40af); color: white; border-bottom: none; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4); }
 
 /* 요약 카드 */
-.blog-prose .blog-summary-card { margin: 24px 0; padding: 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; }
+.blog-prose .blog-summary-card { margin: 32px 0; padding: 24px 28px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); border: 1px solid #e2e8f0; border-radius: 20px; line-height: 1.75; }
+.blog-prose .blog-summary-card strong { display: block; margin-bottom: 12px; font-size: 1rem; color: #1e293b; }
 .blog-prose .blog-summary-card h4 { margin: 0 0 10px; font-size: 0.9rem; color: #475569; font-weight: 700; }
 
 /* 이미지 + 캡션 */
@@ -289,11 +293,12 @@
 .blog-prose .blog-external-link::after { content: " \2197"; font-size: 0.8em; }
 .blog-prose .blog-external-link:hover { color: #1d4ed8; border-bottom: 2px solid #2563eb; }
 
-/* 접기/펼치기 */
-.blog-prose details { margin: 24px 0; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden; }
-.blog-prose details summary { padding: 14px 20px; background: #f9fafb; cursor: pointer; font-weight: 600; font-size: 0.95rem; color: #374151; }
-.blog-prose details summary:hover { background: #f3f4f6; }
-.blog-prose details > div { padding: 16px 20px; }
+/* 접기/펼치기 (FAQ) */
+.blog-prose details { margin: 12px 0; border: none; border-radius: 16px; overflow: hidden; background: #f8fafc; transition: all 0.2s ease; }
+.blog-prose details[open] { background: #f0f4ff; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.06); }
+.blog-prose details summary { padding: 16px 24px; background: transparent; cursor: pointer; font-weight: 600; font-size: 0.95rem; color: #1e293b; border-radius: 16px; transition: background 0.15s ease; }
+.blog-prose details summary:hover { background: rgba(37, 99, 235, 0.05); }
+.blog-prose details > div { padding: 0 24px 16px; color: #475569; line-height: 1.7; }
 
 /* H2 — 파란 배경 + 왼쪽 보더 */
 .blog-prose h2 { position: relative; border-left: 4px solid #2563eb; border-bottom: none; background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%); padding: 14px 20px; margin-top: 52px; margin-bottom: 20px; font-size: 1.5rem; font-weight: 700; color: #1e3a5f; border-radius: 0 8px 8px 0; }
