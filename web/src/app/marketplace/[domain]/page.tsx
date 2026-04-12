@@ -22,7 +22,7 @@ import { fetchWayback } from "@/lib/external/wayback";
 import { saveWaybackToDb } from "@/lib/db/wayback";
 import { isStale } from "@/lib/cache";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 interface PageProps {
   params: Promise<{ domain: string }>;

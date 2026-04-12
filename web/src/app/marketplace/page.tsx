@@ -9,7 +9,7 @@ import ListingCard, {
 } from "@/components/marketplace/listing-card";
 import ListingFilters from "@/components/marketplace/listing-filters";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 120;
 
 export const metadata: Metadata = {
   title: "프리미엄 도메인 구매 · 검증된 도메인 판매 · 도메인 매매 | 도메인체커",

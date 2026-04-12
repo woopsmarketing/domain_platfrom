@@ -27,7 +27,7 @@ import { CtaSection } from "@/components/home/cta-section";
 import { ServiceCta } from "@/components/shared/service-cta";
 import { ActiveAuctionsSection } from "@/components/home/active-auctions-section";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: "도메인 분석 사이트 · 무료 도메인 점수 확인 · SEO 분석 도구 | 도메인체커",

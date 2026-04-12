@@ -4,8 +4,7 @@ import { SoldAuctionsClient } from "@/components/domain/sold-auctions-client";
 import Link from "next/link";
 import { ServiceCta } from "@/components/shared/service-cta";
 
-// 동적 렌더링: 빌드 시 DB 쿼리 타임아웃 방지
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "도메인 경매 시세 · 실제 낙찰가 · 경매 도메인 거래 이력 | 도메인체커",

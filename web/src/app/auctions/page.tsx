@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { AuctionPageClient } from "@/components/home/auction-page-client";
 
-export const dynamic = "force-dynamic";
-
 export const metadata: Metadata = {
   title: "실시간 도메인 경매 · 진행 중인 경매 도메인 목록 | 도메인체커",
   description:
