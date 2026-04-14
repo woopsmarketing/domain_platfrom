@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { DomainSearchBox } from "@/components/domain/domain-search-box";
+import { MarketplaceCtaBanner } from "@/components/marketplace/marketplace-cta-banner";
 
 export function HeroSection() {
   return (
@@ -41,6 +42,8 @@ export function HeroSection() {
             </Link>
           ))}
         </div>
+
+        <MarketplaceCtaBanner source="home-hero" variant="hero" />
       </div>
     </section>
   );

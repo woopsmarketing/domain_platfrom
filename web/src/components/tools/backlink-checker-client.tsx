@@ -15,6 +15,7 @@ import {
 import { cleanDomain } from "@/lib/clean-domain";
 import { useRateLimit } from "@/hooks/use-rate-limit";
 import { UpgradeModal } from "@/components/ui/upgrade-modal";
+import { trackEvent } from "@/lib/gtag";
 
 interface BacklinkCounts {
   backlinks: {
@@ -117,6 +118,7 @@ export function BacklinkCheckerClient() {
         }
 
         setData(json);
+        trackEvent("tool_used", { tool: "backlink-checker" });
       } catch {
         setError("네트워크 오류가 발생했습니다");
       } finally {

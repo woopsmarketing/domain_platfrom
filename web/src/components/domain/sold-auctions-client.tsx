@@ -7,10 +7,8 @@ import {
   ArrowDownWideNarrow,
   Clock,
   DollarSign,
-  Lock,
   Loader2,
 } from "lucide-react";
-import { useAuth } from "@/components/providers/auth-provider";
 
 interface SoldDomain {
   id: string;
@@ -48,16 +46,6 @@ function formatSoldDate(dateStr: string): string {
   }
 }
 
-function isWithin24h(dateStr: string): boolean {
-  try {
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return false;
-    return Date.now() - d.getTime() < 24 * 60 * 60 * 1000;
-  } catch {
-    return false;
-  }
-}
-
 function formatUSD(price: number): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -68,8 +56,6 @@ function formatUSD(price: number): string {
 }
 
 export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount }: SoldAuctionsProps) {
-  const { tier } = useAuth();
-  const isProUser = tier === "pro";
   const [domains, setDomains] = useState<SoldDomain[]>(initialItems);
   const [loading, setLoading] = useState(false);
   const [sortMode, setSortMode] = useState<SortMode>("recent");
@@ -199,45 +185,30 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
               </tr>
             </thead>
             <tbody>
-              {domains.map((d) => {
-                const free = isProUser || isWithin24h(d.soldAt);
-                return (
-                  <tr
-                    key={d.id}
-                    className="border-b border-border/40 last:border-0 transition-colors hover:bg-muted/30"
-                  >
-                    <td className="px-4 py-3">
-                      <Link
-                        href={`/domain/${d.name}`}
-                        className="font-medium text-foreground hover:text-green-600 transition-colors block max-w-[160px] truncate sm:max-w-none sm:overflow-visible sm:whitespace-normal"
-                      >
-                        {d.name}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {free ? (
-                        <span className="font-semibold tabular-nums">{formatUSD(d.soldPrice)}</span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Lock className="h-3 w-3" />Pro</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-right hidden sm:table-cell">
-                      {free ? (
-                        <span className="tabular-nums">{d.bidCount != null && d.bidCount > 0 ? `${d.bidCount}건` : "—"}</span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Lock className="h-3 w-3" />Pro</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {free ? (
-                        <span className="text-muted-foreground text-xs whitespace-nowrap">{formatSoldDate(d.soldAt)}</span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><Lock className="h-3 w-3" />Pro</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+              {domains.map((d) => (
+                <tr
+                  key={d.id}
+                  className="border-b border-border/40 last:border-0 transition-colors hover:bg-muted/30"
+                >
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/domain/${d.name}`}
+                      className="font-medium text-foreground hover:text-green-600 transition-colors block max-w-[160px] truncate sm:max-w-none sm:overflow-visible sm:whitespace-normal"
+                    >
+                      {d.name}
+                    </Link>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <span className="font-semibold tabular-nums">{formatUSD(d.soldPrice)}</span>
+                  </td>
+                  <td className="px-4 py-3 text-right hidden sm:table-cell">
+                    <span className="tabular-nums">{d.bidCount != null && d.bidCount > 0 ? `${d.bidCount}건` : "—"}</span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <span className="text-muted-foreground text-xs whitespace-nowrap">{formatSoldDate(d.soldAt)}</span>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -271,19 +242,6 @@ export function SoldAuctionsClient({ initialItems, initialTotal, recent24hCount 
         <p className="mt-4 text-xs text-muted-foreground text-center">
           전체 {total.toLocaleString()}건을 모두 불러왔습니다.
         </p>
-      )}
-
-      {/* Pro 안내 — Free 사용자만 표시 */}
-      {domains.length > 0 && !isProUser && (
-        <div className="mt-2 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-blue-500/5 p-4 flex items-center gap-3">
-          <Lock className="h-5 w-5 shrink-0 text-primary" />
-          <div>
-            <p className="text-sm font-semibold">24시간 이전 낙찰 데이터는 Pro 전용입니다</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              최근 24시간 데이터는 무료로 확인할 수 있습니다. Pro 구독으로 전체 이력의 낙찰가, 입찰수, 낙찰일을 확인하세요.
-            </p>
-          </div>
-        </div>
       )}
     </div>
   );

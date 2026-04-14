@@ -12,6 +12,7 @@ import { cleanDomain } from "@/lib/clean-domain";
 import type { DomainDetail } from "@/types/domain";
 import { useRateLimit } from "@/hooks/use-rate-limit";
 import { UpgradeModal } from "@/components/ui/upgrade-modal";
+import { trackEvent } from "@/lib/gtag";
 
 export function DomainCompare() {
   const [domains, setDomains] = useState<string[]>(["", ""]);
@@ -64,6 +65,7 @@ export function DomainCompare() {
         .map((r) => r.value);
 
       setResults(fulfilled);
+      if (fulfilled.length > 0) trackEvent("tool_used", { tool: "domain-compare" });
     } finally {
       setLoading(false);
     }

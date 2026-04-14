@@ -5,6 +5,7 @@ import { Search, Loader2, ArrowRight, CheckCircle2, AlertTriangle, XCircle } fro
 import { cleanDomain } from "@/lib/clean-domain";
 import { useRateLimit } from "@/hooks/use-rate-limit";
 import { UpgradeModal } from "@/components/ui/upgrade-modal";
+import { trackEvent } from "@/lib/gtag";
 
 interface ChainEntry {
   url: string;
@@ -47,6 +48,7 @@ export function HttpStatusClient() {
       const json = await resp.json();
       if (!resp.ok) { setError(json.error ?? "조회 실패"); return; }
       setChain(json.chain ?? []);
+      trackEvent("tool_used", { tool: "http-status" });
     } catch {
       setError("조회 중 오류가 발생했습니다.");
     } finally {

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRateLimit } from "@/hooks/use-rate-limit";
 import { UpgradeModal } from "@/components/ui/upgrade-modal";
+import { trackEvent } from "@/lib/gtag";
 
 const ALL_TLDS = ["com", "net", "org", "io", "ai", "co", "dev", "app"] as const;
 
@@ -70,6 +71,7 @@ export function DomainAvailabilityClient() {
         if (res.ok) {
           const data = await res.json();
           setResults(data.results);
+          trackEvent("tool_used", { tool: "domain-availability" });
         }
       } finally {
         setLoading(false);

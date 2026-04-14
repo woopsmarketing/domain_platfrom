@@ -6,6 +6,7 @@ import { Search, Loader2, TrendingUp, ArrowRight, Sparkles, BarChart3, Globe, Li
 import { cleanDomain } from "@/lib/clean-domain";
 import { useRateLimit } from "@/hooks/use-rate-limit";
 import { UpgradeModal } from "@/components/ui/upgrade-modal";
+import { trackEvent } from "@/lib/gtag";
 
 interface ValueResult {
   domain: string;
@@ -246,6 +247,7 @@ export function DomainValueClient() {
     setAdvanced(null);
     setTimeout(() => {
       setResult(evaluate(d));
+      trackEvent("tool_used", { tool: "domain-value" });
       setLoading(false);
     }, 600);
   };

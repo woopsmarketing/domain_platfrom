@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase";
 import { SoldAuctionsClient } from "@/components/domain/sold-auctions-client";
 import Link from "next/link";
 import { ServiceCta } from "@/components/shared/service-cta";
+import { MarketplaceCtaBanner } from "@/components/marketplace/marketplace-cta-banner";
 
 export const revalidate = 60;
 
@@ -27,22 +28,18 @@ const PER_PAGE = 50;
 export default async function MarketHistoryPage() {
   const client = createServiceClient();
 
-  // 전체 데이터 (1페이지) + 전체 건수
   const { data, count } = await client
     .from("sold_auctions")
     .select("id, domain, tld, price_usd, bid_count, sold_at, platform", { count: "exact" })
     .order("sold_at", { ascending: false })
     .range(0, PER_PAGE - 1);
 
-  // 최근 24시간 낙찰 건수
   const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const { count: recent24hCount } = await client
     .from("sold_auctions")
     .select("id", { count: "exact", head: true })
     .gte("sold_at", oneDayAgo);
 
-  // 서버 사이드에서는 Pro 여부를 알 수 없으므로 전체 데이터를 전달
-  // 클라이언트에서 useAuth() tier 기반으로 잠금 처리
   const initialItems = (data ?? []).map((row) => ({
     id: row.id,
     name: row.domain,
@@ -64,8 +61,8 @@ const faqItems = [
     a: "네, 경매가 종료되면 낙찰 데이터가 자동으로 수집되어 업데이트됩니다. 최신 낙찰 결과를 빠르게 확인할 수 있습니다.",
   },
   {
-    q: "24시간 이전 낙찰 데이터는 왜 잠겨있나요?",
-    a: "최근 24시간 이내의 낙찰 데이터는 무료로 공개됩니다. 그 이전 데이터는 Pro 구독 회원에게 전체 이력이 제공됩니다.",
+    q: "낙찰 데이터는 모두 무료로 볼 수 있나요?",
+    a: "네, 모든 낙찰 이력 데이터(낙찰가, 입찰 수, 낙찰일)를 회원가입 없이 무료로 조회할 수 있습니다.",
   },
   {
     q: "도메인 경매 시세는 어떻게 파악하나요?",
@@ -98,6 +95,10 @@ const faqJsonLd = {
           도메인 경매 시세를 파악하여 투자 결정에 참고하세요.
         </p>
       </section>
+
+      <div className="mx-auto max-w-7xl px-4 mt-8 sm:px-6 lg:px-8">
+        <MarketplaceCtaBanner source="market-history" />
+      </div>
 
       <SoldAuctionsClient
         initialItems={initialItems}

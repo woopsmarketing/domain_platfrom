@@ -5,6 +5,7 @@ import { Search, Loader2, Shield, Calendar, Lock, Globe, Fingerprint } from "luc
 import { cleanDomain } from "@/lib/clean-domain";
 import { useRateLimit } from "@/hooks/use-rate-limit";
 import { UpgradeModal } from "@/components/ui/upgrade-modal";
+import { trackEvent } from "@/lib/gtag";
 
 interface SslData {
   subject: string;
@@ -48,6 +49,7 @@ export function SslCheckerClient() {
       const json = await resp.json();
       if (!resp.ok) { setError(json.error ?? "조회 실패"); return; }
       setData(json);
+      trackEvent("tool_used", { tool: "ssl-checker" });
     } catch {
       setError("조회 중 오류가 발생했습니다.");
     } finally {

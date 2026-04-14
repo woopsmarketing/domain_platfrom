@@ -5,6 +5,7 @@ import { Search, Loader2, Calendar, User, Building2, Server, Shield } from "luci
 import { cleanDomain } from "@/lib/clean-domain";
 import { useRateLimit } from "@/hooks/use-rate-limit";
 import { UpgradeModal } from "@/components/ui/upgrade-modal";
+import { trackEvent } from "@/lib/gtag";
 
 interface WhoisData {
   domainName: string;
@@ -116,6 +117,7 @@ export function WhoisLookupClient() {
         registrant: registrant || "프라이버시 보호됨",
         dnssec: json.secureDNS?.delegationSigned ? "활성" : "비활성",
       });
+      trackEvent("tool_used", { tool: "whois-lookup" });
     } catch {
       setError("조회 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
     } finally {

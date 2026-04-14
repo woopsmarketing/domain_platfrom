@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Sparkles, Loader2, CheckCircle2, XCircle, AlertCircle, ExternalLink, Search, Target } from "lucide-react";
 import { useRateLimit } from "@/hooks/use-rate-limit";
 import { UpgradeModal } from "@/components/ui/upgrade-modal";
+import { trackEvent } from "@/lib/gtag";
 
 const ALL_TLDS = ["com", "net", "org", "io", "ai", "co", "dev", "app"] as const;
 
@@ -59,6 +60,7 @@ export function DomainGeneratorClient() {
       if (res.ok) {
         const data = await res.json();
         setResults(data);
+        trackEvent("tool_used", { tool: "domain-generator" });
       }
     } finally {
       setLoading(false);

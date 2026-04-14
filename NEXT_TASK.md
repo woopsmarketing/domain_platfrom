@@ -1,6 +1,71 @@
 # NEXT_TASK.md
 
-> 마지막 업데이트: 2026-03-28
+> 마지막 업데이트: 2026-04-15
+
+---
+
+## 🎯 마케팅 W1 (2026-04-15 ~ 04-22) — 최우선
+
+> 전략 문서: [`MARKETING_STRATEGY.md`](./MARKETING_STRATEGY.md)
+> 수익 모델 확정: 모든 도구 무료 → `/marketplace` 프리미엄 도메인 리셀 (x1.5 마진, 현재 재고 102개)
+
+### P0 — 이번 주 내 (사용자 직접 작업 필요)
+
+- [ ] **기존 구글 광고 캠페인 전부 일시중지** (도메인 등록/판매/매매 계열 키워드) — 예산 누수 차단
+- [ ] **새 캠페인 A1 만료 도메인 셋업** — `MARKETING_STRATEGY.md` §4.3 복붙 (헤드라인 15 + 설명 4 + 네거티브 + 사이트링크)
+- [ ] **새 캠페인 A2 경매 도메인 셋업** — 동일
+- [ ] **새 캠페인 A3 PBN / aged domain 셋업** — 동일
+- [ ] **새 캠페인 B1 DA 체커 셋업** — 동일
+- [ ] **새 캠페인 B2 백링크 확인 셋업** — 동일
+- [ ] **새 캠페인 C 브랜드 보호 셋업** (일 500원) — "도메인체커"
+- [ ] **일 예산 10,000원 / 입찰 전략 "클릭 수 최대화 + CPC 상한 500원"** 적용 (1~2주차)
+- [ ] **GA4 → 구글애즈 연결 확인** + `domain_search_submit`, `tool_used`, `marketplace_click` 3개를 구글애즈 전환으로 import
+- [ ] **GA4 Admin → Key Events** 에서 위 3개 + `purchase_request` 전환 ON
+
+### P0 — 이번 주 내 (Orchestrator 작업 완료)
+
+- [x] ✅ **GA4 커스텀 이벤트 4종 배선 완료** (2026-04-15)
+  - `domain_search_submit` — 홈 검색창 (domain-search-box.tsx)
+  - `tool_used` — 13개 툴 클라이언트 (tools/*.tsx)
+  - `marketplace_click` — 3개 지점 (home-hero / market-history / metric-lock)
+  - 기존 `purchase_request` 유지 (마켓플레이스 구매 폼)
+- [x] ✅ **`/market-history` 24h blur 잠금 제거** — 전 데이터 공개 (2026-04-15)
+- [x] ✅ **마켓플레이스 CTA 배너 컴포넌트 생성 + 홈 히어로 & market-history 배선** (2026-04-15)
+- [x] ✅ **pro_upgrade_click → marketplace_click 리네임** + `/pricing` → `/marketplace` (2026-04-15)
+- [x] ✅ **`MARKETING_STRATEGY.md` 작성** — 900줄 전략 문서, 광고 카피 95개, 블로그 20편 로드맵
+
+### P1 — W1 블로그 발행 (자동 파이프라인 큐 우선순위)
+
+> 주제는 클러스터 1: "만료 도메인 · 경매 · PBN" 에 집중
+> 품질 컷 75점 이상 유지. 내부링크 → `/market-history`, `/marketplace` 필수
+
+- [ ] **만료 도메인 찾는 법 2026 완벽 가이드** (키워드: 만료 도메인 찾는 법) → /market-history, /marketplace
+- [ ] **DA vs DR 차이점, 어느 걸 봐야 할까** (키워드: DA DR 차이) → /, /tools/backlink-checker
+- [ ] **Aged Domain이 SEO에 효과적인 이유** (키워드: aged domain) → /market-history
+- [ ] **한국 도메인 경매 사이트 비교 (GoDaddy vs Namecheap vs 후이즈)** → /auctions
+- [ ] **백링크 프로필 확인하는 무료 방법 7가지** → /tools/backlink-checker
+- [ ] **PBN이란 무엇이고 어떻게 만드나 (2026)** → /market-history, /marketplace
+- [ ] **내 사이트 DA 올리는 5가지 방법** → /
+- [ ] **Wayback Machine으로 과거 사이트 보는 법** → /domain/[name]
+- [ ] **Whois 조회 방법과 무료 사이트 5곳** → /tools/whois-lookup
+- [ ] **DNS 레코드 종류 7가지 완벽 정리 (A/MX/TXT...)** → /tools/dns-checker
+
+> 전체 20편 로드맵은 `MARKETING_STRATEGY.md` §3.1 Tier 3 참고
+
+### P1 — 블로그 자동 파이프라인 감사 (선택)
+
+- [ ] **블로그 자동 파이프라인에 4개 게이트 추가**:
+  1. 품질 컷 점수 70 → **75** 상향
+  2. 주차별 클러스터 주제 큐 (주차별 테마 고정)
+  3. 발행 후 내부 링크 자동 보정 (pillar-cluster 구조)
+  4. 발행 후 Search Console URL 제출 자동화
+
+### P2 — 성과 측정 자동화
+
+- [ ] **주간 리포트 스크립트** `scripts/weekly-report.ts` — Google Ads + GA4 + Search Console 데이터 취합 → 매주 월 09:00 자동 리포트
+- [ ] **각 툴 페이지에 "왜 이 도구인가" 300자 + FAQ 3개** SEO 강화 (11개 툴 페이지)
+- [ ] **블로그 포스트 하단 "관련 추천 도메인 3개" 위젯** — /marketplace 전환 강화
+- [ ] **트위터 봇 `@domainchecker_kr`** — 매일 "오늘의 만료 도메인 Best 5" 자동 트윗
 
 ---
 

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useRateLimit } from "@/hooks/use-rate-limit";
 import { UpgradeModal } from "@/components/ui/upgrade-modal";
+import { trackEvent } from "@/lib/gtag";
 
 /* ---------- types ---------- */
 interface OrganicItem {
@@ -101,6 +102,7 @@ export function SerpCheckerClient() {
         }
 
         setData(json);
+        trackEvent("tool_used", { tool: "serp-checker" });
       } catch {
         setError("네트워크 오류가 발생했습니다");
       } finally {

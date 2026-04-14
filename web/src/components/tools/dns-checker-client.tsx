@@ -5,6 +5,7 @@ import { Search, Loader2, Copy, CheckCircle2 } from "lucide-react";
 import { cleanDomain } from "@/lib/clean-domain";
 import { useRateLimit } from "@/hooks/use-rate-limit";
 import { UpgradeModal } from "@/components/ui/upgrade-modal";
+import { trackEvent } from "@/lib/gtag";
 
 const RECORD_TYPES = ["A", "AAAA", "CNAME", "MX", "TXT", "NS", "SOA"] as const;
 type RecordType = (typeof RECORD_TYPES)[number];
@@ -78,6 +79,7 @@ export function DnsCheckerClient() {
 
     const all = await Promise.all(fetches);
     setResults(all);
+    trackEvent("tool_used", { tool: "dns-checker" });
     setLoading(false);
   }, [domain, selectedTypes, checkAndIncrement]);
 

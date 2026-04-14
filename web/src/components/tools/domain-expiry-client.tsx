@@ -6,6 +6,7 @@ import Link from "next/link";
 import { cleanDomain } from "@/lib/clean-domain";
 import { useRateLimit } from "@/hooks/use-rate-limit";
 import { UpgradeModal } from "@/components/ui/upgrade-modal";
+import { trackEvent } from "@/lib/gtag";
 
 interface ExpiryData {
   domainName: string;
@@ -136,6 +137,7 @@ export function DomainExpiryClient() {
         daysUntilExpiry,
         status: getStatus(daysUntilExpiry),
       });
+      trackEvent("tool_used", { tool: "domain-expiry" });
     } catch {
       setError("조회 중 오류가 발생했습니다.");
     } finally {

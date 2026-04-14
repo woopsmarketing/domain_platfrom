@@ -3,10 +3,11 @@
 import { Lock } from "lucide-react";
 import Link from "next/link";
 import { isPro } from "@/lib/subscription";
+import { trackEvent } from "@/lib/gtag";
 
 /**
  * Pro 전용 지표를 감싸는 래퍼.
- * Free 사용자에게는 잠금 아이콘 + Pro 안내를 표시합니다.
+ * Free 사용자에게는 잠금 아이콘 + 마켓 안내를 표시합니다.
  */
 export function ProMetricValue({
   value,
@@ -23,12 +24,13 @@ export function ProMetricValue({
 
   return (
     <Link
-      href="/pricing"
+      href="/marketplace"
+      onClick={() => trackEvent("marketplace_click", { source: "metric-lock" })}
       className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-primary transition-colors"
-      title="Pro 전용 지표"
+      title="프리미엄 도메인 마켓"
     >
       <Lock className="h-3 w-3" />
-      <span>Pro</span>
+      <span>마켓</span>
     </Link>
   );
 }

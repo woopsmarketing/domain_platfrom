@@ -10,6 +10,7 @@ import { cleanDomain } from "@/lib/clean-domain";
 import type { DomainDetail } from "@/types/domain";
 import { useRateLimit } from "@/hooks/use-rate-limit";
 import { UpgradeModal } from "@/components/ui/upgrade-modal";
+import { trackEvent } from "@/lib/gtag";
 
 export function BulkAnalysis() {
   const [input, setInput] = useState("");
@@ -62,6 +63,7 @@ export function BulkAnalysis() {
         .map((r) => r.value);
 
       setResults(fulfilled);
+      if (fulfilled.length > 0) trackEvent("tool_used", { tool: "bulk-analysis" });
     } finally {
       setLoading(false);
     }

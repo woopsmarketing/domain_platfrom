@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { formatNumber, formatPrice } from "@/lib/utils";
+import { trackEvent } from "@/lib/gtag";
 
 interface TldStat {
   tld: string;
@@ -22,6 +23,7 @@ export function TldStats() {
         if (!r.ok) throw new Error("Failed to load");
         const json = await r.json();
         setStats(json.data ?? []);
+        trackEvent("tool_used", { tool: "tld-stats" });
       })
       .catch(() => setError("데이터를 불러올 수 없습니다"))
       .finally(() => setLoading(false));

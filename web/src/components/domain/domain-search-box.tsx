@@ -5,6 +5,7 @@ import { Search, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { DomainQuickSummary } from "@/components/domain/domain-quick-summary";
+import { trackEvent } from "@/lib/gtag";
 
 export function DomainSearchBox() {
   const [query, setQuery] = useState("");
@@ -27,6 +28,7 @@ export function DomainSearchBox() {
     e.preventDefault();
     const domain = parseDomain(query);
     if (domain && domain.includes(".")) {
+      trackEvent("domain_search_submit", { domain });
       setSearchedDomain(domain);
     }
   };
