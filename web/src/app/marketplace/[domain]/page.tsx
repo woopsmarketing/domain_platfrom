@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -23,6 +24,12 @@ import { saveWaybackToDb } from "@/lib/db/wayback";
 import { isStale } from "@/lib/cache";
 
 export const revalidate = 86400;
+
+function isBotUA(ua: string): boolean {
+  if (/Chrome\/\d+\.0\.0\.0/.test(ua)) return true;
+  if (/bot|crawler|spider|scraper|headless|python-requests|curl|wget|go-http/i.test(ua)) return true;
+  return false;
+}
 
 interface PageProps {
   params: Promise<{ domain: string }>;
@@ -289,6 +296,11 @@ function formatDate(dateStr: string | null): string {
 export default async function MarketplaceDetailPage({ params }: PageProps) {
   const { domain: domainParam } = await params;
   const domainName = decodeURIComponent(domainParam).toLowerCase();
+
+  // 봇/헤드리스 브라우저 차단 — RapidAPI 과다호출 방지
+  const headersList = await headers();
+  const ua = headersList.get("user-agent") ?? "";
+  if (isBotUA(ua)) notFound();
 
   const listing = await getListing(domainName);
 

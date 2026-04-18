@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { redirect, notFound } from "next/navigation";
+import { headers } from "next/headers";
 import { ArrowLeft, ExternalLink, Server, Gem, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,12 @@ import { FavoriteButton } from "@/components/domain/favorite-button";
 import type { DomainDetail } from "@/types/domain";
 import { isStale } from "@/lib/cache";
 import { checkApiRateLimit } from "@/lib/rate-limit";
+
+function isBotUA(ua: string): boolean {
+  if (/Chrome\/\d+\.0\.0\.0/.test(ua)) return true;
+  if (/bot|crawler|spider|scraper|headless|python-requests|curl|wget|go-http/i.test(ua)) return true;
+  return false;
+}
 
 interface PageProps {
   params: Promise<{ name: string }>;
@@ -53,6 +60,11 @@ function cleanDomain(raw: string): string {
 
 export default async function DomainDetailPage({ params }: PageProps) {
   const { name } = await params;
+
+  // 봇/헤드리스 브라우저 차단 — RapidAPI 과다호출 방지
+  const headersList = await headers();
+  const ua = headersList.get("user-agent") ?? "";
+  if (isBotUA(ua)) notFound();
 
   // URL에 프로토콜/www 등이 포함된 경우 정규화 후 리다이렉트
   const cleaned = cleanDomain(name);
