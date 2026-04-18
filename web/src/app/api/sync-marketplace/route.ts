@@ -287,7 +287,7 @@ export async function POST(request: NextRequest) {
         moz_pa: r.pa,
         ahrefs_ref_domains: r.rd,
         // updated_at을 오래된 값으로 설정 → 상세 페이지 접속 시 RapidAPI 호출 유도
-        updated_at: "2020-01-01T00:00:00.000Z",
+        updated_at: new Date().toISOString(),
       }));
 
     if (metricsToInsert.length > 0) {

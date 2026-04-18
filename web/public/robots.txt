@@ -1,0 +1,21 @@
+User-agent: *
+Crawl-delay: 10
+
+# 도메인 분석 페이지는 크롤링 불필요 (noindex이므로)
+Disallow: /domain/
+
+# 마켓플레이스 상세 페이지 크롤링 제한
+Disallow: /marketplace/
+
+# API 엔드포인트 크롤링 차단
+Disallow: /api/
+
+# 허용할 경로
+Allow: /
+Allow: /blog/
+Allow: /tools/
+Allow: /market-history
+Allow: /auctions
+Allow: /pricing
+
+Sitemap: https://domainchecker.co.kr/sitemap.xml

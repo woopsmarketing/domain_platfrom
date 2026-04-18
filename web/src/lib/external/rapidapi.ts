@@ -1,6 +1,10 @@
 import { createServerClient } from "@/lib/supabase";
 import type { DomainMetrics } from "@/types/domain";
 
+// 동일 도메인 동시 중복 호출 방지 (Vercel 병렬 인스턴스 대응)
+// 같은 인스턴스에서 동시에 같은 도메인 요청이 들어오면 1번만 API 호출
+const inProgress = new Set<string>();
+
 interface RapidApiResponse {
   status?: string;
   // Moz
@@ -38,6 +42,13 @@ export async function fetchDomainMetrics(
     console.error("RAPIDAPI_KEY is not set");
     return null;
   }
+
+  // 같은 도메인이 이미 호출 중이면 스킵 (중복 과금 방지)
+  if (inProgress.has(domainName)) {
+    console.log(`[RapidAPI] ${domainName} already in progress, skipping`);
+    return null;
+  }
+  inProgress.add(domainName);
 
   try {
     const res = await fetch(
@@ -113,5 +124,7 @@ export async function fetchDomainMetrics(
   } catch (err) {
     console.error("fetchDomainMetrics failed:", err);
     return null;
+  } finally {
+    inProgress.delete(domainName);
   }
 }

@@ -16,6 +16,7 @@ import { ShareButton } from "@/components/domain/share-button";
 import { FavoriteButton } from "@/components/domain/favorite-button";
 import type { DomainDetail } from "@/types/domain";
 import { isStale } from "@/lib/cache";
+import { checkApiRateLimit } from "@/lib/rate-limit";
 
 interface PageProps {
   params: Promise<{ name: string }>;
@@ -68,8 +69,18 @@ export default async function DomainDetailPage({ params }: PageProps) {
     const dbData = await getDomainByName(name);
 
     // 3. 갱신 필요 여부 판단 (7일 캐시)
-    const needsMetrics = !dbData?.metrics || isStale(dbData.metrics.updatedAt);
+    let needsMetrics = !dbData?.metrics || isStale(dbData.metrics.updatedAt);
     const needsWayback = !dbData?.wayback;
+
+    // 3.5. RapidAPI rate limit 체크 (IP당 일 20회)
+    if (needsMetrics) {
+      try {
+        const rl = await checkApiRateLimit("domain-metrics", 20);
+        if (!rl.allowed) needsMetrics = false;
+      } catch {
+        needsMetrics = false;
+      }
+    }
 
     // 4. 필요한 외부 API만 호출 (병렬)
     const [freshMetrics, freshWayback] = await Promise.all([
