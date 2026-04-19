@@ -34,19 +34,38 @@ export default async function BlogIndexPage() {
     ...Array.from(new Set(posts.map((p) => p.category))),
   ];
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "홈", item: "https://domainchecker.co.kr" },
+      { "@type": "ListItem", position: 2, name: "블로그", item: "https://domainchecker.co.kr/blog" },
+    ],
+  };
+
   const itemListJsonLd = {
     "@context": "https://schema.org",
-    "@type": "ItemList",
-    itemListElement: posts.map((post, index) => ({
-      "@type": "ListItem",
-      position: index + 1,
+    "@type": "CollectionPage",
+    name: "블로그 — 도메인체커",
+    description: "도메인 투자와 SEO 분석에 대한 실전 가이드",
+    url: "https://domainchecker.co.kr/blog",
+    inLanguage: "ko-KR",
+    isPartOf: { "@type": "WebSite", url: "https://domainchecker.co.kr", name: "도메인체커" },
+    hasPart: posts.map((post) => ({
+      "@type": "BlogPosting",
+      headline: post.title,
       url: `https://domainchecker.co.kr/blog/${post.slug}`,
-      name: post.title,
+      datePublished: post.published_at,
+      description: post.excerpt,
     })),
   };
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10 sm:py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListJsonLd) }}

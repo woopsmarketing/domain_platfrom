@@ -67,6 +67,30 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col">
+      {/* WebSite 스키마 — Google이 사이트 루트를 정확히 인식 + SearchAction */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "도메인체커",
+            alternateName: "domainchecker",
+            url: "https://domainchecker.co.kr",
+            description: "도메인 점수, DA, DR, 백링크, Wayback 이력을 무료로 확인하는 도메인 분석 도구",
+            inLanguage: "ko-KR",
+            potentialAction: {
+              "@type": "SearchAction",
+              target: {
+                "@type": "EntryPoint",
+                urlTemplate: "https://domainchecker.co.kr/domain/{search_term_string}",
+              },
+              "query-input": "required name=search_term_string",
+            },
+          }),
+        }}
+      />
+      {/* FAQPage 스키마 */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
