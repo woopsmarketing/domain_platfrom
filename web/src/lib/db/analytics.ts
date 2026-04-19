@@ -162,3 +162,56 @@ export async function getTldStats() {
     }))
     .sort((a, b) => b.salesCount - a.salesCount);
 }
+
+/**
+ * 마켓플레이스 활성 리스팅 (홈 프리미엄 도메인 섹션용)
+ */
+export interface MarketplaceListingHome {
+  domain_name: string;
+  asking_price: number;
+  listed_at: string;
+  moz_da: number | null;
+  ahrefs_dr: number | null;
+}
+
+export async function getActiveMarketplaceListings(limit = 50): Promise<MarketplaceListingHome[]> {
+  const client = createServiceClient();
+
+  // Step 1: marketplace_listings + domains (domain_metrics has no direct FK)
+  const { data, error } = await client
+    .from("marketplace_listings")
+    .select("domain_id, asking_price, listed_at, domains!inner(name)")
+    .eq("is_active", true)
+    .order("asking_price", { ascending: false })
+    .limit(limit);
+
+  if (error || !data || data.length === 0) return [];
+
+  // Step 2: domain_metrics bulk fetch
+  const domainIds = (data as any[]).map((r: any) => r.domain_id).filter(Boolean);
+  const metricsMap: Record<string, { moz_da: number | null; ahrefs_dr: number | null }> = {};
+
+  if (domainIds.length > 0) {
+    const { data: metricsRows } = await client
+      .from("domain_metrics")
+      .select("domain_id, moz_da, ahrefs_dr")
+      .in("domain_id", domainIds);
+    if (metricsRows) {
+      for (const m of metricsRows) {
+        metricsMap[m.domain_id] = { moz_da: m.moz_da ?? null, ahrefs_dr: m.ahrefs_dr ?? null };
+      }
+    }
+  }
+
+  return (data as any[]).map((row: any) => {
+    const domainName = Array.isArray(row.domains) ? row.domains[0]?.name : row.domains?.name;
+    const metrics = metricsMap[row.domain_id];
+    return {
+      domain_name: domainName ?? "",
+      asking_price: row.asking_price,
+      listed_at: row.listed_at,
+      moz_da: metrics?.moz_da ?? null,
+      ahrefs_dr: metrics?.ahrefs_dr ?? null,
+    };
+  });
+}

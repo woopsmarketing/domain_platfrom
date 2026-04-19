@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  TrendingUp,
-  Trophy,
   ArrowRight,
   BarChart3,
   Clock,
@@ -16,16 +14,17 @@ import {
   CheckCircle2,
   ChevronDown,
   Sparkles,
+  TrendingUp,
+  Trophy,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { getPopularDomains, getTodayHighlights } from "@/lib/db/analytics";
-import { formatPrice } from "@/lib/utils";
+import { getRecentlySearched, getActiveMarketplaceListings } from "@/lib/db/analytics";
 import { HeroSection } from "@/components/home/hero-section";
 import { CtaSection } from "@/components/home/cta-section";
 import { ServiceCta } from "@/components/shared/service-cta";
 import { ActiveAuctionsSection } from "@/components/home/active-auctions-section";
+import { PremiumDomainsSection } from "@/components/home/premium-domains-section";
 
 export const revalidate = 300;
 
@@ -58,19 +57,19 @@ const faqItems = [
 ];
 
 export default async function HomePage() {
-  let popularDomains: Awaited<ReturnType<typeof getPopularDomains>> = [];
-  let highlights: Awaited<ReturnType<typeof getTodayHighlights>> = [];
+  let recentDomains: Awaited<ReturnType<typeof getRecentlySearched>> = [];
+  let marketplaceListings: Awaited<ReturnType<typeof getActiveMarketplaceListings>> = [];
 
   try {
-    popularDomains = await getPopularDomains(10);
+    recentDomains = await getRecentlySearched(12);
   } catch {
-    popularDomains = [];
+    recentDomains = [];
   }
 
   try {
-    highlights = await getTodayHighlights(15);
+    marketplaceListings = await getActiveMarketplaceListings(50);
   } catch {
-    highlights = [];
+    marketplaceListings = [];
   }
 
   return (
@@ -93,21 +92,19 @@ export default async function HomePage() {
       <HeroSection />
 
       {/* ────────────────────────────────────────────────
-          인기 검색 도메인 TOP 10
+          최근 분석된 도메인
           ──────────────────────────────────────────────── */}
       <section className="border-b px-4 py-16">
         <div className="mx-auto max-w-5xl">
-          <div className="mb-8 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                <TrendingUp className="h-4 w-4 text-primary" />
-              </div>
-              <h2 className="text-xl font-semibold">인기 검색 도메인 TOP 10</h2>
+          <div className="mb-8 flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+              <Clock className="h-4 w-4 text-primary" />
             </div>
+            <h2 className="text-xl font-semibold">최근 분석된 도메인</h2>
           </div>
-          {popularDomains.length > 0 ? (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-              {popularDomains.map((domain, index) => {
+          {recentDomains.length > 0 ? (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {recentDomains.map((domain) => {
                 const metrics = Array.isArray(domain.domain_metrics)
                   ? domain.domain_metrics[0]
                   : domain.domain_metrics;
@@ -115,29 +112,20 @@ export default async function HomePage() {
                   <Link key={domain.id} href={`/domain/${domain.name}`}>
                     <Card className="group border-border/60 transition-all hover:border-primary/30 hover:shadow-md hover:shadow-primary/5">
                       <CardContent className="p-5">
-                        <div className="flex items-center gap-2.5">
-                          <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-                            index < 3
-                              ? "bg-primary text-primary-foreground"
-                              : "bg-muted text-muted-foreground"
-                          }`}>
-                            {index + 1}
-                          </span>
-                          <span className="truncate text-sm font-medium group-hover:text-primary transition-colors">
-                            {domain.name}
-                          </span>
-                        </div>
-                        <div className="mt-3 flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">
-                            {domain.search_count}회
-                          </span>
-                          <div className="flex gap-1">
-                            {metrics?.moz_da != null && (
-                              <Badge variant="secondary" className="rounded-md text-xs font-normal">
-                                DA {metrics.moz_da}
-                              </Badge>
-                            )}
-                          </div>
+                        <span className="truncate text-sm font-medium group-hover:text-primary transition-colors block">
+                          {domain.name}
+                        </span>
+                        <div className="mt-3 flex items-center gap-1.5">
+                          {metrics?.moz_da != null && (
+                            <Badge variant="secondary" className="rounded-md text-xs font-normal">
+                              DA {metrics.moz_da}
+                            </Badge>
+                          )}
+                          {metrics?.ahrefs_dr != null && (
+                            <Badge variant="secondary" className="rounded-md text-xs font-normal">
+                              DR {metrics.ahrefs_dr}
+                            </Badge>
+                          )}
                         </div>
                       </CardContent>
                     </Card>
@@ -148,7 +136,7 @@ export default async function HomePage() {
           ) : (
             <Card className="border-border/60 border-dashed">
               <CardContent className="py-12 text-center text-sm text-muted-foreground">
-                아직 데이터가 없습니다. 도메인을 검색해 보세요.
+                아직 분석된 도메인이 없습니다. 도메인을 검색해 보세요.
               </CardContent>
             </Card>
           )}
@@ -157,58 +145,9 @@ export default async function HomePage() {
 
       <ActiveAuctionsSection />
       {/* ────────────────────────────────────────────────
-          낙찰 하이라이트
+          인기 프리미엄 도메인
           ──────────────────────────────────────────────── */}
-      <section className="border-b px-4 py-16">
-        <div className="mx-auto max-w-5xl">
-          <div className="mb-8 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-                <Trophy className="h-4 w-4 text-primary" />
-              </div>
-              <h2 className="text-xl font-semibold">낙찰 하이라이트</h2>
-            </div>
-            <Link
-              href="/market-history"
-              className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-primary"
-            >
-              낙찰 이력 전체 보기 <ArrowRight className="h-3.5 w-3.5" />
-            </Link>
-          </div>
-          {highlights.length > 0 ? (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {highlights.map((sale) => (
-                  <Link key={sale.id} href={`/domain/${sale.domain}`}>
-                    <Card className="group border-border/60 transition-all hover:border-primary/30 hover:shadow-md hover:shadow-primary/5">
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-sm font-medium group-hover:text-primary transition-colors">
-                          {sale.domain}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="flex items-center justify-between">
-                        <span className="text-xl font-bold text-primary">
-                          {formatPrice(sale.price_usd)}
-                        </span>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <Badge variant="outline" className="rounded-md border-border/60 font-normal">
-                            {sale.platform}
-                          </Badge>
-                          <span>{new Date(sale.sold_at).toLocaleDateString("ko-KR")}</span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-              ))}
-            </div>
-          ) : (
-            <Card className="border-border/60 border-dashed">
-              <CardContent className="py-12 text-center text-sm text-muted-foreground">
-                아직 데이터가 없습니다.
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </section>
+      <PremiumDomainsSection listings={marketplaceListings} />
 
       {/* ────────────────────────────────────────────────
           Section 1: 도메인이 왜 중요한가
@@ -504,112 +443,6 @@ export default async function HomePage() {
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ────────────────────────────────────────────────
-          Section 6: 구독 요금제
-          ──────────────────────────────────────────────── */}
-      <section className="border-b px-4 py-20 sm:py-24">
-        <div className="mx-auto max-w-5xl">
-          <div className="text-center">
-            <Badge variant="secondary" className="mb-4 rounded-full px-3 py-1 text-xs font-medium">
-              구독 전용 플랫폼
-            </Badge>
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">
-              심플한 요금제, 강력한 데이터
-            </h2>
-            <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-              도메인체커는 <strong className="text-foreground">구독 기반 도메인 분석 플랫폼</strong>입니다.
-              무료 체험으로 핵심 기능을 경험하고, Pro 구독으로 모든 SEO 데이터에 무제한 접근하세요.
-            </p>
-          </div>
-
-          <div className="mt-14 grid gap-6 sm:grid-cols-2">
-            {/* Free */}
-            <div className="rounded-2xl border border-border/60 p-6 sm:p-8">
-              <div className="flex items-center gap-2">
-                <Zap className="h-5 w-5 text-muted-foreground" />
-                <h3 className="text-lg font-bold">Free</h3>
-              </div>
-              <p className="mt-1 text-sm text-muted-foreground">기본 분석 체험</p>
-              <div className="mt-5">
-                <span className="text-3xl font-bold">₩0</span>
-                <span className="ml-1 text-muted-foreground">/월</span>
-              </div>
-              <ul className="mt-6 space-y-2.5">
-                {[
-                  "도메인 분석 1일 5회",
-                  "기본 지표 (DA/PA/DR/TF/CF)",
-                  "Wayback 스냅샷",
-                  "DNS/WHOIS 도구 1일 10회",
-                  "낙찰 이력 (최근 24시간)",
-                ].map((f) => (
-                  <li key={f} className="flex items-start gap-2.5 text-sm">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                    <span className="text-muted-foreground">{f}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/"
-                className="mt-8 block w-full rounded-lg border border-border py-3 text-center text-sm font-medium transition-colors hover:bg-muted min-h-[44px] flex items-center justify-center"
-              >
-                무료로 시작하기
-              </Link>
-            </div>
-
-            {/* Pro */}
-            <div className="relative rounded-2xl border-2 border-primary p-6 sm:p-8">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-xs font-semibold text-primary-foreground">
-                추천
-              </div>
-              <div className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
-                <h3 className="text-lg font-bold">Pro</h3>
-              </div>
-              <p className="mt-1 text-sm text-muted-foreground">모든 기능 무제한</p>
-              <div className="mt-5">
-                <span className="text-3xl font-bold">₩9,900</span>
-                <span className="ml-1 text-muted-foreground">/월</span>
-              </div>
-              <div className="mt-1 text-xs text-muted-foreground">
-                연간 결제 시 ₩6,900/월 (30% 할인)
-              </div>
-              <ul className="mt-6 space-y-2.5">
-                {[
-                  "도메인 분석 무제한",
-                  "모든 SEO 지표 (트래픽/키워드/스팸 포함)",
-                  "전체 낙찰 이력 (낙찰가/입찰수)",
-                  "대량 분석 100개, 도메인 비교 10개",
-                  "고도화 도메인 가치 평가",
-                ].map((f) => (
-                  <li key={f} className="flex items-start gap-2.5 text-sm">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                    <span>{f}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link
-                href="/pricing"
-                className="mt-8 flex w-full items-center justify-center rounded-lg bg-primary py-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 min-h-[44px]"
-              >
-                Pro 구독 시작하기
-              </Link>
-              <p className="mt-2 text-center text-xs text-muted-foreground">
-                7일 이내 무조건 환불 · 언제든 취소 가능
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-8 text-center">
-            <Link
-              href="/pricing"
-              className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
-            >
-              요금제 상세 비교 보기 <ArrowRight className="h-4 w-4" />
-            </Link>
           </div>
         </div>
       </section>
