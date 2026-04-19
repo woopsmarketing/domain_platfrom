@@ -84,11 +84,15 @@ export default async function DomainDetailPage({ params }: PageProps) {
     let needsMetrics = !dbData?.metrics || isStale(dbData.metrics.updatedAt);
     const needsWayback = !dbData?.wayback;
 
-    // 3.5. RapidAPI rate limit 체크 (IP당 일 20회)
+    // 3.5. RapidAPI rate limit 체크 (IP당 일 5회)
+    let rateLimitReached = false;
     if (needsMetrics) {
       try {
-        const rl = await checkApiRateLimit("domain-metrics", 20);
-        if (!rl.allowed) needsMetrics = false;
+        const rl = await checkApiRateLimit("domain-metrics", 5);
+        if (!rl.allowed) {
+          needsMetrics = false;
+          rateLimitReached = true;
+        }
       } catch {
         needsMetrics = false;
       }
@@ -134,6 +138,7 @@ export default async function DomainDetailPage({ params }: PageProps) {
       salesHistory: dbData?.salesHistory ?? [],
       wayback: freshWayback ?? dbData?.wayback ?? null,
       whois: null,
+      rateLimitReached,
     };
   } catch {
     // DB not connected - data stays null
@@ -185,7 +190,18 @@ export default async function DomainDetailPage({ params }: PageProps) {
       ) : (
         <Card className="mb-6">
           <CardContent className="py-6">
-            <p className="text-center text-sm text-muted-foreground">SEO 데이터를 불러오는 중이거나 아직 수집되지 않았습니다.</p>
+            {data.rateLimitReached ? (
+              <div className="text-center space-y-1">
+                <p className="text-sm font-medium text-muted-foreground">
+                  오늘 무료 분석 한도(5회)를 모두 사용했습니다.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  내일 다시 시도하거나, 이미 분석된 도메인은 계속 조회할 수 있습니다.
+                </p>
+              </div>
+            ) : (
+              <p className="text-center text-sm text-muted-foreground">SEO 데이터를 불러오는 중이거나 아직 수집되지 않았습니다.</p>
+            )}
           </CardContent>
         </Card>
       )}

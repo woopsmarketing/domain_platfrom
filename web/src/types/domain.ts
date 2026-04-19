@@ -67,6 +67,7 @@ export interface DomainDetail {
   salesHistory: SalesHistory[];
   wayback: WaybackSummary | null;
   whois: WhoisInfo | null;
+  rateLimitReached?: boolean;
 }
 
 export interface DomainListItem extends Domain {
