@@ -55,6 +55,19 @@ export default function AuctionsPage() {
     <>
       <script
         type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "홈", item: "https://domainchecker.co.kr" },
+              { "@type": "ListItem", position: 2, name: "실시간 경매", item: "https://domainchecker.co.kr/auctions" },
+            ],
+          }),
+        }}
+      />
+      <script
+        type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 

@@ -16,10 +16,13 @@ import {
   Sparkles,
   TrendingUp,
   Trophy,
+  BookOpen,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getRecentlySearched, getActiveMarketplaceListings } from "@/lib/db/analytics";
+import { getPublishedPosts } from "@/lib/db/posts";
+import { formatDateKR } from "@/lib/utils";
 import { HeroSection } from "@/components/home/hero-section";
 import { CtaSection } from "@/components/home/cta-section";
 import { ServiceCta } from "@/components/shared/service-cta";
@@ -59,10 +62,12 @@ const faqItems = [
 export default async function HomePage() {
   let recentDomains: Awaited<ReturnType<typeof getRecentlySearched>> = [];
   let marketplaceListings: Awaited<ReturnType<typeof getActiveMarketplaceListings>> = [];
+  let recentPosts: Awaited<ReturnType<typeof getPublishedPosts>> = [];
 
-  [recentDomains, marketplaceListings] = await Promise.all([
+  [recentDomains, marketplaceListings, recentPosts] = await Promise.all([
     getRecentlySearched(12).catch(() => []),
     getActiveMarketplaceListings(50).catch(() => []),
+    getPublishedPosts().then((p) => p.slice(0, 4)).catch(() => []),
   ]);
 
   return (
@@ -463,6 +468,50 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* ────────────────────────────────────────────────
+          SEO 가이드 블로그 (내부링크 → 블로그 크롤 경로)
+          ──────────────────────────────────────────────── */}
+      {recentPosts.length > 0 && (
+        <section className="border-b px-4 py-16 sm:py-20">
+          <div className="mx-auto max-w-5xl">
+            <div className="mb-8 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+                  <BookOpen className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold">도메인 & SEO 가이드</h2>
+                  <p className="text-sm text-muted-foreground">구매 전 꼭 알아야 할 핵심 정보</p>
+                </div>
+              </div>
+              <Link href="/blog" className="flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+                전체 글 보기 <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {recentPosts.map((post) => (
+                <Link key={post.slug} href={`/blog/${post.slug}`} className="group">
+                  <Card className="h-full border-border/60 transition-all hover:border-primary/30 hover:shadow-md hover:shadow-primary/5">
+                    <CardContent className="flex h-full flex-col p-5">
+                      <p className="mb-2 text-xs text-muted-foreground">{formatDateKR(post.published_at)}</p>
+                      <p className="text-sm font-semibold leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                        {post.title}
+                      </p>
+                      <p className="mt-2 flex-1 text-xs leading-relaxed text-muted-foreground line-clamp-2">
+                        {post.excerpt}
+                      </p>
+                      <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-primary">
+                        읽어보기 <ArrowRight className="h-3 w-3" />
+                      </span>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       <ServiceCta />
 

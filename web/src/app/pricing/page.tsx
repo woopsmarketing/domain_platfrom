@@ -75,6 +75,19 @@ export default function PricingPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "홈", item: "https://domainchecker.co.kr" },
+              { "@type": "ListItem", position: 2, name: "요금제", item: "https://domainchecker.co.kr/pricing" },
+            ],
+          }),
+        }}
+      />
       {/* Hero */}
       <section className="text-center">
         <div className="mx-auto mb-4 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/5 px-4 py-1.5 text-xs font-medium text-primary">

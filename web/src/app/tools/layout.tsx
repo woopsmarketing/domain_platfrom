@@ -17,10 +17,27 @@ export const metadata: Metadata = {
   },
 };
 
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "홈", item: "https://domainchecker.co.kr" },
+    { "@type": "ListItem", position: 2, name: "분석 도구", item: "https://domainchecker.co.kr/tools" },
+  ],
+};
+
 export default function ToolsLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
+      {children}
+    </>
+  );
 }

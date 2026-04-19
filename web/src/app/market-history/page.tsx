@@ -84,6 +84,19 @@ const faqJsonLd = {
     <>
       <script
         type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: [
+              { "@type": "ListItem", position: 1, name: "홈", item: "https://domainchecker.co.kr" },
+              { "@type": "ListItem", position: 2, name: "낙찰 이력", item: "https://domainchecker.co.kr/market-history" },
+            ],
+          }),
+        }}
+      />
+      <script
+        type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
