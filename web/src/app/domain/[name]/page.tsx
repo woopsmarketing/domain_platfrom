@@ -80,7 +80,7 @@ export default async function DomainDetailPage({ params }: PageProps) {
     // 2. DB에서 기존 데이터 조회
     const dbData = await getDomainByName(name);
 
-    // 3. 갱신 필요 여부 판단 (7일 캐시)
+    // 3. 갱신 필요 여부 판단 (14일 캐시)
     let needsMetrics = !dbData?.metrics || isStale(dbData.metrics.updatedAt);
     const needsWayback = !dbData?.wayback;
 

@@ -187,8 +187,16 @@ export async function getActiveMarketplaceListings(limit = 50): Promise<Marketpl
 
   if (error || !data || data.length === 0) return [];
 
+  type ListingRow = {
+    domain_id: string;
+    asking_price: number;
+    listed_at: string;
+    domains: { name: string } | { name: string }[] | null;
+  };
+
   // Step 2: domain_metrics bulk fetch
-  const domainIds = (data as any[]).map((r: any) => r.domain_id).filter(Boolean);
+  const typedData = data as unknown as ListingRow[];
+  const domainIds = typedData.map((r) => r.domain_id).filter(Boolean);
   const metricsMap: Record<string, { moz_da: number | null; ahrefs_dr: number | null }> = {};
 
   if (domainIds.length > 0) {
@@ -203,7 +211,7 @@ export async function getActiveMarketplaceListings(limit = 50): Promise<Marketpl
     }
   }
 
-  return (data as any[]).map((row: any) => {
+  return typedData.map((row) => {
     const domainName = Array.isArray(row.domains) ? row.domains[0]?.name : row.domains?.name;
     const metrics = metricsMap[row.domain_id];
     return {

@@ -60,17 +60,10 @@ export default async function HomePage() {
   let recentDomains: Awaited<ReturnType<typeof getRecentlySearched>> = [];
   let marketplaceListings: Awaited<ReturnType<typeof getActiveMarketplaceListings>> = [];
 
-  try {
-    recentDomains = await getRecentlySearched(12);
-  } catch {
-    recentDomains = [];
-  }
-
-  try {
-    marketplaceListings = await getActiveMarketplaceListings(50);
-  } catch {
-    marketplaceListings = [];
-  }
+  [recentDomains, marketplaceListings] = await Promise.all([
+    getRecentlySearched(12).catch(() => []),
+    getActiveMarketplaceListings(50).catch(() => []),
+  ]);
 
   return (
     <div className="flex flex-col">

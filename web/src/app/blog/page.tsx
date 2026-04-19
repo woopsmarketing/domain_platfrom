@@ -74,6 +74,11 @@ export default async function BlogIndexPage() {
       </div>
 
       <div className="mt-10 grid gap-4">
+        {posts.length === 0 && (
+          <div className="rounded-xl border border-border/60 border-dashed py-16 text-center text-sm text-muted-foreground">
+            아직 게시된 글이 없습니다. 곧 업데이트 예정입니다.
+          </div>
+        )}
         {posts.map((post, index) => (
           <Link key={post.slug} href={`/blog/${post.slug}`} className="group">
             <div className="blog-card">

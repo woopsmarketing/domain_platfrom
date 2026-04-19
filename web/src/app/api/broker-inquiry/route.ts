@@ -47,7 +47,7 @@ export async function POST(request: Request) {
 
     // 어드민에게 알림
     await sendEmail({
-      to: "vnfm0580@gmail.com",
+      to: process.env.ADMIN_EMAIL ?? "vnfm0580@gmail.com",
       subject: "[도메인체커 어드민] 새 경매 대행 문의 접수",
       htmlContent: brokerAdminNotification({
         name,
