@@ -109,9 +109,39 @@ sharp('/tmp/blog-cover.png')
 
 압축 실패 시 원본 PNG로 폴백하여 진행한다.
 
-### 5. Supabase Storage 업로드
+### 5. 텍스트 오버레이 (image_overlay.py)
 
-압축된 WebP 이미지를 `blog-images` 버킷에 업로드:
+압축된 이미지에 제목/섹션명을 직접 삽입한다.
+스크립트 위치: `/mnt/d/Documents/domain_platform/scripts/image_overlay.py`
+의존성: `pip install Pillow` (없으면 `pip3 install Pillow`)
+
+```bash
+OVERLAY_SCRIPT="/mnt/d/Documents/domain_platform/scripts/image_overlay.py"
+
+# 커버 이미지: 블로그 제목(h1) 오버레이
+# WebP 압축본이 있으면 WebP에, 없으면 PNG에 적용
+COVER_IN=$( [ -f /tmp/blog-cover.webp ] && echo /tmp/blog-cover.webp || echo /tmp/blog-cover.png )
+python3 "$OVERLAY_SCRIPT" \
+  "$COVER_IN" \
+  "$COVER_IN" \
+  "아웃라인의 h1 제목" \
+  --font-size=72 \
+  --brightness=0.82 \
+  --color=random \
+  && echo "Cover overlay OK" || echo "Cover overlay SKIP (Pillow 없음)"
+
+# 섹션 이미지: H2 텍스트 오버레이 (생성된 섹션 이미지별로 반복)
+# SECTION_IN=$( [ -f /tmp/blog-section-1.webp ] && echo /tmp/blog-section-1.webp || echo /tmp/blog-section-1.png )
+# python3 "$OVERLAY_SCRIPT" "$SECTION_IN" "$SECTION_IN" "섹션 H2 텍스트" \
+#   --font-size=60 --brightness=0.82 --color=random
+```
+
+오버레이 실패 (Pillow 미설치, 폰트 없음 등) → 에러 무시하고 원본 이미지로 계속 진행.
+**절대 파이프라인을 중단하지 않는다.**
+
+### 6. Supabase Storage 업로드
+
+오버레이가 적용된 이미지를 `blog-images` 버킷에 업로드:
 
 ```bash
 source /mnt/d/Documents/domain_platform/web/.env.local
@@ -139,7 +169,7 @@ curl -s -X POST \
 echo "URL: ${NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/blog-images/${FILENAME}"
 ```
 
-### 6. 실패 처리
+### 7. 실패 처리
 
 - OPENAI_API_KEY가 없으면 → 이미지 생성 전체 스킵, 빈 객체 반환
 - API 호출 실패 → 해당 이미지 스킵, 나머지 계속 진행
