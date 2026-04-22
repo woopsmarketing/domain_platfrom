@@ -20,7 +20,6 @@ import { isStale } from "@/lib/cache";
 import { checkApiRateLimit } from "@/lib/rate-limit";
 
 function isBotUA(ua: string): boolean {
-  if (/Chrome\/\d+\.0\.0\.0/.test(ua)) return true;
   if (/bot|crawler|spider|scraper|headless|python-requests|curl|wget|go-http/i.test(ua)) return true;
   return false;
 }
