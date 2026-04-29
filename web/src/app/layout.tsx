@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import Script from "next/script";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
-import { ProToggle } from "@/components/dev/pro-toggle";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import "./globals.css";
@@ -124,7 +123,6 @@ export default function RootLayout({
               <main className="flex-1">{children}</main>
               <Footer />
             </div>
-            <ProToggle />
           </ThemeProvider>
         </AuthProvider>
         <Script
