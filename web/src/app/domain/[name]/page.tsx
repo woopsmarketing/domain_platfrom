@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { redirect, notFound } from "next/navigation";
 import { headers } from "next/headers";
-import { ArrowLeft, ExternalLink, Server, Gem, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Server, Gem, CheckCircle2, Send, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -291,6 +291,52 @@ export default async function DomainDetailPage({ params }: PageProps) {
                   프리미엄 도메인 둘러보기 →
                 </Button>
               </Link>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* SEO 대행 — 텔레그램 상담 CTA */}
+      <Card className="mt-6 border-emerald-500/30 bg-gradient-to-r from-emerald-500/5 to-teal-500/10">
+        <CardContent className="py-6 px-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-emerald-600 shrink-0" />
+                <p className="font-semibold text-base">
+                  구글 상위노출 실행사 SEO
+                </p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                블랙키워드 · 고난이도 키워드 전문 9년차 — 노출 보장형 실행사 SEO를 직접 상담받아보세요.
+              </p>
+              <ul className="flex flex-col gap-1">
+                {[
+                  "블랙키워드 / 고난이도 키워드 전문 9년차",
+                  "도메인 + 콘텐츠 + 백링크 풀패키지 운영",
+                  "실시간 순위 트래킹 + 보장형 계약 가능",
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="shrink-0">
+              <a
+                href="https://t.me/GOAT82"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <Button
+                  variant="default"
+                  className="w-full sm:w-auto whitespace-nowrap bg-emerald-600 hover:bg-emerald-700"
+                >
+                  <Send className="h-4 w-4" />
+                  텔레그램으로 상담받기
+                </Button>
+              </a>
             </div>
           </div>
         </CardContent>
