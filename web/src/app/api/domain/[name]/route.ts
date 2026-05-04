@@ -43,10 +43,14 @@ export async function GET(
     // 2. DB에서 기존 데이터 조회
     const detail = await getDomainByName(name);
 
-    // 3. 갱신 필요 여부 판단 (7일 캐시)
+    // 3. 갱신 필요 여부 판단 (14일 캐시)
     const needsMetricsRefresh =
       !detail?.metrics || isStale(detail.metrics.updatedAt);
-    const needsWaybackRefresh = !detail?.wayback;
+    // wayback도 14일 TTL — 한 번 잘못 저장된 값이 영구 굳지 않도록
+    const needsWaybackRefresh =
+      !detail?.wayback ||
+      !detail.wayback.updatedAt ||
+      isStale(detail.wayback.updatedAt);
 
     // 4. 필요한 외부 API만 호출 (병렬)
     const [freshMetrics, freshWayback] = await Promise.all([

@@ -81,7 +81,11 @@ export default async function DomainDetailPage({ params }: PageProps) {
 
     // 3. 갱신 필요 여부 판단 (14일 캐시)
     let needsMetrics = !dbData?.metrics || isStale(dbData.metrics.updatedAt);
-    const needsWayback = !dbData?.wayback;
+    // wayback도 14일 TTL — 한 번 잘못 저장된 값이 영구 굳지 않도록
+    const needsWayback =
+      !dbData?.wayback ||
+      !dbData.wayback.updatedAt ||
+      isStale(dbData.wayback.updatedAt);
 
     // 3.5. RapidAPI rate limit 체크 (IP당 일 5회)
     let rateLimitReached = false;

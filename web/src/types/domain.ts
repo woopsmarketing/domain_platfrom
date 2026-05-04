@@ -50,6 +50,7 @@ export interface WaybackSummary {
   firstSnapshotAt: string | null;
   lastSnapshotAt: string | null;
   totalSnapshots: number;
+  updatedAt: string | null;
 }
 
 export interface WhoisInfo {

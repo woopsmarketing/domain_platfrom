@@ -123,7 +123,7 @@ export async function getDomainByName(name: string): Promise<DomainDetail | null
   const [metricsResult, salesResult, waybackResult] = await Promise.all([
     client.from("domain_metrics").select("domain_id, moz_da, moz_pa, moz_links, moz_spam, majestic_tf, majestic_cf, majestic_links, majestic_ref_domains, majestic_ttf0_name, ahrefs_dr, ahrefs_backlinks, ahrefs_ref_domains, ahrefs_traffic, ahrefs_traffic_value, ahrefs_organic_keywords, updated_at").eq("domain_id", domain.id).single(),
     client.from("sales_history").select("id, domain_id, sold_at, price_usd, platform").eq("domain_id", domain.id).order("sold_at", { ascending: false }),
-    client.from("wayback_summary").select("domain_id, first_snapshot_at, last_snapshot_at, total_snapshots").eq("domain_id", domain.id).single(),
+    client.from("wayback_summary").select("domain_id, first_snapshot_at, last_snapshot_at, total_snapshots, updated_at").eq("domain_id", domain.id).single(),
   ]);
 
   return {
@@ -171,6 +171,7 @@ export async function getDomainByName(name: string): Promise<DomainDetail | null
           firstSnapshotAt: waybackResult.data.first_snapshot_at,
           lastSnapshotAt: waybackResult.data.last_snapshot_at,
           totalSnapshots: waybackResult.data.total_snapshots,
+          updatedAt: waybackResult.data.updated_at ?? null,
         }
       : null,
     whois: null, // Fetched separately via WhoisXML API
