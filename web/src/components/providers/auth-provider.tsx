@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { isSuperEmail } from "@/lib/super-users";
 import type { User } from "@supabase/supabase-js";
 
 type AuthContextType = {
@@ -9,6 +10,7 @@ type AuthContextType = {
   loading: boolean;
   tier: "free" | "pro";
   tierLoading: boolean;
+  isSuper: boolean;
 };
 
 const AuthContext = createContext<AuthContextType>({
@@ -16,6 +18,7 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   tier: "free",
   tierLoading: true,
+  isSuper: false,
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -47,10 +50,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  // tier 조회
+  const isSuper = isSuperEmail(user?.email);
+
+  // tier 조회 — 슈퍼유저는 DB 조회 없이 즉시 pro
   useEffect(() => {
     if (!user) {
       setTier("free");
+      setTierLoading(false);
+      return;
+    }
+
+    if (isSuperEmail(user.email)) {
+      setTier("pro");
       setTierLoading(false);
       return;
     }
@@ -84,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [tier]);
 
   return (
-    <AuthContext value={{ user, loading, tier, tierLoading }}>
+    <AuthContext value={{ user, loading, tier, tierLoading, isSuper }}>
       {children}
     </AuthContext>
   );

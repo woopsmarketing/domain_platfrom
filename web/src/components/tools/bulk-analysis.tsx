@@ -9,6 +9,7 @@ import { calculateDomainGrade, GRADE_BG_MAP } from "@/lib/domain-utils";
 import { cleanDomain } from "@/lib/clean-domain";
 import type { DomainDetail } from "@/types/domain";
 import { useRateLimit } from "@/hooks/use-rate-limit";
+import { useAuth } from "@/components/providers/auth-provider";
 import { UpgradeModal } from "@/components/ui/upgrade-modal";
 import { trackEvent } from "@/lib/gtag";
 
@@ -18,8 +19,9 @@ export function BulkAnalysis() {
   const [results, setResults] = useState<DomainDetail[]>([]);
   const [trimWarning, setTrimWarning] = useState("");
   const { checkAndIncrement, showUpgrade, setShowUpgrade, isPro, remaining } = useRateLimit("bulk_analysis", 1);
+  const { isSuper } = useAuth();
 
-  const maxDomains = isPro ? 100 : 5;
+  const maxDomains = isSuper ? 1000 : isPro ? 100 : 5;
 
   const analyze = useCallback(async () => {
     if (!checkAndIncrement()) return;
@@ -84,7 +86,7 @@ export function BulkAnalysis() {
     <div className="space-y-6">
       <textarea
         className="h-40 w-full rounded-lg border border-input bg-transparent px-4 py-3 text-base placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-        placeholder={`도메인을 한 줄에 하나씩 입력하세요 (${isPro ? "Pro: 최대 100개" : "무료: 최대 5개, 1일 1회"})\nexample.com\ntest.io`}
+        placeholder={`도메인을 한 줄에 하나씩 입력하세요 (${isSuper ? "Super: 최대 1000개" : isPro ? "Pro: 최대 100개" : "무료: 최대 5개, 1일 1회"})\nexample.com\ntest.io`}
         value={input}
         onChange={(e) => setInput(e.target.value)}
       />

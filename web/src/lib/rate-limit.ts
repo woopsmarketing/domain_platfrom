@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/supabase";
+import { isSuperEmail } from "@/lib/super-users";
 import { getTodayKST } from "@/lib/utils";
 import { headers } from "next/headers";
 
@@ -63,6 +64,9 @@ export async function isProUser(_request: Request): Promise<boolean> {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return false;
+
+    // 슈퍼유저는 DB 상태 무관 항상 Pro (DB 동기화 사고 대비 안전망)
+    if (isSuperEmail(user.email)) return true;
 
     const client = createServiceClient();
     const { data: sub } = await client
