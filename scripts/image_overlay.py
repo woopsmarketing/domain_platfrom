@@ -24,11 +24,21 @@ import random
 import textwrap
 from PIL import Image, ImageDraw, ImageFont, ImageEnhance, ImageFilter
 
-# 폰트 경로 (맑은 고딕 Bold)
+# 폰트 경로 (맑은 고딕 Bold 우선) — WSL/Linux/macOS/Windows 순회
+_HOME = os.path.expanduser("~")
 FONT_PATHS = [
-    "C:/Windows/Fonts/malgunbd.ttf",   # 맑은 고딕 Bold
-    "C:/Windows/Fonts/malgun.ttf",     # 맑은 고딕
-    "C:/Windows/Fonts/GOTHICB.TTF",    # Gothic Bold
+    f"{_HOME}/.fonts/malgunbd.ttf",                            # WSL 1순위
+    f"{_HOME}/.fonts/malgun.ttf",
+    "/mnt/c/Windows/Fonts/malgunbd.ttf",                       # WSL → Windows mount
+    "/mnt/c/Windows/Fonts/malgun.ttf",
+    "/usr/share/fonts/truetype/noto/NotoSansKR-Bold.ttf",      # 표준 Linux
+    "/usr/share/fonts/truetype/noto/NotoSansCJK-Bold.ttc",
+    "/usr/share/fonts/truetype/nanum/NanumGothicBold.ttf",
+    "/usr/share/fonts/truetype/nanum/NanumGothic.ttf",
+    "/System/Library/Fonts/AppleSDGothicNeo.ttc",              # macOS
+    "C:/Windows/Fonts/malgunbd.ttf",                           # Windows 직접 실행
+    "C:/Windows/Fonts/malgun.ttf",
+    "C:/Windows/Fonts/GOTHICB.TTF",
     "C:/Windows/Fonts/GOTHIC.TTF",
 ]
 
@@ -70,6 +80,11 @@ def get_font(size: int) -> ImageFont.FreeTypeFont:
     for path in FONT_PATHS:
         if os.path.exists(path):
             return ImageFont.truetype(path, size)
+    sys.stderr.write(
+        "[image_overlay] WARNING: 한글 폰트를 찾지 못해 load_default() 폴백 사용 — "
+        "한글이 ▢로 깨질 수 있음. FONT_PATHS 확인 필요.\n"
+        f"  탐색 경로: {FONT_PATHS}\n"
+    )
     return ImageFont.load_default()
 
 
