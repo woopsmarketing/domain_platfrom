@@ -2,23 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin, getServiceClient } from "@/lib/api-helpers";
 import { revalidatePath, revalidateTag } from "next/cache";
 
-/** Google Indexing API에 URL 제출 — 발행 성공 후 fire-and-forget */
-async function notifyGoogle(slug: string) {
-  try {
-    const base = process.env.NEXT_PUBLIC_SITE_URL || "https://domainchecker.co.kr";
-    await fetch(`${base}/api/google-indexing`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`,
-      },
-      body: JSON.stringify({ urls: [`https://domainchecker.co.kr/blog/${slug}`] }),
-    });
-  } catch {
-    // Google Indexing 실패는 발행 결과에 영향 없음
-  }
-}
-
 /** IndexNow에 URL 제출 — 발행 성공 후 fire-and-forget */
 async function notifyIndexNow(slug: string) {
   try {
@@ -93,7 +76,6 @@ export async function POST(request: NextRequest) {
   if (status === "published" && slug) {
     revalidateBlog(slug);
     void notifyIndexNow(slug);
-    void notifyGoogle(slug);
   }
 
   return NextResponse.json({ post: data }, { status: 201 });
@@ -131,7 +113,6 @@ export async function PATCH(request: NextRequest) {
   // published 상태로 변경되었을 때 인덱싱 알림
   if (updates.status === "published" && data?.slug) {
     void notifyIndexNow(data.slug);
-    void notifyGoogle(data.slug);
   }
 
   return NextResponse.json({ post: data });
