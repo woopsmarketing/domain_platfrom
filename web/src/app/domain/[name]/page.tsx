@@ -291,9 +291,9 @@ export default async function DomainDetailPage({ params }: PageProps) {
               ))}
             </ul>
             <a
-              href="https://t.me/GOAT82"
+              href="https://oopsad.com/tg"
               target="_blank"
-              rel="noopener noreferrer"
+              rel="noopener noreferrer nofollow"
               className="w-full sm:w-auto"
             >
               <Button
